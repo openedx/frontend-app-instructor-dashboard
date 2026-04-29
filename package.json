@@ -58,7 +58,8 @@
   "dependencies": {
     "@edx/openedx-atlas": "^0.7.0",
     "codemirror": "^6.0.2",
-    "lodash": "^4.17.23"
+    "lodash": "^4.17.23",
+    "react-helmet": "^6.1.0"
   },
   "devDependencies": {
     "@edx/browserslist-config": "^1.5.0",
