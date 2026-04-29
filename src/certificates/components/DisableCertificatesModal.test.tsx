@@ -33,29 +33,39 @@ describe('DisableCertificatesModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('renders confirm and cancel buttons', () => {
+  it('renders save and close buttons', () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} />);
 
-    expect(screen.getByRole('button', { name: messages.confirm.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: messages.cancel.defaultMessage })).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    const saveButton = buttons.find(btn => btn.textContent === messages.save.defaultMessage);
+    const closeButton = buttons.find(btn => btn.textContent === messages.close.defaultMessage);
+
+    expect(saveButton).toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
   });
 
-  it('calls onConfirm when confirm button is clicked', async () => {
-    renderWithIntl(<DisableCertificatesModal {...defaultProps} />);
+  it('calls onConfirm when save button is clicked and checkbox state changed', async () => {
+    renderWithIntl(<DisableCertificatesModal {...defaultProps} isEnabled={true} />);
     const user = userEvent.setup();
 
-    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
-    await user.click(confirmButton);
+    // Change the checkbox state
+    const checkbox = screen.getByRole('checkbox');
+    await user.click(checkbox);
+
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
+    await user.click(saveButton);
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when cancel button is clicked', async () => {
+  it('calls onClose when close button is clicked', async () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} />);
     const user = userEvent.setup();
 
-    const cancelButton = screen.getByRole('button', { name: messages.cancel.defaultMessage });
-    await user.click(cancelButton);
+    const buttons = screen.getAllByRole('button');
+    const closeButton = buttons.find(btn => btn.textContent === messages.close.defaultMessage);
+    if (!closeButton) throw new Error('Close button not found');
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -63,17 +73,18 @@ describe('DisableCertificatesModal', () => {
   it('disables buttons when isSubmitting is true', () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} isSubmitting={true} />);
 
-    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
-    const cancelButton = screen.getByRole('button', { name: messages.cancel.defaultMessage });
+    const buttons = screen.getAllByRole('button');
+    const saveButton = buttons.find(btn => btn.textContent === messages.save.defaultMessage);
+    const closeButton = buttons.find(btn => btn.textContent === messages.close.defaultMessage);
 
-    expect(confirmButton).toBeDisabled();
-    expect(cancelButton).toBeDisabled();
+    expect(saveButton).toBeDisabled();
+    expect(closeButton).toBeDisabled();
   });
 
   it('does not render when isOpen is false', () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} isOpen={false} />);
 
-    expect(screen.queryByText(messages.disableCertificatesModalTitle.defaultMessage)).not.toBeInTheDocument();
+    expect(screen.queryByText(messages.studentGeneratedCertificatesModalTitle.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('switches title and message based on isEnabled prop', () => {
@@ -95,11 +106,12 @@ describe('DisableCertificatesModal', () => {
   it('enables buttons when not submitting', () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} isSubmitting={false} />);
 
-    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
-    const cancelButton = screen.getByRole('button', { name: messages.cancel.defaultMessage });
+    const buttons = screen.getAllByRole('button');
+    const saveButton = buttons.find(btn => btn.textContent === messages.save.defaultMessage);
+    const closeButton = buttons.find(btn => btn.textContent === messages.close.defaultMessage);
 
-    expect(confirmButton).not.toBeDisabled();
-    expect(cancelButton).not.toBeDisabled();
+    expect(saveButton).not.toBeDisabled();
+    expect(closeButton).not.toBeDisabled();
   });
 
   it('renders with small size modal', () => {
@@ -109,11 +121,22 @@ describe('DisableCertificatesModal', () => {
     expect(modal).toBeInTheDocument();
   });
 
-  it('does not have close button in header', () => {
+  it('has close button in header', () => {
     renderWithIntl(<DisableCertificatesModal {...defaultProps} />);
 
-    // Modal should not have the default close button (X) in header
+    // Modal should have the default close button (X) in header
     const closeButtons = screen.queryAllByLabelText('Close');
-    expect(closeButtons.length).toBe(0);
+    expect(closeButtons.length).toBeGreaterThan(0);
+  });
+
+  it('calls onClose when save button is clicked without changes', async () => {
+    renderWithIntl(<DisableCertificatesModal {...defaultProps} />);
+    const user = userEvent.setup();
+
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
+    await user.click(saveButton);
+
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 });

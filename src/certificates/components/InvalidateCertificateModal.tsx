@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
-import LearnerActionModal from '@src/certificates/components/LearnerActionModal';
+import { ActionRow, Button, Form, ModalDialog } from '@openedx/paragon';
 import messages from '@src/certificates/messages';
 
 interface InvalidateCertificateModalProps {
@@ -16,22 +17,69 @@ const InvalidateCertificateModal = ({
   isSubmitting,
 }: InvalidateCertificateModalProps) => {
   const intl = useIntl();
+  const [learner, setLearner] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = () => {
+    const trimmedLearner = learner.trim();
+    if (trimmedLearner) {
+      onSubmit([trimmedLearner], notes);
+      setLearner('');
+      setNotes('');
+    }
+  };
+
+  const handleClose = () => {
+    setLearner('');
+    setNotes('');
+    onClose();
+  };
 
   return (
-    <LearnerActionModal
+    <ModalDialog
       isOpen={isOpen}
-      onClose={onClose}
-      onSubmit={onSubmit}
-      isSubmitting={isSubmitting}
+      onClose={handleClose}
+      hasCloseButton
       title={intl.formatMessage(messages.invalidateCertificateModalTitle)}
-      description={intl.formatMessage(messages.invalidateCertificateModalDescription)}
-      learnersLabel={intl.formatMessage(messages.learnersLabel)}
-      learnersPlaceholder={intl.formatMessage(messages.learnersPlaceholder)}
-      notesLabel={intl.formatMessage(messages.notesLabel)}
-      notesPlaceholder={intl.formatMessage(messages.notesPlaceholder)}
-      submitLabel={intl.formatMessage(messages.submit)}
-      cancelLabel={intl.formatMessage(messages.cancel)}
-    />
+      className="invalidate-certificate-modal"
+      isOverflowVisible={false}
+    >
+      <ModalDialog.Header className="border-bottom">
+        <ModalDialog.Title>{intl.formatMessage(messages.invalidateCertificateModalTitle)}</ModalDialog.Title>
+      </ModalDialog.Header>
+      <ModalDialog.Body className="px-3">
+        <p className="mb-3">{intl.formatMessage(messages.invalidateCertificateModalDescription)}</p>
+        <Form.Group className="mb-3">
+          <Form.Label>{intl.formatMessage(messages.learnerLabel)}</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder={intl.formatMessage(messages.learnerPlaceholder)}
+            value={learner}
+            onChange={(e) => setLearner(e.target.value)}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>{intl.formatMessage(messages.notesLabel)}</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            placeholder={intl.formatMessage(messages.notesPlaceholder)}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </Form.Group>
+      </ModalDialog.Body>
+      <ModalDialog.Footer>
+        <ActionRow>
+          <Button variant="tertiary" onClick={handleClose} disabled={isSubmitting}>
+            {intl.formatMessage(messages.cancel)}
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || !learner.trim()}>
+            {intl.formatMessage(messages.save)}
+          </Button>
+        </ActionRow>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 
