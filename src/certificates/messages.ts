@@ -436,6 +436,11 @@ const messages = defineMessages({
     defaultMessage: 'Regenerate Certificates: {filter}',
     description: 'Button to regenerate certificates with filter applied',
   },
+  errorModalTitle: {
+    id: 'instruct.certificates.errorModalTitle',
+    defaultMessage: 'Error',
+    description: 'Title for error modal',
+  },
 });
 
 export default messages;

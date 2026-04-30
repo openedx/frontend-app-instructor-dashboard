@@ -85,7 +85,7 @@ const CertificatesPage = () => {
           if (data.errors && data.errors.length > 0) {
             const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
             showModal({
-              title: MODAL_TITLES.ERROR,
+              title: intl.formatMessage(messages.errorModalTitle),
               message: `Some exceptions failed:\n${errorMessages}`,
               variant: ALERT_VARIANTS.WARNING,
             });
@@ -96,7 +96,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorGrantException)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -114,7 +114,7 @@ const CertificatesPage = () => {
           if (data.errors && data.errors.length > 0) {
             const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
             showModal({
-              title: MODAL_TITLES.ERROR,
+              title: intl.formatMessage(messages.errorModalTitle),
               message: `Some exceptions failed:\n${errorMessages}`,
               variant: ALERT_VARIANTS.WARNING,
             });
@@ -125,7 +125,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorGrantException)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -143,7 +143,7 @@ const CertificatesPage = () => {
           if (data.errors && data.errors.length > 0) {
             const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
             showModal({
-              title: MODAL_TITLES.ERROR,
+              title: intl.formatMessage(messages.errorModalTitle),
               message: `Some invalidations failed:\n${errorMessages}`,
               variant: ALERT_VARIANTS.WARNING,
             });
@@ -154,7 +154,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorInvalidateCertificate)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -193,7 +193,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorRemoveException)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -232,7 +232,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorRemoveInvalidation)),
             variant: ALERT_VARIANTS.DANGER,
           });
