@@ -60,6 +60,25 @@ export const grantBulkExceptions = async (
   return camelCaseObject(data);
 };
 
+export const uploadBulkExceptionsCsv = async (
+  courseId: string,
+  file: File,
+): Promise<{ success: string[], errors: { learner: string, message: string }[] }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await getAuthenticatedHttpClient().post(
+    `${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}/certificates/exceptions/bulk`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  return camelCaseObject(data);
+};
+
 export const invalidateCertificate = async (
   courseId: string,
   request: InvalidateCertificateRequest,

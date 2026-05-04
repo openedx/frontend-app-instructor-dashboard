@@ -1,4 +1,5 @@
-import { ActionRow, Button, ModalDialog } from '@openedx/paragon';
+import { useState } from 'react';
+import { ActionRow, Button, Form, ModalDialog } from '@openedx/paragon';
 import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
@@ -18,34 +19,55 @@ const DisableCertificatesModal = ({
   isSubmitting,
 }: DisableCertificatesModalProps) => {
   const intl = useIntl();
+  const [enabled, setEnabled] = useState(isEnabled);
 
-  const title = isEnabled
-    ? intl.formatMessage(messages.disableCertificatesModalTitle)
-    : intl.formatMessage(messages.enableCertificatesModalTitle);
+  const handleSave = () => {
+    if (enabled !== isEnabled) {
+      onConfirm();
+    } else {
+      onClose();
+    }
+  };
 
-  const message = isEnabled
-    ? intl.formatMessage(messages.disableCertificatesModalMessage)
-    : intl.formatMessage(messages.enableCertificatesModalMessage);
+  const handleClose = () => {
+    setEnabled(isEnabled); // Reset to original value
+    onClose();
+  };
 
   return (
     <ModalDialog
-      title={title}
-      onClose={onClose}
+      title={intl.formatMessage(messages.studentGeneratedCertificatesModalTitle)}
+      onClose={handleClose}
       isOpen={isOpen}
-      size="sm"
-      hasCloseButton={false}
+      size="md"
+      hasCloseButton
       isOverflowVisible={false}
     >
-      <div className="mx-4 mt-4 mb-2.5">
-        <p>{message}</p>
-      </div>
+      <ModalDialog.Header className="border-bottom">
+        <ModalDialog.Title>
+          {intl.formatMessage(messages.studentGeneratedCertificatesModalTitle)}
+        </ModalDialog.Title>
+      </ModalDialog.Header>
+      <ModalDialog.Body className="px-4 py-3">
+        <Form.Group>
+          <Form.Checkbox
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+          >
+            {intl.formatMessage(messages.enableStudentGeneratedCertificates)}
+          </Form.Checkbox>
+          <Form.Text className="text-muted">
+            {intl.formatMessage(messages.studentGeneratedCertificatesDescription)}
+          </Form.Text>
+        </Form.Group>
+      </ModalDialog.Body>
       <ModalDialog.Footer>
         <ActionRow>
-          <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>
-            {intl.formatMessage(messages.cancel)}
+          <Button variant="tertiary" onClick={handleClose} disabled={isSubmitting}>
+            {intl.formatMessage(messages.close)}
           </Button>
-          <Button variant="primary" onClick={onConfirm} disabled={isSubmitting}>
-            {intl.formatMessage(messages.confirm)}
+          <Button variant="primary" onClick={handleSave} disabled={isSubmitting}>
+            {intl.formatMessage(messages.save)}
           </Button>
         </ActionRow>
       </ModalDialog.Footer>

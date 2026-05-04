@@ -17,6 +17,7 @@ import {
   removeException,
   removeInvalidation,
   toggleCertificateGeneration,
+  uploadBulkExceptionsCsv,
 } from '@src/certificates/data/api';
 import { certificatesQueryKeys } from '@src/certificates/data/queryKeys';
 
@@ -57,6 +58,22 @@ export const useGrantBulkExceptions = (courseId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (request: GrantExceptionRequest) => grantBulkExceptions(courseId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: certificatesQueryKeys.byCourse(courseId),
+        exact: false,
+      });
+    },
+  });
+};
+
+/**
+ * Hook to upload bulk certificate exceptions via CSV
+ */
+export const useUploadBulkExceptionsCsv = (courseId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => uploadBulkExceptionsCsv(courseId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: certificatesQueryKeys.byCourse(courseId),
