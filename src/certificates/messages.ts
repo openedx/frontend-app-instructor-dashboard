@@ -341,6 +341,111 @@ const messages = defineMessages({
     defaultMessage: 'Regenerate Certificates: {filter}',
     description: 'Button to regenerate certificates with filter applied',
   },
+  generateCertificatesButton: {
+    id: 'instruct.certificates.generateCertificatesButton',
+    defaultMessage: 'Generate Certificates',
+    description: 'Button to generate certificates for granted exceptions',
+  },
+  regenerateTooltipAllLearners: {
+    id: 'instruct.certificates.regenerateTooltipAllLearners',
+    defaultMessage: 'To regenerate certificates, choose a group of learners from the "All Learners" filter',
+    description: 'Tooltip for regenerate button when All Learners filter is selected',
+  },
+  regenerateTooltipInvalidated: {
+    id: 'instruct.certificates.regenerateTooltipInvalidated',
+    defaultMessage: 'To regenerate certificates, choose a different group of learners from the learners filter',
+    description: 'Tooltip for regenerate button when Invalidated filter is selected',
+  },
+  regenerateModalTitleReceived: {
+    id: 'instruct.certificates.regenerateModalTitleReceived',
+    defaultMessage: 'Regenerate certificates for learners who have already received certificates?',
+    description: 'Title for regenerate modal when Received filter is selected',
+  },
+  regenerateModalMessageReceived: {
+    id: 'instruct.certificates.regenerateModalMessageReceived',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Message for regenerate modal when Received filter is selected',
+  },
+  regenerateModalTitleNotReceived: {
+    id: 'instruct.certificates.regenerateModalTitleNotReceived',
+    defaultMessage: 'Regenerate certificates for learners who have not received certificates?',
+    description: 'Title for regenerate modal when Not Received filter is selected',
+  },
+  regenerateModalMessageNotReceived: {
+    id: 'instruct.certificates.regenerateModalMessageNotReceived',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Message for regenerate modal when Not Received filter is selected',
+  },
+  regenerateModalTitleAuditPassing: {
+    id: 'instruct.certificates.regenerateModalTitleAuditPassing',
+    defaultMessage: 'Regenerate certificates for learners with audit - passing state?',
+    description: 'Title for regenerate modal when Audit Passing filter is selected',
+  },
+  regenerateModalMessageAuditPassing: {
+    id: 'instruct.certificates.regenerateModalMessageAuditPassing',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Message for regenerate modal when Audit Passing filter is selected',
+  },
+  regenerateModalTitleAuditNotPassing: {
+    id: 'instruct.certificates.regenerateModalTitleAuditNotPassing',
+    defaultMessage: 'Regenerate certificates for learners with audit - not passing state?',
+    description: 'Title for regenerate modal when Audit Not Passing filter is selected',
+  },
+  regenerateModalMessageAuditNotPassing: {
+    id: 'instruct.certificates.regenerateModalMessageAuditNotPassing',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Message for regenerate modal when Audit Not Passing filter is selected',
+  },
+  regenerateModalTitleErrorState: {
+    id: 'instruct.certificates.regenerateModalTitleErrorState',
+    defaultMessage: 'Regenerate certificates for learners with an error state?',
+    description: 'Title for regenerate modal when Error State filter is selected',
+  },
+  regenerateModalMessageErrorState: {
+    id: 'instruct.certificates.regenerateModalMessageErrorState',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Message for regenerate modal when Error State filter is selected',
+  },
+  generateModalTitle: {
+    id: 'instruct.certificates.generateModalTitle',
+    defaultMessage: 'Generate Certificates?',
+    description: 'Title for generate certificates modal',
+  },
+  generateModalDescription: {
+    id: 'instruct.certificates.generateModalDescription',
+    defaultMessage: 'Generate certificates for learners who have granted exceptions? Clicking "Generate" will regenerate certificates for {number} learner(s)',
+    description: 'Description for generate certificates modal',
+  },
+  generateOptionAll: {
+    id: 'instruct.certificates.generateOptionAll',
+    defaultMessage: 'All Users on the Exception list',
+    description: 'Option to generate certificates for all users on exception list',
+  },
+  generateOptionWithoutCertificate: {
+    id: 'instruct.certificates.generateOptionWithoutCertificate',
+    defaultMessage: 'All Users on the Exception list who do not yet have a certificate',
+    description: 'Option to generate certificates for users without certificates',
+  },
+  generate: {
+    id: 'instruct.certificates.generate',
+    defaultMessage: 'Generate',
+    description: 'Generate button text',
+  },
+  regenerate: {
+    id: 'instruct.certificates.regenerate',
+    defaultMessage: 'Regenerate',
+    description: 'Regenerate button text',
+  },
+  regenerateModalTitleDefault: {
+    id: 'instruct.certificates.regenerateModalTitleDefault',
+    defaultMessage: 'Regenerate Certificates?',
+    description: 'Default title for regenerate modal',
+  },
+  regenerateModalMessageDefault: {
+    id: 'instruct.certificates.regenerateModalMessageDefault',
+    defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
+    description: 'Default message for regenerate modal',
+  },
 });
 
 export default messages;

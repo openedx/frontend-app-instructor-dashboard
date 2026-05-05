@@ -862,8 +862,15 @@ describe('CertificatesPage', () => {
   });
 
   describe('Regenerate Certificates', () => {
-    it('shows toast when regeneration succeeds', async () => {
-      mockRegenerateCerts.mockImplementation((_filter, options) => {
+    it('button is disabled when All Learners filter is selected', async () => {
+      renderWithAlertAndIntl(<CertificatesPage />);
+
+      const regenerateButton = screen.getByText(/Regenerate Certificates/i);
+      expect(regenerateButton).toBeDisabled();
+    });
+
+    it('shows regenerate modal and calls API when regeneration succeeds with filter', async () => {
+      mockRegenerateCerts.mockImplementation((_params, options) => {
         if (options?.onSuccess) {
           options.onSuccess();
         }
@@ -872,14 +879,37 @@ describe('CertificatesPage', () => {
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
+      // Change filter to "Received"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Received')).toBeInTheDocument();
+      });
+
+      const receivedOption = screen.getByText('Received');
+      await user.click(receivedOption);
+
+      // Click regenerate button
       const regenerateButton = screen.getByText(/Regenerate Certificates/i);
       await user.click(regenerateButton);
 
-      expect(mockRegenerateCerts).toHaveBeenCalledWith('all', expect.any(Object));
+      // Confirm in the modal
+      await waitFor(() => {
+        expect(screen.getByText('Regenerate')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: 'Regenerate' });
+      await user.click(confirmButton);
+
+      expect(mockRegenerateCerts).toHaveBeenCalledWith(
+        { filter: 'received', onlyWithoutCertificate: false },
+        expect.any(Object),
+      );
     });
 
     it('shows error modal when regeneration fails', async () => {
-      mockRegenerateCerts.mockImplementation((_filter, options) => {
+      mockRegenerateCerts.mockImplementation((_params, options) => {
         if (options?.onError) {
           options.onError({ response: { data: { message: 'Regeneration failed' } } });
         }
@@ -888,8 +918,28 @@ describe('CertificatesPage', () => {
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
+      // Change filter to "Received"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Received')).toBeInTheDocument();
+      });
+
+      const receivedOption = screen.getByText('Received');
+      await user.click(receivedOption);
+
+      // Click regenerate button
       const regenerateButton = screen.getByText(/Regenerate Certificates/i);
       await user.click(regenerateButton);
+
+      // Confirm in the modal
+      await waitFor(() => {
+        expect(screen.getByText('Regenerate')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: 'Regenerate' });
+      await user.click(confirmButton);
 
       expect(mockRegenerateCerts).toHaveBeenCalled();
     });

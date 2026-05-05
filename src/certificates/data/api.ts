@@ -121,6 +121,7 @@ export const toggleCertificateGeneration = async (
 export const regenerateCertificates = async (
   courseId: string,
   filter: string,
+  onlyWithoutCertificate?: boolean,
 ): Promise<void> => {
   const body: { statuses?: string[], student_set?: string } = {};
 
@@ -146,7 +147,8 @@ export const regenerateCertificates = async (
       body.statuses = ['error'];
       break;
     case 'granted_exceptions':
-      body.student_set = 'allowlisted';
+      // For granted exceptions, use different student_set based on option
+      body.student_set = onlyWithoutCertificate ? 'allowlisted_not_generated' : 'allowlisted';
       break;
     case 'invalidated':
       // Invalidated certificates have unavailable status
