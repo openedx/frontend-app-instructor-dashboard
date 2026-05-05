@@ -50,6 +50,73 @@ describe('errorHandling', () => {
       };
       expect(getErrorMessage(error, 'Fallback')).toBe('Fallback');
     });
+
+    it('returns error from response.data.message', () => {
+      const error: ApiError = {
+        response: {
+          data: {
+            message: 'Error from data.message',
+          },
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Error from data.message');
+    });
+
+    it('returns error from response.data.detail', () => {
+      const error: ApiError = {
+        response: {
+          data: {
+            detail: 'Error from data.detail',
+          },
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Error from data.detail');
+    });
+
+    it('returns error from response.data when it is a string', () => {
+      const error: ApiError = {
+        response: {
+          data: 'Error string',
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Error string');
+    });
+
+    it('prefers error over message over detail', () => {
+      const error: ApiError = {
+        response: {
+          data: {
+            error: 'Error text',
+            message: 'Message text',
+            detail: 'Detail text',
+          },
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Error text');
+    });
+
+    it('uses message when error is not present', () => {
+      const error: ApiError = {
+        response: {
+          data: {
+            message: 'Message text',
+            detail: 'Detail text',
+          },
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Message text');
+    });
+
+    it('uses detail when error and message are not present', () => {
+      const error: ApiError = {
+        response: {
+          data: {
+            detail: 'Detail text',
+          },
+        },
+      };
+      expect(getErrorMessage(error, 'Fallback')).toBe('Detail text');
+    });
   });
 
   describe('parseLearnersCount', () => {

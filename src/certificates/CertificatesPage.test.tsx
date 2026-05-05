@@ -946,6 +946,113 @@ describe('CertificatesPage', () => {
 
       expect(mockRemoveInvalidation).toHaveBeenCalled();
     });
+
+    it('opens generate modal for granted exceptions filter', async () => {
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // Change filter to "Granted Exceptions"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Granted Exceptions')).toBeInTheDocument();
+      });
+
+      const grantedExceptionsOption = screen.getByText('Granted Exceptions');
+      await user.click(grantedExceptionsOption);
+
+      // Click generate button
+      const generateButton = screen.getByText(/Generate Certificates/i);
+      await user.click(generateButton);
+
+      // Modal should open
+      await waitFor(() => {
+        expect(screen.getByText('Generate Certificates?')).toBeInTheDocument();
+      });
+    });
+
+    it('does not open modal when button is disabled', async () => {
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // ALL_LEARNERS filter should have disabled button
+      const regenerateButton = screen.getByText(/Regenerate Certificates/i);
+      expect(regenerateButton).toBeDisabled();
+
+      await user.click(regenerateButton);
+
+      // Modal should not open
+      expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
+    });
+
+    it('closes regenerate modal when cancel is clicked', async () => {
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // Change filter to "Received"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Received')).toBeInTheDocument();
+      });
+
+      const receivedOption = screen.getByText('Received');
+      await user.click(receivedOption);
+
+      // Click regenerate button
+      const regenerateButton = screen.getByText(/Regenerate Certificates/i);
+      await user.click(regenerateButton);
+
+      // Modal should open
+      await waitFor(() => {
+        expect(screen.getByText('Regenerate')).toBeInTheDocument();
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await user.click(cancelButton);
+
+      // Modal should close
+      await waitFor(() => {
+        expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
+      });
+    });
+
+    it('closes generate modal when cancel is clicked', async () => {
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // Change filter to "Granted Exceptions"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Granted Exceptions')).toBeInTheDocument();
+      });
+
+      const grantedExceptionsOption = screen.getByText('Granted Exceptions');
+      await user.click(grantedExceptionsOption);
+
+      // Click generate button
+      const generateButton = screen.getByText(/Generate Certificates/i);
+      await user.click(generateButton);
+
+      // Modal should open
+      await waitFor(() => {
+        expect(screen.getByText('Generate Certificates?')).toBeInTheDocument();
+      });
+
+      // Click cancel
+      const cancelButton = screen.getByText('Cancel');
+      await user.click(cancelButton);
+
+      // Modal should close
+      await waitFor(() => {
+        expect(screen.queryByText('Generate Certificates?')).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe('Filter and Search', () => {
