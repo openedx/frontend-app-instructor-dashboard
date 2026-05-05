@@ -25,42 +25,42 @@ describe('RegenerateCertificatesModal', () => {
   it('renders modal with received filter title and message', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleReceived.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleReceived.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
   it('renders modal with not received filter title and message', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} filter={CertificateFilter.NOT_RECEIVED} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleNotReceived.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleNotReceived.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
   it('renders modal with audit passing filter title and message', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} filter={CertificateFilter.AUDIT_PASSING} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleAuditPassing.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleAuditPassing.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
   it('renders modal with audit not passing filter title and message', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} filter={CertificateFilter.AUDIT_NOT_PASSING} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleAuditNotPassing.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleAuditNotPassing.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
   it('renders modal with error state filter title and message', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} filter={CertificateFilter.ERROR_STATE} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleErrorState.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleErrorState.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
   it('renders modal with default title and message for unknown filter', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} filter={CertificateFilter.ALL_LEARNERS} />);
 
-    expect(screen.getByText(messages.regenerateModalTitleDefault.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: messages.regenerateModalTitleDefault.defaultMessage })).toBeInTheDocument();
     expect(screen.getByText(/Clicking "Regenerate" will regenerate certificates for 10 learner/i)).toBeInTheDocument();
   });
 
@@ -97,6 +97,6 @@ describe('RegenerateCertificatesModal', () => {
   it('does not render when isOpen is false', () => {
     renderWithIntl(<RegenerateCertificatesModal {...defaultProps} isOpen={false} />);
 
-    expect(screen.queryByText(messages.regenerateModalTitleReceived.defaultMessage)).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

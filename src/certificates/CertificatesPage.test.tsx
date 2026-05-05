@@ -968,7 +968,7 @@ describe('CertificatesPage', () => {
 
       // Modal should open
       await waitFor(() => {
-        expect(screen.getByText('Generate Certificates?')).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Generate Certificates?' })).toBeInTheDocument();
       });
     });
 
@@ -1041,7 +1041,7 @@ describe('CertificatesPage', () => {
 
       // Modal should open
       await waitFor(() => {
-        expect(screen.getByText('Generate Certificates?')).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Generate Certificates?' })).toBeInTheDocument();
       });
 
       // Click cancel
@@ -1050,7 +1050,7 @@ describe('CertificatesPage', () => {
 
       // Modal should close
       await waitFor(() => {
-        expect(screen.queryByText('Generate Certificates?')).not.toBeInTheDocument();
+        expect(screen.queryByRole('dialog', { name: 'Generate Certificates?' })).not.toBeInTheDocument();
       });
     });
   });
