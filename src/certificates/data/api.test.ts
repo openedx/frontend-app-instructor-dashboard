@@ -4,6 +4,7 @@ import {
   getIssuedCertificates,
   getInstructorTasks,
   grantBulkExceptions,
+  uploadBulkExceptionsCsv,
   invalidateCertificate,
   removeException,
   removeInvalidation,
@@ -188,6 +189,36 @@ describe('Certificate API', () => {
           notes: 'Test',
         })
       ).rejects.toThrow('Permission denied');
+    });
+  });
+
+  describe('uploadBulkExceptionsCsv', () => {
+    it('uploads CSV file for bulk exceptions', async () => {
+      mockPost.mockResolvedValue({ data: { success: ['user1', 'user2'], errors: [] } });
+
+      const csvFile = new File(['username,notes\nuser1,note1'], 'test.csv', { type: 'text/csv' });
+
+      await uploadBulkExceptionsCsv('course-v1:edX+Test+2024', csvFile);
+
+      expect(mockPost).toHaveBeenCalledWith(
+        'http://localhost:18000/api/instructor/v2/courses/course-v1:edX+Test+2024/certificates/exceptions/bulk',
+        expect.any(FormData),
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+    });
+
+    it('handles errors when uploading CSV', async () => {
+      mockPost.mockRejectedValue(new Error('Invalid CSV format'));
+
+      const csvFile = new File(['invalid'], 'test.csv', { type: 'text/csv' });
+
+      await expect(
+        uploadBulkExceptionsCsv('course-v1:edX+Test+2024', csvFile)
+      ).rejects.toThrow('Invalid CSV format');
     });
   });
 

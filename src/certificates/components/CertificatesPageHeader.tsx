@@ -1,18 +1,18 @@
 import { Button, Dropdown, IconButton, Stack } from '@openedx/paragon';
-import { Add, Close, MoreVert } from '@openedx/paragon/icons';
+import { Add, Cancel, MoreVert } from '@openedx/paragon/icons';
 import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
 interface CertificatesPageHeaderProps {
   onGrantExceptions: () => void,
   onInvalidateCertificate: () => void,
-  onDisableCertificates: () => void,
+  onStudentGeneratedCertificates?: () => void,
 }
 
 const CertificatesPageHeader = ({
   onGrantExceptions,
   onInvalidateCertificate,
-  onDisableCertificates,
+  onStudentGeneratedCertificates,
 }: CertificatesPageHeaderProps) => {
   const intl = useIntl();
 
@@ -24,18 +24,20 @@ const CertificatesPageHeader = ({
           <Dropdown.Toggle
             as={IconButton}
             src={MoreVert}
-            alt={intl.formatMessage(messages.disableCertificatesButton)}
+            alt={intl.formatMessage(messages.moreActionsButton)}
             id="certificates-more-menu"
           />
           <Dropdown.Menu>
-            <Dropdown.Item onClick={onDisableCertificates}>
-              {intl.formatMessage(messages.disableCertificatesButton)}
-            </Dropdown.Item>
+            {onStudentGeneratedCertificates && (
+              <Dropdown.Item onClick={onStudentGeneratedCertificates}>
+                {intl.formatMessage(messages.studentGeneratedCertificatesMenuItem)}
+              </Dropdown.Item>
+            )}
           </Dropdown.Menu>
         </Dropdown>
         <Button
           variant="outline-primary"
-          iconBefore={Close}
+          iconBefore={Cancel}
           onClick={onInvalidateCertificate}
           className="text-nowrap"
         >

@@ -13,6 +13,7 @@ import {
   useRemoveException,
   useRemoveInvalidation,
   useToggleCertificateGeneration,
+  useUploadBulkExceptionsCsv,
 } from '@src/certificates/data/apiHook';
 import messages from '@src/certificates/messages';
 
@@ -31,6 +32,7 @@ const mockUseCertificateGenerationHistory = useCertificateGenerationHistory as j
 const mockUseInstructorTasks = useInstructorTasks as jest.MockedFunction<typeof useInstructorTasks>;
 const mockUseIssuedCertificates = useIssuedCertificates as jest.MockedFunction<typeof useIssuedCertificates>;
 const mockUseGrantBulkExceptions = useGrantBulkExceptions as jest.MockedFunction<typeof useGrantBulkExceptions>;
+const mockUseUploadBulkExceptionsCsv = useUploadBulkExceptionsCsv as jest.MockedFunction<typeof useUploadBulkExceptionsCsv>;
 const mockUseInvalidateCertificate = useInvalidateCertificate as jest.MockedFunction<typeof useInvalidateCertificate>;
 const mockUseRegenerateCertificates = useRegenerateCertificates as jest.MockedFunction<typeof useRegenerateCertificates>;
 const mockUseRemoveException = useRemoveException as jest.MockedFunction<typeof useRemoveException>;
@@ -142,6 +144,11 @@ describe('CertificatesPage', () => {
       isPending: false,
     } as unknown as ReturnType<typeof useGrantBulkExceptions>);
 
+    mockUseUploadBulkExceptionsCsv.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useUploadBulkExceptionsCsv>);
+
     mockUseInvalidateCertificate.mockReturnValue({
       mutate: mockInvalidateCert,
       isPending: false,
@@ -219,7 +226,7 @@ describe('CertificatesPage', () => {
     await user.click(invalidateButton);
 
     await waitFor(() => {
-      expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 
@@ -281,15 +288,15 @@ describe('CertificatesPage', () => {
       });
 
       // Fill in the form
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      const notesInput = screen.getByPlaceholderText(messages.notesPlaceholder.defaultMessage);
+      const learnerInput = screen.getByPlaceholderText(messages.studentEmailUsername.defaultMessage);
+      const notesInput = screen.getByPlaceholderText(messages.notesOptional.defaultMessage);
 
-      await user.type(learnersInput, 'user1');
+      await user.type(learnerInput, 'user1');
       await user.type(notesInput, 'Test note');
 
       // Submit the form
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Verify mutation was called
       expect(mockGrantExceptions).toHaveBeenCalledWith(
@@ -320,11 +327,11 @@ describe('CertificatesPage', () => {
       });
 
       // Fill in and submit the form
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1');
+      const learnerInput = screen.getByPlaceholderText(messages.studentEmailUsername.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Verify the modal is closed (side effect of onSuccess)
       await waitFor(() => {
@@ -352,11 +359,11 @@ describe('CertificatesPage', () => {
       });
 
       // Fill in and submit the form
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1');
+      const learnerInput = screen.getByPlaceholderText(messages.studentEmailUsername.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Verify mutation was called (error alert is shown by AlertProvider)
       expect(mockGrantExceptions).toHaveBeenCalled();
@@ -383,16 +390,146 @@ describe('CertificatesPage', () => {
         expect(screen.getByText(messages.grantExceptionsModalTitle.defaultMessage)).toBeInTheDocument();
       });
 
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1, user2');
+      const learnerInput = screen.getByPlaceholderText(messages.studentEmailUsername.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Modal should close
       await waitFor(() => {
         expect(screen.queryByText(messages.grantExceptionsModalTitle.defaultMessage)).not.toBeInTheDocument();
       });
+    });
+
+    it('handles CSV upload with success', async () => {
+      const mockUploadCsv = jest.fn();
+      mockUseUploadBulkExceptionsCsv.mockReturnValue({
+        mutate: mockUploadCsv,
+        isPending: false,
+      } as unknown as ReturnType<typeof useUploadBulkExceptionsCsv>);
+
+      mockUploadCsv.mockImplementation((_data, options) => {
+        if (options?.onSuccess) {
+          options.onSuccess({ success: ['user1', 'user2'], errors: [] });
+        }
+      });
+
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      const grantButton = screen.getByText(messages.grantExceptionsButton.defaultMessage);
+      await user.click(grantButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(messages.grantExceptionsModalTitle.defaultMessage)).toBeInTheDocument();
+      });
+
+      // Switch to Bulk tab
+      const bulkTab = screen.getByRole('tab', { name: messages.bulkUploadTab.defaultMessage });
+      await user.click(bulkTab);
+
+      // Create and upload a mock file
+      const csvFile = new File(['username,notes\nuser1,note1'], 'test.csv', { type: 'text/csv' });
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+      if (fileInput) {
+        await user.upload(fileInput, csvFile);
+        await screen.findByText(/test\.csv/i);
+
+        const saveButton = screen.getByText(messages.save.defaultMessage);
+        await user.click(saveButton);
+
+        expect(mockUploadCsv).toHaveBeenCalled();
+      }
+    });
+
+    it('handles CSV upload with partial errors', async () => {
+      const mockUploadCsv = jest.fn();
+      mockUseUploadBulkExceptionsCsv.mockReturnValue({
+        mutate: mockUploadCsv,
+        isPending: false,
+      } as unknown as ReturnType<typeof useUploadBulkExceptionsCsv>);
+
+      mockUploadCsv.mockImplementation((_data, options) => {
+        if (options?.onSuccess) {
+          options.onSuccess({
+            success: ['user1'],
+            errors: [{ learner: 'user2', message: 'User not found' }]
+          });
+        }
+      });
+
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      const grantButton = screen.getByText(messages.grantExceptionsButton.defaultMessage);
+      await user.click(grantButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(messages.grantExceptionsModalTitle.defaultMessage)).toBeInTheDocument();
+      });
+
+      // Switch to Bulk tab
+      const bulkTab = screen.getByRole('tab', { name: messages.bulkUploadTab.defaultMessage });
+      await user.click(bulkTab);
+
+      const csvFile = new File(['username,notes\nuser1,note1'], 'test.csv', { type: 'text/csv' });
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+      if (fileInput) {
+        await user.upload(fileInput, csvFile);
+        await screen.findByText(/test\.csv/i);
+
+        const saveButton = screen.getByText(messages.save.defaultMessage);
+        await user.click(saveButton);
+
+        // Wait for modal to close and error modal to appear
+        await waitFor(() => {
+          expect(screen.queryByText(messages.grantExceptionsModalTitle.defaultMessage)).not.toBeInTheDocument();
+        });
+      }
+    });
+
+    it('handles CSV upload error', async () => {
+      const mockUploadCsv = jest.fn();
+      mockUseUploadBulkExceptionsCsv.mockReturnValue({
+        mutate: mockUploadCsv,
+        isPending: false,
+      } as unknown as ReturnType<typeof useUploadBulkExceptionsCsv>);
+
+      mockUploadCsv.mockImplementation((_data, options) => {
+        if (options?.onError) {
+          options.onError({ response: { data: { message: 'CSV upload failed' } } });
+        }
+      });
+
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      const grantButton = screen.getByText(messages.grantExceptionsButton.defaultMessage);
+      await user.click(grantButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(messages.grantExceptionsModalTitle.defaultMessage)).toBeInTheDocument();
+      });
+
+      // Switch to Bulk tab
+      const bulkTab = screen.getByRole('tab', { name: messages.bulkUploadTab.defaultMessage });
+      await user.click(bulkTab);
+
+      const csvFile = new File(['username,notes\nuser1,note1'], 'test.csv', { type: 'text/csv' });
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+      if (fileInput) {
+        await user.upload(fileInput, csvFile);
+        await screen.findByText(/test\.csv/i);
+
+        const saveButton = screen.getByText(messages.save.defaultMessage);
+        await user.click(saveButton);
+
+        expect(mockUploadCsv).toHaveBeenCalled();
+      }
     });
   });
 
@@ -405,17 +542,17 @@ describe('CertificatesPage', () => {
       await user.click(invalidateButton);
 
       await waitFor(() => {
-        expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
+      const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
       const notesInput = screen.getByPlaceholderText(messages.notesPlaceholder.defaultMessage);
 
-      await user.type(learnersInput, 'user1');
+      await user.type(learnerInput, 'user1');
       await user.type(notesInput, 'Invalid certificate');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       expect(mockInvalidateCert).toHaveBeenCalledWith(
         { learners: ['user1'], notes: 'Invalid certificate' },
@@ -440,18 +577,18 @@ describe('CertificatesPage', () => {
       await user.click(invalidateButton);
 
       await waitFor(() => {
-        expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1');
+      const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Verify modal is closed (side effect of onSuccess)
       await waitFor(() => {
-        expect(screen.queryByText(messages.invalidateCertificateModalTitle.defaultMessage)).not.toBeInTheDocument();
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       });
     });
 
@@ -470,14 +607,14 @@ describe('CertificatesPage', () => {
       await user.click(invalidateButton);
 
       await waitFor(() => {
-        expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1');
+      const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       expect(mockInvalidateCert).toHaveBeenCalled();
     });
@@ -499,57 +636,62 @@ describe('CertificatesPage', () => {
       await user.click(invalidateButton);
 
       await waitFor(() => {
-        expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-      await user.type(learnersInput, 'user1, user2');
+      const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
+      await user.type(learnerInput, 'user1');
 
-      const submitButton = screen.getByText(messages.submit.defaultMessage);
-      await user.click(submitButton);
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
+      // Verify error modal is shown
       await waitFor(() => {
-        expect(screen.queryByText(messages.invalidateCertificateModalTitle.defaultMessage)).not.toBeInTheDocument();
+        expect(screen.getByText(/Some invalidations failed/)).toBeInTheDocument();
       });
     });
   });
 
   describe('Toggle Certificate Generation', () => {
-    it('opens disable certificates modal when button is clicked', async () => {
+    it('opens student generated certificates modal when menu item is clicked', async () => {
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
       // Click the dropdown toggle button
-      const dropdownToggle = screen.getByRole('button', { name: messages.disableCertificatesButton.defaultMessage });
+      const dropdownToggle = screen.getByRole('button', { name: 'More actions' });
       await user.click(dropdownToggle);
 
-      // Click the disable certificates menu item
-      const disableMenuItem = screen.getByText(messages.disableCertificatesButton.defaultMessage);
-      await user.click(disableMenuItem);
+      // Click the student generated certificates menu item
+      const menuItem = screen.getByText(messages.studentGeneratedCertificatesMenuItem.defaultMessage);
+      await user.click(menuItem);
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
     });
 
-    it('calls mutation to disable generation on confirm', async () => {
+    it('calls mutation when save is clicked after toggling checkbox', async () => {
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
       // Click the dropdown toggle button
-      const dropdownToggle = screen.getByRole('button', { name: messages.disableCertificatesButton.defaultMessage });
+      const dropdownToggle = screen.getByRole('button', { name: 'More actions' });
       await user.click(dropdownToggle);
 
-      // Click the disable certificates menu item
-      const disableMenuItem = screen.getByText(messages.disableCertificatesButton.defaultMessage);
-      await user.click(disableMenuItem);
+      // Click the student generated certificates menu item
+      const menuItem = screen.getByText(messages.studentGeneratedCertificatesMenuItem.defaultMessage);
+      await user.click(menuItem);
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByText(messages.confirm.defaultMessage);
-      await user.click(confirmButton);
+      // Toggle the checkbox
+      const checkbox = screen.getByRole('checkbox');
+      await user.click(checkbox);
+
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       expect(mockToggleGeneration).toHaveBeenCalledWith(
         false,
@@ -571,19 +713,23 @@ describe('CertificatesPage', () => {
       const user = userEvent.setup();
 
       // Click the dropdown toggle button
-      const dropdownToggle = screen.getByRole('button', { name: messages.disableCertificatesButton.defaultMessage });
+      const dropdownToggle = screen.getByRole('button', { name: 'More actions' });
       await user.click(dropdownToggle);
 
-      // Click the disable certificates menu item
-      const disableMenuItem = screen.getByText(messages.disableCertificatesButton.defaultMessage);
-      await user.click(disableMenuItem);
+      // Click the student generated certificates menu item
+      const menuItem = screen.getByText(messages.studentGeneratedCertificatesMenuItem.defaultMessage);
+      await user.click(menuItem);
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByText(messages.confirm.defaultMessage);
-      await user.click(confirmButton);
+      // Toggle the checkbox
+      const checkbox = screen.getByRole('checkbox');
+      await user.click(checkbox);
+
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       // Verify modal is closed (side effect of onSuccess)
       await waitFor(() => {
@@ -603,19 +749,23 @@ describe('CertificatesPage', () => {
       const user = userEvent.setup();
 
       // Click the dropdown toggle button
-      const dropdownToggle = screen.getByRole('button', { name: messages.disableCertificatesButton.defaultMessage });
+      const dropdownToggle = screen.getByRole('button', { name: 'More actions' });
       await user.click(dropdownToggle);
 
-      // Click the disable certificates menu item
-      const disableMenuItem = screen.getByText(messages.disableCertificatesButton.defaultMessage);
-      await user.click(disableMenuItem);
+      // Click the student generated certificates menu item
+      const menuItem = screen.getByText(messages.studentGeneratedCertificatesMenuItem.defaultMessage);
+      await user.click(menuItem);
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByText(messages.confirm.defaultMessage);
-      await user.click(confirmButton);
+      // Toggle the checkbox
+      const checkbox = screen.getByRole('checkbox');
+      await user.click(checkbox);
+
+      const saveButton = screen.getByText(messages.save.defaultMessage);
+      await user.click(saveButton);
 
       expect(mockToggleGeneration).toHaveBeenCalled();
     });
@@ -987,33 +1137,33 @@ describe('CertificatesPage', () => {
       await user.click(invalidateButton);
 
       await waitFor(() => {
-        expect(screen.getByText(messages.invalidateCertificateModalTitle.defaultMessage)).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
       const closeButton = screen.getByLabelText('Close');
       await user.click(closeButton);
 
       await waitFor(() => {
-        expect(screen.queryByText(messages.invalidateCertificateModalTitle.defaultMessage)).not.toBeInTheDocument();
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       });
     });
 
-    it('closes disable certificates modal', async () => {
+    it('closes student generated certificates modal', async () => {
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
-      const dropdownToggle = screen.getByRole('button', { name: messages.disableCertificatesButton.defaultMessage });
+      const dropdownToggle = screen.getByRole('button', { name: 'More actions' });
       await user.click(dropdownToggle);
 
-      const disableMenuItem = screen.getByText(messages.disableCertificatesButton.defaultMessage);
-      await user.click(disableMenuItem);
+      const menuItem = screen.getByText(messages.studentGeneratedCertificatesMenuItem.defaultMessage);
+      await user.click(menuItem);
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const cancelButton = screen.getByText(messages.cancel.defaultMessage);
-      await user.click(cancelButton);
+      const closeButton = screen.getByText(messages.close.defaultMessage);
+      await user.click(closeButton);
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

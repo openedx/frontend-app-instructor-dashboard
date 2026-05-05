@@ -5,6 +5,7 @@ import {
   useIssuedCertificates,
   useInstructorTasks,
   useGrantBulkExceptions,
+  useUploadBulkExceptionsCsv,
   useInvalidateCertificate,
   useRemoveException,
   useRemoveInvalidation,
@@ -16,6 +17,7 @@ import {
   getIssuedCertificates,
   getInstructorTasks,
   grantBulkExceptions,
+  uploadBulkExceptionsCsv,
   invalidateCertificate,
   removeException,
   removeInvalidation,
@@ -30,6 +32,7 @@ jest.mock('@src/certificates/data/api');
 const mockGetIssuedCertificates = getIssuedCertificates as jest.MockedFunction<typeof getIssuedCertificates>;
 const mockGetInstructorTasks = getInstructorTasks as jest.MockedFunction<typeof getInstructorTasks>;
 const mockGrantBulkExceptions = grantBulkExceptions as jest.MockedFunction<typeof grantBulkExceptions>;
+const mockUploadBulkExceptionsCsv = uploadBulkExceptionsCsv as jest.MockedFunction<typeof uploadBulkExceptionsCsv>;
 const mockInvalidateCertificate = invalidateCertificate as jest.MockedFunction<typeof invalidateCertificate>;
 const mockRemoveException = removeException as jest.MockedFunction<typeof removeException>;
 const mockRemoveInvalidation = removeInvalidation as jest.MockedFunction<typeof removeInvalidation>;
@@ -261,6 +264,49 @@ describe('certificates api hooks', () => {
       });
 
       result.current.mutate({ learners: ['user1'], notes: 'Test' });
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true);
+      });
+
+      expect(result.current.error).toBe(mockError);
+    });
+  });
+
+  describe('useUploadBulkExceptionsCsv', () => {
+    it('uploads CSV file successfully', async () => {
+      mockUploadBulkExceptionsCsv.mockResolvedValue({ success: ['user1', 'user2'], errors: [] });
+
+      const { Wrapper, queryClient: qc } = createWrapper();
+      queryClient = qc;
+
+      const { result } = renderHook(() => useUploadBulkExceptionsCsv('course-v1:Test+Course+2024'), {
+        wrapper: Wrapper,
+      });
+
+      const csvFile = new File(['username,notes\nuser1,note1'], 'test.csv', { type: 'text/csv' });
+      result.current.mutate(csvFile);
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(mockUploadBulkExceptionsCsv).toHaveBeenCalledWith('course-v1:Test+Course+2024', csvFile);
+    });
+
+    it('handles error when uploading CSV', async () => {
+      const mockError = new Error('Invalid CSV format');
+      mockUploadBulkExceptionsCsv.mockRejectedValue(mockError);
+
+      const { Wrapper, queryClient: qc } = createWrapper();
+      queryClient = qc;
+
+      const { result } = renderHook(() => useUploadBulkExceptionsCsv('course-v1:Test+Course+2024'), {
+        wrapper: Wrapper,
+      });
+
+      const csvFile = new File(['invalid'], 'test.csv', { type: 'text/csv' });
+      result.current.mutate(csvFile);
 
       await waitFor(() => {
         expect(result.current.isError).toBe(true);

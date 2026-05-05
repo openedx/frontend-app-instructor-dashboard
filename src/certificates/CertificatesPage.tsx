@@ -23,6 +23,7 @@ import {
   useRemoveException,
   useRemoveInvalidation,
   useToggleCertificateGeneration,
+  useUploadBulkExceptionsCsv,
 } from '@src/certificates/data/apiHook';
 import { CertificateFilter } from '@src/certificates/types';
 import { CERTIFICATES_PAGE_SIZE, TAB_KEYS, MODAL_TITLES, ALERT_VARIANTS } from '@src/certificates/constants';
@@ -72,6 +73,7 @@ const CertificatesPage = () => {
   });
 
   const { mutate: grantExceptions, isPending: isGrantingExceptions } = useGrantBulkExceptions(courseId);
+  const { mutate: uploadCsvExceptions, isPending: isUploadingCsv } = useUploadBulkExceptionsCsv(courseId);
   const { mutate: invalidateCert, isPending: isInvalidating } = useInvalidateCertificate(courseId);
   const { mutate: removeExcept, isPending: isRemovingException } = useRemoveException(courseId);
   const { mutate: removeInval, isPending: isRemovingInvalidation } = useRemoveInvalidation(courseId);
@@ -87,7 +89,7 @@ const CertificatesPage = () => {
           if (data.errors && data.errors.length > 0) {
             const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
             showModal({
-              title: MODAL_TITLES.ERROR,
+              title: intl.formatMessage(messages.errorModalTitle),
               message: `Some exceptions failed:\n${errorMessages}`,
               variant: ALERT_VARIANTS.WARNING,
             });
@@ -98,7 +100,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorGrantException)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -106,6 +108,35 @@ const CertificatesPage = () => {
       },
     );
   }, [grantExceptions, showToast, showModal, intl]);
+
+  const handleUploadCsvExceptions = useCallback((file: File) => {
+    uploadCsvExceptions(
+      file,
+      {
+        onSuccess: (data) => {
+          setIsGrantExceptionsOpen(false);
+          if (data.errors && data.errors.length > 0) {
+            const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
+            showModal({
+              title: intl.formatMessage(messages.errorModalTitle),
+              message: `Some exceptions failed:\n${errorMessages}`,
+              variant: ALERT_VARIANTS.WARNING,
+            });
+          }
+          if (data.success && data.success.length > 0) {
+            showToast(intl.formatMessage(messages.exceptionsGrantedToast, { count: data.success.length }));
+          }
+        },
+        onError: (error) => {
+          showModal({
+            title: intl.formatMessage(messages.errorModalTitle),
+            message: getErrorMessage(error, intl.formatMessage(messages.errorGrantException)),
+            variant: ALERT_VARIANTS.DANGER,
+          });
+        },
+      },
+    );
+  }, [uploadCsvExceptions, showToast, showModal, intl]);
 
   const handleInvalidateCertificate = useCallback((learners: string[], notes: string) => {
     invalidateCert(
@@ -116,7 +147,7 @@ const CertificatesPage = () => {
           if (data.errors && data.errors.length > 0) {
             const errorMessages = data.errors.map(err => `${err.learner}: ${err.message}`).join('\n');
             showModal({
-              title: MODAL_TITLES.ERROR,
+              title: intl.formatMessage(messages.errorModalTitle),
               message: `Some invalidations failed:\n${errorMessages}`,
               variant: ALERT_VARIANTS.WARNING,
             });
@@ -127,7 +158,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorInvalidateCertificate)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -166,7 +197,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorRemoveException)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -205,7 +236,7 @@ const CertificatesPage = () => {
         },
         onError: (error) => {
           showModal({
-            title: MODAL_TITLES.ERROR,
+            title: intl.formatMessage(messages.errorModalTitle),
             message: getErrorMessage(error, intl.formatMessage(messages.errorRemoveInvalidation)),
             variant: ALERT_VARIANTS.DANGER,
           });
@@ -303,7 +334,7 @@ const CertificatesPage = () => {
       <CertificatesPageHeader
         onGrantExceptions={() => setIsGrantExceptionsOpen(true)}
         onInvalidateCertificate={() => setIsInvalidateCertificateOpen(true)}
-        onDisableCertificates={() => setIsDisableCertificatesOpen(true)}
+        onStudentGeneratedCertificates={() => setIsDisableCertificatesOpen(true)}
       />
 
       <Card variant="muted" className="pt-3 pt-md-4 pb-4 pb-md-6 certificates-card">
@@ -349,7 +380,8 @@ const CertificatesPage = () => {
         isOpen={isGrantExceptionsOpen}
         onClose={() => setIsGrantExceptionsOpen(false)}
         onSubmit={handleGrantExceptions}
-        isSubmitting={isGrantingExceptions}
+        onUploadCsv={handleUploadCsvExceptions}
+        isSubmitting={isGrantingExceptions || isUploadingCsv}
       />
       <InvalidateCertificateModal
         isOpen={isInvalidateCertificateOpen}

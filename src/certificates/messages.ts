@@ -173,22 +173,22 @@ const messages = defineMessages({
   },
   grantExceptionsModalTitle: {
     id: 'instruct.certificates.grantExceptionsModalTitle',
-    defaultMessage: 'Grant Certificate Exceptions',
+    defaultMessage: 'Add to Exceptions List',
     description: 'Title for grant exceptions modal',
   },
   grantExceptionsModalDescription: {
     id: 'instruct.certificates.grantExceptionsModalDescription',
-    defaultMessage: 'Enter usernames or emails, or upload a CSV file to grant certificate exceptions.',
+    defaultMessage: 'Set exceptions to generate certificates for learners who did not qualify for a certificate but have been given an exception by the course team. After you add learners to the exception list, you must Generate Exception Certificates.',
     description: 'Description for grant exceptions modal',
   },
   invalidateCertificateModalTitle: {
     id: 'instruct.certificates.invalidateCertificateModalTitle',
-    defaultMessage: 'Invalidate Certificates',
+    defaultMessage: 'Invalidate Certificate',
     description: 'Title for invalidate certificate modal',
   },
   invalidateCertificateModalDescription: {
     id: 'instruct.certificates.invalidateCertificateModalDescription',
-    defaultMessage: 'Enter usernames or emails, or upload a CSV file to invalidate certificates.',
+    defaultMessage: 'Enter username or email to invalidate a certificate.',
     description: 'Description for invalidate certificate modal',
   },
   removeExceptionModalTitle: {
@@ -251,6 +251,96 @@ const messages = defineMessages({
     defaultMessage: 'Enter usernames or emails (one per line)',
     description: 'Placeholder for learners field',
   },
+  learnerLabel: {
+    id: 'instruct.certificates.learnerLabel',
+    defaultMessage: 'Username or Email',
+    description: 'Label for single learner field',
+  },
+  learnerPlaceholder: {
+    id: 'instruct.certificates.learnerPlaceholder',
+    defaultMessage: 'Enter username or email',
+    description: 'Placeholder for single learner field',
+  },
+  bulkUploadTab: {
+    id: 'instruct.certificates.bulkUploadTab',
+    defaultMessage: 'Bulk',
+    description: 'Tab label for bulk CSV upload',
+  },
+  singleLearnerTab: {
+    id: 'instruct.certificates.singleLearnerTab',
+    defaultMessage: 'Individual',
+    description: 'Tab label for single learner input',
+  },
+  csvFileLabel: {
+    id: 'instruct.certificates.csvFileLabel',
+    defaultMessage: 'Upload CSV',
+    description: 'Label for CSV file upload',
+  },
+  csvInstructions: {
+    id: 'instruct.certificates.csvInstructions',
+    defaultMessage: 'CSV Instructions',
+    description: 'Link text for CSV instructions',
+  },
+  csvInstructionsTooltip: {
+    id: 'instruct.certificates.csvInstructionsTooltip',
+    defaultMessage: 'CSV file should contain the usernames or email addresses of learners who will receive exceptions. Include the username or email address in the first comma separated field. You can include an optional note describing the reason for the exception in the second comma separated field.',
+    description: 'Tooltip text for CSV instructions',
+  },
+  csvFileSelected: {
+    id: 'instruct.certificates.csvFileSelected',
+    defaultMessage: 'File selected: {fileName}',
+    description: 'Message shown when CSV file is selected',
+  },
+  csvUploadPending: {
+    id: 'instruct.certificates.csvUploadPending',
+    defaultMessage: 'CSV file "{fileName}" is ready. Bulk upload will be processed when the backend API is available.',
+    description: 'Message shown when CSV upload is pending backend implementation',
+  },
+  studentGeneratedCertificatesMenuItem: {
+    id: 'instruct.certificates.studentGeneratedCertificatesMenuItem',
+    defaultMessage: 'Student Generated Certificates',
+    description: 'Menu item for student generated certificates',
+  },
+  moreActionsButton: {
+    id: 'instruct.certificates.moreActionsButton',
+    defaultMessage: 'More actions',
+    description: 'Button for more actions menu',
+  },
+  studentGeneratedCertificatesModalTitle: {
+    id: 'instruct.certificates.studentGeneratedCertificatesModalTitle',
+    defaultMessage: 'Student Generated Certificates',
+    description: 'Title for student generated certificates modal',
+  },
+  enableStudentGeneratedCertificates: {
+    id: 'instruct.certificates.enableStudentGeneratedCertificates',
+    defaultMessage: 'Enable Student Generated Certificates',
+    description: 'Checkbox label for enabling student generated certificates',
+  },
+  studentGeneratedCertificatesDescription: {
+    id: 'instruct.certificates.studentGeneratedCertificatesDescription',
+    defaultMessage: 'This functionality is enabled by default',
+    description: 'Description text for student generated certificates',
+  },
+  close: {
+    id: 'instruct.certificates.close',
+    defaultMessage: 'Close',
+    description: 'Close button text',
+  },
+  studentEmailUsername: {
+    id: 'instruct.certificates.studentEmailUsername',
+    defaultMessage: 'Student Email/Username',
+    description: 'Placeholder for student email or username field',
+  },
+  notesOptional: {
+    id: 'instruct.certificates.notesOptional',
+    defaultMessage: 'Notes (optional)',
+    description: 'Placeholder for optional notes field',
+  },
+  individualTabDescription: {
+    id: 'instruct.certificates.individualTabDescription',
+    defaultMessage: 'Enter the username or email address of each learner that you want to add as an exception.',
+    description: 'Description for individual tab',
+  },
   cancel: {
     id: 'instruct.certificates.cancel',
     defaultMessage: 'Cancel',
@@ -265,6 +355,11 @@ const messages = defineMessages({
     id: 'instruct.certificates.submit',
     defaultMessage: 'Submit',
     description: 'Submit button text',
+  },
+  save: {
+    id: 'instruct.certificates.save',
+    defaultMessage: 'Save',
+    description: 'Save button text',
   },
   columnTaskName: {
     id: 'instruct.certificates.columnTaskName',
@@ -445,6 +540,10 @@ const messages = defineMessages({
     id: 'instruct.certificates.regenerateModalMessageDefault',
     defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
     description: 'Default message for regenerate modal',
+  errorModalTitle: {
+    id: 'instruct.certificates.errorModalTitle',
+    defaultMessage: 'Error',
+    description: 'Title for error modal',
   },
 });
 

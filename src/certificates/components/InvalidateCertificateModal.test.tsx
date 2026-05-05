@@ -31,11 +31,11 @@ describe('InvalidateCertificateModal', () => {
     expect(screen.getByText(messages.invalidateCertificateModalDescription.defaultMessage)).toBeInTheDocument();
   });
 
-  it('renders learners input field', () => {
+  it('renders learner input field', () => {
     renderWithIntl(<InvalidateCertificateModal {...defaultProps} />);
 
-    expect(screen.getByText(messages.learnersLabel.defaultMessage)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByText(messages.learnerLabel.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage)).toBeInTheDocument();
   });
 
   it('renders notes input field', () => {
@@ -45,21 +45,21 @@ describe('InvalidateCertificateModal', () => {
     expect(screen.getByPlaceholderText(messages.notesPlaceholder.defaultMessage)).toBeInTheDocument();
   });
 
-  it('calls onSubmit with learners and notes when form is submitted', async () => {
+  it('calls onSubmit with learner and notes when form is submitted', async () => {
     renderWithIntl(<InvalidateCertificateModal {...defaultProps} />);
     const user = userEvent.setup();
 
-    const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
+    const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
     const notesInput = screen.getByPlaceholderText(messages.notesPlaceholder.defaultMessage);
 
-    await user.type(learnersInput, 'user1@example.com, user2@example.com');
+    await user.type(learnerInput, 'user1@example.com');
     await user.type(notesInput, 'Certificate invalidated due to violation');
 
-    const submitButton = screen.getByRole('button', { name: messages.submit.defaultMessage });
-    await user.click(submitButton);
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
+    await user.click(saveButton);
 
     expect(mockOnSubmit).toHaveBeenCalledWith(
-      ['user1@example.com', 'user2@example.com'],
+      ['user1@example.com'],
       'Certificate invalidated due to violation'
     );
   });
@@ -77,10 +77,10 @@ describe('InvalidateCertificateModal', () => {
   it('disables buttons when isSubmitting is true', () => {
     renderWithIntl(<InvalidateCertificateModal {...defaultProps} isSubmitting={true} />);
 
-    const submitButton = screen.getByRole('button', { name: messages.submit.defaultMessage });
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
     const cancelButton = screen.getByRole('button', { name: messages.cancel.defaultMessage });
 
-    expect(submitButton).toBeDisabled();
+    expect(saveButton).toBeDisabled();
     expect(cancelButton).toBeDisabled();
   });
 
@@ -90,22 +90,22 @@ describe('InvalidateCertificateModal', () => {
     expect(screen.queryByText(messages.invalidateCertificateModalTitle.defaultMessage)).not.toBeInTheDocument();
   });
 
-  it('submit button is disabled when learners field is empty', () => {
+  it('save button is disabled when learner field is empty', () => {
     renderWithIntl(<InvalidateCertificateModal {...defaultProps} />);
 
-    const submitButton = screen.getByRole('button', { name: messages.submit.defaultMessage });
-    expect(submitButton).toBeDisabled();
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
+    expect(saveButton).toBeDisabled();
   });
 
   it('allows submission without notes', async () => {
     renderWithIntl(<InvalidateCertificateModal {...defaultProps} />);
     const user = userEvent.setup();
 
-    const learnersInput = screen.getByPlaceholderText(messages.learnersPlaceholder.defaultMessage);
-    await user.type(learnersInput, 'user1@example.com');
+    const learnerInput = screen.getByPlaceholderText(messages.learnerPlaceholder.defaultMessage);
+    await user.type(learnerInput, 'user1@example.com');
 
-    const submitButton = screen.getByRole('button', { name: messages.submit.defaultMessage });
-    await user.click(submitButton);
+    const saveButton = screen.getByRole('button', { name: messages.save.defaultMessage });
+    await user.click(saveButton);
 
     expect(mockOnSubmit).toHaveBeenCalledWith(['user1@example.com'], '');
   });
