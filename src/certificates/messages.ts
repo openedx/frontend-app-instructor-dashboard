@@ -540,6 +540,7 @@ const messages = defineMessages({
     id: 'instruct.certificates.regenerateModalMessageDefault',
     defaultMessage: 'Clicking "Regenerate" will regenerate certificates for {number} learner(s)',
     description: 'Default message for regenerate modal',
+  },
   errorModalTitle: {
     id: 'instruct.certificates.errorModalTitle',
     defaultMessage: 'Error',
