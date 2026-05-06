@@ -95,8 +95,15 @@ describe('IssuedCertificatesTab', () => {
     expect(mockOnFilterChange).toHaveBeenCalled();
   });
 
-  it('calls onRegenerateCertificates when button is clicked', async () => {
+  it('button is disabled when ALL_LEARNERS filter is selected', async () => {
     renderWithIntl(<IssuedCertificatesTab {...defaultProps} />);
+
+    const regenerateButton = screen.getByText(/Regenerate Certificates/i);
+    expect(regenerateButton).toBeDisabled();
+  });
+
+  it('calls onRegenerateCertificates when button is clicked with filter', async () => {
+    renderWithIntl(<IssuedCertificatesTab {...defaultProps} filter={CertificateFilter.RECEIVED} />);
     const user = userEvent.setup();
 
     const regenerateButton = screen.getByText(/Regenerate Certificates/i);

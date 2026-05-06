@@ -584,13 +584,13 @@ describe('certificates api hooks', () => {
         { wrapper: Wrapper }
       );
 
-      result.current.mutate('all');
+      result.current.mutate({ filter: 'all', onlyWithoutCertificate: false });
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(mockRegenerateCertificates).toHaveBeenCalledWith('course-v1:Test+Course+2024', 'all');
+      expect(mockRegenerateCertificates).toHaveBeenCalledWith('course-v1:Test+Course+2024', 'all', false);
     });
 
     it('handles error when regenerating certificates', async () => {
@@ -605,7 +605,7 @@ describe('certificates api hooks', () => {
         { wrapper: Wrapper }
       );
 
-      result.current.mutate('all');
+      result.current.mutate({ filter: 'all', onlyWithoutCertificate: false });
 
       await waitFor(() => {
         expect(result.current.isError).toBe(true);

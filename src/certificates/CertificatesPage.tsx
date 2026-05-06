@@ -12,6 +12,8 @@ import InvalidateCertificateModal from '@src/certificates/components/InvalidateC
 import RemoveExceptionModal from '@src/certificates/components/RemoveExceptionModal';
 import RemoveInvalidationModal from '@src/certificates/components/RemoveInvalidationModal';
 import DisableCertificatesModal from '@src/certificates/components/DisableCertificatesModal';
+import RegenerateCertificatesModal from '@src/certificates/components/RegenerateCertificatesModal';
+import GenerateCertificatesModal from '@src/certificates/components/GenerateCertificatesModal';
 import {
   useCertificateGenerationHistory,
   useGrantBulkExceptions,
@@ -49,6 +51,8 @@ const CertificatesPage = () => {
   const [isRemoveExceptionOpen, setIsRemoveExceptionOpen] = useState(false);
   const [isRemoveInvalidationOpen, setIsRemoveInvalidationOpen] = useState(false);
   const [isDisableCertificatesOpen, setIsDisableCertificatesOpen] = useState(false);
+  const [isRegenerateModalOpen, setIsRegenerateModalOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
   const {
     data: certificatesData,
@@ -263,15 +267,51 @@ const CertificatesPage = () => {
     });
   }, [isCertificateGenerationEnabled, toggleGeneration, showToast, showModal, intl]);
 
-  const handleRegenerateCertificates = useCallback(() => {
-    regenerateCerts(filter, {
+  const handleRegenerateCertificatesClick = useCallback(() => {
+    // Don't open modal for disabled filters
+    if (filter === CertificateFilter.ALL_LEARNERS || filter === CertificateFilter.INVALIDATED) {
+      return;
+    }
+
+    // For granted exceptions, open the generate modal
+    if (filter === CertificateFilter.GRANTED_EXCEPTIONS) {
+      setIsGenerateModalOpen(true);
+    } else {
+      // For other filters, open the regenerate modal
+      setIsRegenerateModalOpen(true);
+    }
+  }, [filter]);
+
+  const handleRegenerateCertificatesConfirm = useCallback(() => {
+    regenerateCerts({ filter, onlyWithoutCertificate: false }, {
       onSuccess: () => {
+        setIsRegenerateModalOpen(false);
         showToast(intl.formatMessage(messages.certificatesRegeneratedToast));
       },
       onError: (error) => {
+        setIsRegenerateModalOpen(false);
+        const errorMessage = getErrorMessage(error, intl.formatMessage(messages.errorRegenerateCertificates));
         showModal({
           title: MODAL_TITLES.ERROR,
-          message: getErrorMessage(error, intl.formatMessage(messages.errorRegenerateCertificates)),
+          message: errorMessage,
+          variant: ALERT_VARIANTS.DANGER,
+        });
+      },
+    });
+  }, [regenerateCerts, filter, showToast, showModal, intl]);
+
+  const handleGenerateCertificatesConfirm = useCallback((onlyWithoutCertificate: boolean) => {
+    regenerateCerts({ filter, onlyWithoutCertificate }, {
+      onSuccess: () => {
+        setIsGenerateModalOpen(false);
+        showToast(intl.formatMessage(messages.certificatesRegeneratedToast));
+      },
+      onError: (error) => {
+        setIsGenerateModalOpen(false);
+        const errorMessage = getErrorMessage(error, intl.formatMessage(messages.errorRegenerateCertificates));
+        showModal({
+          title: MODAL_TITLES.ERROR,
+          message: errorMessage,
           variant: ALERT_VARIANTS.DANGER,
         });
       },
@@ -318,7 +358,7 @@ const CertificatesPage = () => {
               onPageChange={setCertificatesPage}
               onRemoveException={handleRemoveExceptionClick}
               onRemoveInvalidation={handleRemoveInvalidationClick}
-              onRegenerateCertificates={handleRegenerateCertificates}
+              onRegenerateCertificates={handleRegenerateCertificatesClick}
             />
           </Tab>
           <Tab eventKey={TAB_KEYS.HISTORY} title={intl.formatMessage(messages.generationHistoryTab)}>
@@ -377,6 +417,21 @@ const CertificatesPage = () => {
         onClose={() => setIsDisableCertificatesOpen(false)}
         onConfirm={handleToggleCertificateGeneration}
         isSubmitting={isTogglingGeneration}
+      />
+      <RegenerateCertificatesModal
+        isOpen={isRegenerateModalOpen}
+        onClose={() => setIsRegenerateModalOpen(false)}
+        onConfirm={handleRegenerateCertificatesConfirm}
+        isSubmitting={false}
+        filter={filter}
+        learnerCount={certificatesData?.count || 0}
+      />
+      <GenerateCertificatesModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onConfirm={handleGenerateCertificatesConfirm}
+        isSubmitting={false}
+        learnerCount={certificatesData?.count || 0}
       />
     </Container>
   );

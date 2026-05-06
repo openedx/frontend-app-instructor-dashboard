@@ -1,4 +1,4 @@
-import { Button, SearchField } from '@openedx/paragon';
+import { Button, SearchField, OverlayTrigger, Tooltip } from '@openedx/paragon';
 import { SpinnerIcon } from '@openedx/paragon/icons';
 import { useIntl } from '@openedx/frontend-base';
 import FilterDropdown from '@src/certificates/components/FilterDropdown';
@@ -14,20 +14,6 @@ interface CertificatesToolbarProps {
   onRegenerateCertificates: () => void,
 }
 
-const getFilterLabel = (filter: CertificateFilter, intl: any) => {
-  const filterMessages: Record<CertificateFilter, any> = {
-    [CertificateFilter.ALL_LEARNERS]: messages.filterAllLearners,
-    [CertificateFilter.RECEIVED]: messages.filterReceived,
-    [CertificateFilter.NOT_RECEIVED]: messages.filterNotReceived,
-    [CertificateFilter.AUDIT_PASSING]: messages.filterAuditPassing,
-    [CertificateFilter.AUDIT_NOT_PASSING]: messages.filterAuditNotPassing,
-    [CertificateFilter.ERROR_STATE]: messages.filterErrorState,
-    [CertificateFilter.GRANTED_EXCEPTIONS]: messages.filterGrantedExceptions,
-    [CertificateFilter.INVALIDATED]: messages.filterInvalidated,
-  };
-  return intl.formatMessage(filterMessages[filter]);
-};
-
 const CertificatesToolbar = ({
   search,
   onSearchChange,
@@ -37,11 +23,36 @@ const CertificatesToolbar = ({
 }: CertificatesToolbarProps) => {
   const intl = useIntl();
 
-  const buttonText = filter === CertificateFilter.ALL_LEARNERS
-    ? intl.formatMessage(messages.regenerateCertificatesButton)
-    : intl.formatMessage(messages.regenerateCertificatesButtonWithFilter, {
-        filter: getFilterLabel(filter, intl),
-      });
+  // Determine button state based on filter
+  const isButtonDisabled = filter === CertificateFilter.ALL_LEARNERS || filter === CertificateFilter.INVALIDATED;
+
+  // Determine button text based on filter
+  let buttonText: string;
+  if (filter === CertificateFilter.GRANTED_EXCEPTIONS) {
+    buttonText = intl.formatMessage(messages.generateCertificatesButton);
+  } else {
+    buttonText = intl.formatMessage(messages.regenerateCertificatesButton);
+  }
+
+  // Determine tooltip text based on filter
+  let tooltipText: string | null = null;
+  if (filter === CertificateFilter.ALL_LEARNERS) {
+    tooltipText = intl.formatMessage(messages.regenerateTooltipAllLearners);
+  } else if (filter === CertificateFilter.INVALIDATED) {
+    tooltipText = intl.formatMessage(messages.regenerateTooltipInvalidated);
+  }
+
+  const button = (
+    <Button
+      variant="outline-primary"
+      iconBefore={SpinnerIcon}
+      onClick={onRegenerateCertificates}
+      className="text-nowrap flex-shrink-0"
+      disabled={isButtonDisabled}
+    >
+      {buttonText}
+    </Button>
+  );
 
   return (
     <div className="d-flex flex-wrap align-items-center justify-content-between mb-4 mx-4 mt-3 gap-3">
@@ -59,14 +70,18 @@ const CertificatesToolbar = ({
           className="flex-shrink-0"
         />
       </div>
-      <Button
-        variant="outline-primary"
-        iconBefore={SpinnerIcon}
-        onClick={onRegenerateCertificates}
-        className="text-nowrap flex-shrink-0"
-      >
-        {buttonText}
-      </Button>
+      {tooltipText && isButtonDisabled ? (
+        <OverlayTrigger
+          placement="top"
+          overlay={<Tooltip id="regenerate-tooltip">{tooltipText}</Tooltip>}
+        >
+          <span className="d-inline-block">
+            {button}
+          </span>
+        </OverlayTrigger>
+      ) : (
+        button
+      )}
     </div>
   );
 };
