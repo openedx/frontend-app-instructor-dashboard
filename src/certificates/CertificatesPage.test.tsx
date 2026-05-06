@@ -947,7 +947,13 @@ describe('CertificatesPage', () => {
       expect(mockRemoveInvalidation).toHaveBeenCalled();
     });
 
-    it('opens generate modal for granted exceptions filter', async () => {
+    it('generates certificates for granted exceptions with "all" option', async () => {
+      mockRegenerateCerts.mockImplementation((_params, options) => {
+        if (options?.onSuccess) {
+          options.onSuccess();
+        }
+      });
+
       renderWithAlertAndIntl(<CertificatesPage />);
       const user = userEvent.setup();
 
@@ -970,6 +976,96 @@ describe('CertificatesPage', () => {
       await waitFor(() => {
         expect(screen.getByRole('dialog', { name: 'Generate Certificates?' })).toBeInTheDocument();
       });
+
+      // Click generate button in modal (default "all" option is selected)
+      const confirmButton = screen.getByRole('button', { name: 'Generate' });
+      await user.click(confirmButton);
+
+      expect(mockRegenerateCerts).toHaveBeenCalledWith(
+        { filter: 'granted_exceptions', onlyWithoutCertificate: false },
+        expect.any(Object),
+      );
+    });
+
+    it('generates certificates for granted exceptions with "without certificate" option', async () => {
+      mockRegenerateCerts.mockImplementation((_params, options) => {
+        if (options?.onSuccess) {
+          options.onSuccess();
+        }
+      });
+
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // Change filter to "Granted Exceptions"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Granted Exceptions')).toBeInTheDocument();
+      });
+
+      const grantedExceptionsOption = screen.getByText('Granted Exceptions');
+      await user.click(grantedExceptionsOption);
+
+      // Click generate button
+      const generateButton = screen.getByText(/Generate Certificates/i);
+      await user.click(generateButton);
+
+      // Modal should open
+      await waitFor(() => {
+        expect(screen.getByRole('dialog', { name: 'Generate Certificates?' })).toBeInTheDocument();
+      });
+
+      // Select "without certificate" option
+      const withoutCertOption = screen.getByDisplayValue('without_certificate');
+      await user.click(withoutCertOption);
+
+      // Click generate button in modal
+      const confirmButton = screen.getByRole('button', { name: 'Generate' });
+      await user.click(confirmButton);
+
+      expect(mockRegenerateCerts).toHaveBeenCalledWith(
+        { filter: 'granted_exceptions', onlyWithoutCertificate: true },
+        expect.any(Object),
+      );
+    });
+
+    it('shows error modal when generate certificates fails', async () => {
+      mockRegenerateCerts.mockImplementation((_params, options) => {
+        if (options?.onError) {
+          options.onError({ response: { data: { message: 'Generation failed' } } });
+        }
+      });
+
+      renderWithAlertAndIntl(<CertificatesPage />);
+      const user = userEvent.setup();
+
+      // Change filter to "Granted Exceptions"
+      const filterDropdown = screen.getByRole('button', { name: /All Learners/i });
+      await user.click(filterDropdown);
+
+      await waitFor(() => {
+        expect(screen.getByText('Granted Exceptions')).toBeInTheDocument();
+      });
+
+      const grantedExceptionsOption = screen.getByText('Granted Exceptions');
+      await user.click(grantedExceptionsOption);
+
+      // Click generate button
+      const generateButton = screen.getByText(/Generate Certificates/i);
+      await user.click(generateButton);
+
+      // Modal should open
+      await waitFor(() => {
+        expect(screen.getByRole('dialog', { name: 'Generate Certificates?' })).toBeInTheDocument();
+      });
+
+      // Click generate button in modal
+      const confirmButton = screen.getByRole('button', { name: 'Generate' });
+      await user.click(confirmButton);
+
+      expect(mockRegenerateCerts).toHaveBeenCalled();
     });
 
     it('does not open modal when button is disabled', async () => {
