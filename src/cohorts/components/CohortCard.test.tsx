@@ -19,6 +19,10 @@ jest.mock('react-router-dom', () => ({
   useParams: jest.fn(),
 }));
 
+jest.mock('axios', () => ({
+  isAxiosError: (error: any) => error?.isAxiosError === true,
+}));
+
 jest.mock('@src/cohorts/data/apiHook', () => ({
   usePatchCohort: jest.fn(),
   useAddLearnersToCohort: jest.fn(),
@@ -210,6 +214,66 @@ describe('CohortCard', () => {
       const cohort = createMockCohort({ userCount: undefined as any });
       renderCohortCard(cohort);
       expect(screen.getByText(/0 students/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should show error modal when edit cohort fails with generic error', async () => {
+      const showModalMock = jest.fn();
+      mockUseAlert.mockReturnValue({ clearAlerts: mockClearAlerts, showModal: showModalMock });
+
+      const user = userEvent.setup();
+      renderCohortCard();
+
+      const settingsTab = screen.getByText(messages.settings.defaultMessage);
+      await user.click(settingsTab);
+      await waitFor(() => {
+        expect(screen.getByText(messages.cohortAssignmentMethod.defaultMessage)).toBeInTheDocument();
+      });
+
+      mockMutate.mockImplementation((_options: any, callbacks: { onError: (error: any) => void }) => {
+        callbacks.onError(new Error('Generic error'));
+      });
+
+      const submitBtn = screen.getByRole('button', { name: messages.saveLabel.defaultMessage });
+      await user.click(submitBtn);
+
+      expect(showModalMock).toHaveBeenCalledWith({
+        confirmText: messages.closeButton.defaultMessage,
+        message: messages.editCohortError.defaultMessage,
+        variant: 'danger',
+      });
+    });
+
+    it('should show error modal with API message when edit cohort fails with axios error', async () => {
+      const showModalMock = jest.fn();
+      mockUseAlert.mockReturnValue({ clearAlerts: mockClearAlerts, showModal: showModalMock });
+
+      const user = userEvent.setup();
+      renderCohortCard();
+
+      const settingsTab = screen.getByText(messages.settings.defaultMessage);
+      await user.click(settingsTab);
+      await waitFor(() => {
+        expect(screen.getByText(messages.cohortAssignmentMethod.defaultMessage)).toBeInTheDocument();
+      });
+
+      const axiosError = {
+        isAxiosError: true,
+        response: { data: { developer_message: 'Cohort name already exists' } },
+      };
+      mockMutate.mockImplementation((_options: any, callbacks: { onError: (error: any) => void }) => {
+        callbacks.onError(axiosError);
+      });
+
+      const submitBtn = screen.getByRole('button', { name: messages.saveLabel.defaultMessage });
+      await user.click(submitBtn);
+
+      expect(showModalMock).toHaveBeenCalledWith({
+        confirmText: messages.closeButton.defaultMessage,
+        message: 'Cohort name already exists',
+        variant: 'danger',
+      });
     });
   });
 });

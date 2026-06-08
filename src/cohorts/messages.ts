@@ -231,6 +231,26 @@ const messages = defineMessages({
     defaultMessage: 'No file found in upload data. Please try again.',
     description: 'Error message displayed when no file is found in the uploaded data'
   },
+  closeButton: {
+    id: 'instruct.cohorts.closeButton',
+    defaultMessage: 'Close',
+    description: 'Label for the close button'
+  },
+  enableCohortError: {
+    id: 'instruct.cohorts.enableCohortError',
+    defaultMessage: 'An error occurred while enabling cohorts. Please try again later.',
+    description: 'Error message displayed when enabling cohorts fails'
+  },
+  disableCohortError: {
+    id: 'instruct.cohorts.disableCohortError',
+    defaultMessage: 'An error occurred while disabling cohorts. Please try again later.',
+    description: 'Error message displayed when disabling cohorts fails'
+  },
+  editCohortError: {
+    id: 'instruct.cohorts.editCohortError',
+    defaultMessage: 'An error occurred while saving your changes. Please try again later.',
+    description: 'Error message displayed when editing a cohort fails'
+  }
 });
 
 export default messages;

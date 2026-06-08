@@ -1,5 +1,6 @@
-import { useParams } from 'react-router-dom';
 import { useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { FormattedMessage, getExternalLinkUrl, useIntl } from '@openedx/frontend-base';
 import { Card, Hyperlink, Tab, Tabs, Toast } from '@openedx/paragon';
 import messages from '@src/cohorts/messages';
@@ -41,9 +42,12 @@ const CohortCard = () => {
           setShowSuccessMessage(true);
           setSelectedCohort({ ...selectedCohort, ...updatedCohort });
         },
-        onError: (error: Error) => {
+        onError: (error) => {
+          const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.editCohortError);
           showModal({
-            message: error.message,
+            confirmText: intl.formatMessage(messages.closeButton),
+            message: errorMessage,
+            variant: 'danger',
           });
         }
       }

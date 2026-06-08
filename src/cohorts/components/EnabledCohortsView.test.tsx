@@ -154,6 +154,19 @@ describe('EnabledCohortsView', () => {
   });
 
   it('handles cohort creation error', async () => {
+    const showModalMock = jest.fn();
+    useAlertSpy.mockReturnValue({
+      alerts: [],
+      addAlert: addAlertMock,
+      removeAlert: removeAlertMock,
+      clearAlerts: clearAlertsMock,
+      showToast: jest.fn(),
+      showModal: showModalMock,
+      showInlineAlert: jest.fn(),
+      dismissInlineAlert: jest.fn(),
+      inlineAlerts: []
+    });
+
     (useCohorts as jest.Mock).mockReturnValue({ data: [] });
     renderWithCohortProvider();
     const user = userEvent.setup();
@@ -169,11 +182,13 @@ describe('EnabledCohortsView', () => {
 
     // Simulate error callback
     const createArgs = createCohortMock.mock.calls[0][1];
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     createArgs.onError('Creation failed');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Creation failed');
-    consoleErrorSpy.mockRestore();
+    expect(showModalMock).toHaveBeenCalledWith({
+      confirmText: messages.closeButton.defaultMessage,
+      message: messages.enableCohortError.defaultMessage,
+      variant: 'danger',
+    });
   });
 
   it('handles successful cohort creation', async () => {

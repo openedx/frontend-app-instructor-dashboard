@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { useIntl } from '@openedx/frontend-base';
 import { FormControl, Button, Card, Alert } from '@openedx/paragon';
 import { CheckCircle, Error, WarningFilled } from '@openedx/paragon/icons';
@@ -25,7 +26,7 @@ const EnabledCohortsView = () => {
   const { mutate: createCohort } = useCreateCohort(courseId);
   const { clearSelectedCohort, selectedCohort, setSelectedCohort } = useCohortContext();
   const [displayAddForm, setDisplayAddForm] = useState(false);
-  const { alerts, addAlert, removeAlert, clearAlerts } = useAlert();
+  const { alerts, addAlert, removeAlert, clearAlerts, showModal } = useAlert();
 
   const cohortsList = [{ id: 'null', name: intl.formatMessage(messages.selectCohortPlaceholder) }, ...data];
 
@@ -89,7 +90,12 @@ const EnabledCohortsView = () => {
         hideAddForm();
       },
       onError: (error) => {
-        console.error(error);
+        const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.enableCohortError);
+        showModal({
+          confirmText: intl.formatMessage(messages.closeButton),
+          message: errorMessage,
+          variant: 'danger',
+        });
       }
     });
   };
