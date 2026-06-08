@@ -1,14 +1,16 @@
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { useIntl } from '@openedx/frontend-base';
 import { IconButton } from '@openedx/paragon';
 import { Settings } from '@openedx/paragon/icons';
-import { useParams } from 'react-router-dom';
-import { useState } from 'react';
 import { CohortProvider, useCohortContext } from '@src/cohorts/components/CohortContext';
 import DisableCohortsModal from '@src/cohorts/components/DisableCohortsModal';
 import DisabledCohortsView from '@src/cohorts/components/DisabledCohortsView';
 import EnabledCohortsView from '@src/cohorts/components/EnabledCohortsView';
 import { useCohortStatus, useToggleCohorts } from '@src/cohorts/data/apiHook';
 import messages from '@src/cohorts/messages';
+import { useAlert } from '@src/providers/AlertProvider';
 import './CohortsPage.scss';
 
 const CohortsPageContent = () => {
@@ -19,11 +21,19 @@ const CohortsPageContent = () => {
   const [isOpenDisableModal, setIsOpenDisableModal] = useState(false);
   const { clearSelectedCohort } = useCohortContext();
   const { isCohorted = false } = cohortStatus ?? {};
+  const { showModal } = useAlert();
 
   const handleEnableCohorts = () => {
     toggleCohortsMutate({ isCohorted: true },
       {
-        onError: (error) => console.log(error)
+        onError: (error) => {
+          const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.enableCohortError);
+          showModal({
+            confirmText: intl.formatMessage(messages.closeButton),
+            message: errorMessage,
+            variant: 'danger',
+          });
+        }
       });
   };
 
@@ -31,7 +41,14 @@ const CohortsPageContent = () => {
     toggleCohortsMutate({ isCohorted: false },
       {
         onSuccess: () => clearSelectedCohort(),
-        onError: (error) => console.log(error)
+        onError: (error) => {
+          const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.disableCohortError);
+          showModal({
+            confirmText: intl.formatMessage(messages.closeButton),
+            message: errorMessage,
+            variant: 'danger',
+          });
+        }
       });
     setIsOpenDisableModal(false);
   };
