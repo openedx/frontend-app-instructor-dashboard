@@ -34,7 +34,7 @@ const AddBetaTestersModal = ({
   };
 
   const handleSave = () => {
-    const identifier = inputValue.split(',').map(email => email.trim()).filter(email => email);
+    const identifier = inputValue.split(/[\n,]+/).map(email => email.trim()).filter(Boolean);
     addBetaTesters({ identifier, action: 'add', autoEnroll, emailStudents }, {
       onSuccess: (data) => {
         const failedUsernames = data.results?.filter(user => user.userDoesNotExist).map(user => user.identifier) || [];

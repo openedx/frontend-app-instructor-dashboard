@@ -148,6 +148,31 @@ describe('EnrollLearnersModal', () => {
     });
   });
 
+  it('splits emails separated by a line break into separate identifiers', async () => {
+    renderComponent();
+    const textarea = screen.getByPlaceholderText(
+      messages.userIdentifierPlaceholder.defaultMessage
+    );
+    const user = userEvent.setup();
+    await user.type(textarea, 'alice@example.com{Enter}bob@example.com');
+    const saveBtn = screen.getByRole('button', {
+      name: messages.saveButton.defaultMessage,
+    });
+    await user.click(saveBtn);
+    expect(mutateMock).toHaveBeenCalledWith({
+      identifier: [
+        'alice@example.com',
+        'bob@example.com',
+      ],
+      action: 'enroll',
+      autoEnroll: true,
+      emailStudents: true,
+    }, {
+      onSuccess: expect.any(Function),
+      onError: expect.any(Function),
+    });
+  });
+
   it('does not call onSuccess if textarea is empty', async () => {
     renderComponent();
     const saveBtn = screen.getByRole('button', {
