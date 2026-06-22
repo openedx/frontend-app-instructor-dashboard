@@ -25,7 +25,7 @@ const EnrollLearnersModal = ({
   const { showModal, addAlert } = useAlert();
 
   const handleSave = () => {
-    const identifier = emails.split(',').map(email => email.trim()).filter(email => email);
+    const identifier = emails.split(/[\n,]+/).map(email => email.trim()).filter(Boolean);
     enrollLearners({ identifier, action: 'enroll', autoEnroll, emailStudents }, {
       onSuccess: (data) => {
         const failedUsernames = data.results?.filter(user => user.invalidIdentifier).map(user => user.identifier) || [];
