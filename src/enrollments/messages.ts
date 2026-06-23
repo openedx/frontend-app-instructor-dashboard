@@ -64,7 +64,12 @@ const messages = defineMessages({
   addLearnerInstructions: {
     id: 'instruct.enrollments.modals.checkEnrollmentStatus.addLearnerInstructions',
     defaultMessage: 'Enter email addresses and/or usernames separated by new lines or commas. You will not get notification for emails that bounce, so please double-check spelling.',
-    description: 'Instructions for enroll learners to the course',
+    description: 'Instructions for enrolling learners to the course',
+  },
+  enrollmentStatusInstructions: {
+    id: 'instruct.enrollments.modals.checkEnrollmentStatus.enrollmentStatusInstructions',
+    defaultMessage: 'Enter email address or username. An incorrect or misspelled email address may result in an inaccurate status, please double-check spelling.',
+    description: 'Instructions for checking enrollment status of a learner in the course',
   },
   enrollmentStatusPlaceholder: {
     id: 'instruct.enrollments.modals.checkEnrollmentStatus.enrollmentStatusPlaceholder',
