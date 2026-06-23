@@ -32,7 +32,7 @@ const EnrollmentStatusModal = ({ isOpen, onClose }: EnrollmentStatusModalProps) 
       </ModalDialog.Header>
       <ModalDialog.Body className="border-bottom border-top border-light-700">
         <div className="my-2">
-          <p>{intl.formatMessage(messages.addLearnerInstructions)}</p>
+          <p>{intl.formatMessage(messages.enrollmentStatusInstructions)}</p>
           <FormControl
             placeholder={intl.formatMessage(messages.enrollmentStatusPlaceholder)}
             value={learnerIdentifier}
