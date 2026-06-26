@@ -27,7 +27,7 @@ const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentP
   const problemFieldRef = useRef<{ reset: () => void }>(null);
   const [showCurrentStatus, setShowCurrentStatus] = useState(false);
   const [confirmationModalData, setConfirmationModalData] = useState<{ message: string, confirmButtonLabel: string, action?: () => void }>({ message: '', confirmButtonLabel: '', action: undefined });
-  const { data: problemData = { currentScore: { score: 0, total: null }, attempts: { current: null, total: 0 } }, isError: isProblemDataError } = useProblemDetails(courseId, blockId, usernameOrEmail);
+  const { data: problemData = { currentScore: { score: 0, total: null }, attempts: { current: null, total: 0 } }, isError: isProblemDataError, refetch: refetchProblemData } = useProblemDetails(courseId, blockId, usernameOrEmail);
   const { data: learnerData = { username: '', progressUrl: '' } } = useLearner(courseId, usernameOrEmail);
   const { showModal, showToast } = useAlert();
 
@@ -53,6 +53,7 @@ const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentP
     resetAttempts({ learner: usernameOrEmail, problem: blockId }, {
       onSuccess: () => {
         resetConfirmationModalData();
+        refetchProblemData();
         showToast(intl.formatMessage(messages.resetAttemptsSuccess, { student: usernameOrEmail || intl.formatMessage(messages.allLearners), blockId }));
       },
       onError: manageOnError

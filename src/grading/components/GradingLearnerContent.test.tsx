@@ -76,7 +76,7 @@ describe('GradingLearnerContent', () => {
     mockUseRescoreSubmission.mockReturnValue({ mutate: mockMutateRescore } as any);
     mockUsePendingTasks.mockReturnValue({ refetch: mockRefetch } as any);
     (useLearner as jest.Mock).mockReturnValue({ data: { username: 'testuser', email: 'testuser@example.com', progressUrl: '/progress' }, isLoading: false, error: null });
-    (useProblemDetails as jest.Mock).mockReturnValue({ data: { currentScore: { score: 0, total: null }, attempts: { current: 1, total: 1 } }, isLoading: false, error: null });
+    (useProblemDetails as jest.Mock).mockReturnValue({ data: { currentScore: { score: 0, total: null }, attempts: { current: 1, total: 1 } }, isLoading: false, error: null, refetch: jest.fn() });
   });
 
   it('renders correctly for single learner mode', () => {
