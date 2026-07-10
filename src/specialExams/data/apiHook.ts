@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { addAllowance, deleteAllowance, getAllowances, getAttempts, getSpecialExams, resetAttempt, resumeAttempt } from '@src/specialExams/data/api';
+import { addAllowance, deleteAllowance, getAllowances, getAttempts, getOnboardingStatuses, getProctoringSettings, getSpecialExams, resetAttempt, resumeAttempt } from '@src/specialExams/data/api';
 import { specialExamsQueryKeys } from '@src/specialExams/data/queryKeys';
-import { AddAllowanceParams, AttemptsParams, DeleteAllowanceParams, ResetAttemptParams, ResumeAttemptParams } from '@src/specialExams/types';
+import { AddAllowanceParams, AttemptsParams, DeleteAllowanceParams, OnboardingParams, ResetAttemptParams, ResumeAttemptParams } from '@src/specialExams/types';
 
 export const useAttempts = (courseId: string, params: AttemptsParams, enabled = true) => (
   useQuery({
@@ -45,6 +45,22 @@ export const useSpecialExams = (courseId: string, examType: string) => (
     queryKey: specialExamsQueryKeys.specialExams(courseId, examType),
     queryFn: () => getSpecialExams(courseId, examType),
     enabled: !!courseId && !!examType,
+  })
+);
+
+export const useProctoringSettings = (courseId: string) => (
+  useQuery({
+    queryKey: specialExamsQueryKeys.proctoringSettings(courseId),
+    queryFn: () => getProctoringSettings(courseId),
+    enabled: !!courseId,
+  })
+);
+
+export const useOnboardingStatuses = (courseId: string, params: OnboardingParams, enabled = true) => (
+  useQuery({
+    queryKey: specialExamsQueryKeys.onboarding(courseId, params),
+    queryFn: () => getOnboardingStatuses(courseId, params),
+    enabled: !!courseId && enabled,
   })
 );
 

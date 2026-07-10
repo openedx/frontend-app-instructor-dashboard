@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getAttempts, getAllowances, addAllowance, deleteAllowance, getSpecialExams, resetAttempt, resumeAttempt } from '@src/specialExams/data/api';
-import { useAttempts, useAllowances, useAddAllowance, useDeleteAllowance, useSpecialExams, useResetAttempt, useResumeAttempt } from '@src/specialExams/data/apiHook';
-import { AttemptsParams, AddAllowanceParams, DeleteAllowanceParams } from '@src/specialExams/types';
+import { getAttempts, getAllowances, addAllowance, deleteAllowance, getSpecialExams, resetAttempt, resumeAttempt, getProctoringSettings, getOnboardingStatuses } from '@src/specialExams/data/api';
+import { useAttempts, useAllowances, useAddAllowance, useDeleteAllowance, useSpecialExams, useResetAttempt, useResumeAttempt, useProctoringSettings, useOnboardingStatuses } from '@src/specialExams/data/apiHook';
+import { AttemptsParams, AddAllowanceParams, DeleteAllowanceParams, OnboardingParams } from '@src/specialExams/types';
 
 jest.mock('@src/specialExams/data/api');
 
@@ -13,6 +13,8 @@ const mockDeleteAllowance = deleteAllowance as jest.MockedFunction<typeof delete
 const mockGetSpecialExams = getSpecialExams as jest.MockedFunction<typeof getSpecialExams>;
 const mockResetAttempt = resetAttempt as jest.MockedFunction<typeof resetAttempt>;
 const mockResumeAttempt = resumeAttempt as jest.MockedFunction<typeof resumeAttempt>;
+const mockGetProctoringSettings = getProctoringSettings as jest.MockedFunction<typeof getProctoringSettings>;
+const mockGetOnboardingStatuses = getOnboardingStatuses as jest.MockedFunction<typeof getOnboardingStatuses>;
 
 const mockAttemptsData = {
   count: 2,
@@ -511,6 +513,93 @@ describe('specialExams api hooks', () => {
       });
 
       expect(mockResumeAttempt).toHaveBeenCalledWith(params);
+    });
+  });
+
+  describe('useProctoringSettings', () => {
+    const courseId = 'course-v1:edX+Test+2023';
+    const mockSettings = {
+      proctoringProvider: 'proctortrack',
+      proctoringEscalationEmail: null,
+      createZendeskTickets: false,
+      enableProctoredExams: true,
+      supportsOnboarding: true,
+      reviewDashboardAvailable: true,
+    };
+
+    it('fetches proctoring settings successfully', async () => {
+      mockGetProctoringSettings.mockResolvedValue(mockSettings);
+
+      const { result } = renderHook(() => useProctoringSettings(courseId), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(mockGetProctoringSettings).toHaveBeenCalledWith(courseId);
+      expect(result.current.data).toBe(mockSettings);
+    });
+
+    it('does not fetch when courseId is empty', () => {
+      const { result } = renderHook(() => useProctoringSettings(''), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.fetchStatus).toBe('idle');
+      expect(mockGetProctoringSettings).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useOnboardingStatuses', () => {
+    const courseId = 'course-v1:edX+Test+2023';
+    const params: OnboardingParams = { page: 0, emailOrUsername: '' };
+    const mockOnboardingData = {
+      count: 1,
+      numPages: 1,
+      results: [
+        { username: 'student1', enrollmentMode: 'verified', status: 'verified', modified: '2023-01-01T10:00:00Z' },
+      ],
+    };
+
+    it('fetches onboarding statuses successfully', async () => {
+      mockGetOnboardingStatuses.mockResolvedValue(mockOnboardingData);
+
+      const { result } = renderHook(() => useOnboardingStatuses(courseId, params), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(mockGetOnboardingStatuses).toHaveBeenCalledWith(courseId, params);
+      expect(result.current.data).toBe(mockOnboardingData);
+    });
+
+    it('does not fetch when disabled', () => {
+      const { result } = renderHook(() => useOnboardingStatuses(courseId, params, false), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.fetchStatus).toBe('idle');
+      expect(mockGetOnboardingStatuses).not.toHaveBeenCalled();
+    });
+
+    it('handles API error', async () => {
+      const mockError = new Error('Network error');
+      mockGetOnboardingStatuses.mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => useOnboardingStatuses(courseId, params), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true);
+      });
+
+      expect(result.current.error).toBe(mockError);
     });
   });
 });

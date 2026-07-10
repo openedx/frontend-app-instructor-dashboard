@@ -285,6 +285,41 @@ const messages = defineMessages({
     id: 'instruct.specialExams.successOnResume',
     defaultMessage: 'Successfully resumed attempt for {student}.',
     description: 'Success message shown after resuming an exam attempt'
+  },
+  onboarding: {
+    id: 'instruct.specialExams.onboarding',
+    defaultMessage: 'Onboarding',
+    description: 'Label for the student onboarding status tab'
+  },
+  reviewDashboard: {
+    id: 'instruct.specialExams.reviewDashboard',
+    defaultMessage: 'Review Dashboard',
+    description: 'Label for the proctoring review dashboard tab'
+  },
+  enrollmentMode: {
+    id: 'instruct.specialExams.enrollmentMode',
+    defaultMessage: 'Enrollment Mode',
+    description: 'Column header for enrollment mode in the onboarding status list'
+  },
+  onboardingStatus: {
+    id: 'instruct.specialExams.onboardingStatus',
+    defaultMessage: 'Onboarding Status',
+    description: 'Column header for onboarding status in the onboarding status list'
+  },
+  lastUpdated: {
+    id: 'instruct.specialExams.lastUpdated',
+    defaultMessage: 'Last Updated',
+    description: 'Column header for the last modified date in the onboarding status list'
+  },
+  noOnboardingStatuses: {
+    id: 'instruct.specialExams.noOnboardingStatuses',
+    defaultMessage: 'No onboarding statuses found',
+    description: 'Message displayed when there are no onboarding statuses to show'
+  },
+  reviewDashboardTitle: {
+    id: 'instruct.specialExams.reviewDashboardTitle',
+    defaultMessage: 'Proctoring Review Dashboard',
+    description: 'Accessible title for the embedded proctoring review dashboard iframe'
   }
 });
 

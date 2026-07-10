@@ -2,7 +2,7 @@ import { getAuthenticatedHttpClient, camelCaseObject, snakeCaseObject } from '@o
 import { snakeCase } from 'lodash';
 import { getApiBaseUrl } from '@src/data/api';
 import { DataList } from '@src/types';
-import { AddAllowanceParams, Allowance, Attempt, AttemptsParams, DeleteAllowanceParams, ResetAttemptParams, ResumeAttemptParams, SpecialExam } from '@src/specialExams/types';
+import { AddAllowanceParams, Allowance, Attempt, AttemptsParams, DeleteAllowanceParams, OnboardingParams, OnboardingStatus, ProctoringSettings, ResetAttemptParams, ResumeAttemptParams, SpecialExam } from '@src/specialExams/types';
 
 const getQueryParams = (params: AttemptsParams) => {
   const queryParams = new URLSearchParams({
@@ -88,3 +88,40 @@ export const resumeAttempt = async (params: ResumeAttemptParams) => {
   );
   return camelCaseObject(data);
 };
+
+export const getProctoringSettings = async (courseId: string): Promise<ProctoringSettings> => {
+  const { data } = await getAuthenticatedHttpClient().get(
+    `${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}/proctoring_settings`
+  );
+  return camelCaseObject(data);
+};
+
+/**
+ * Fetch student onboarding statuses for a course from the edx-proctoring v1 API.
+ *
+ * This endpoint paginates at a fixed server-side page size (edx-proctoring's
+ * ATTEMPTS_PER_PAGE, currently 25) and ignores any `page_size` query param, so we
+ * intentionally do not send one. The client-side ONBOARDING_PAGE_SIZE must stay in
+ * sync with that server constant for the table's page-count math to line up.
+ */
+export const getOnboardingStatuses = async (courseId: string, params: OnboardingParams): Promise<DataList<OnboardingStatus>> => {
+  const queryParams = new URLSearchParams({ page: (params.page + 1).toString() });
+
+  if (params.emailOrUsername) {
+    queryParams.append('text_search', params.emailOrUsername);
+  }
+
+  const { data } = await getAuthenticatedHttpClient().get(
+    `${getApiBaseUrl()}/api/edx_proctoring/v1/user_onboarding/status/course_id/${courseId}?${queryParams.toString()}`
+  );
+  return camelCaseObject(data);
+};
+
+/**
+ * Build the URL for the proctoring provider's review dashboard. The LMS endpoint
+ * redirects to the provider's hosted dashboard and is rendered inside an iframe,
+ * mirroring the legacy instructor dashboard's Review Dashboard section.
+ */
+export const getReviewDashboardUrl = (courseId: string): string => (
+  `${getApiBaseUrl()}/api/edx_proctoring/v1/instructor/${courseId}`
+);

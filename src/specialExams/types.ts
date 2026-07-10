@@ -84,3 +84,24 @@ export interface DeleteAllowanceParams {
   userIds: number[],
   allowanceType: string,
 }
+
+export interface OnboardingStatus {
+  username: string,
+  enrollmentMode: string | null,
+  status: string | null,
+  modified: string | null,
+}
+
+export interface OnboardingParams {
+  page: number,
+  emailOrUsername: string,
+}
+
+export interface ProctoringSettings {
+  proctoringProvider: string | null,
+  proctoringEscalationEmail: string | null,
+  createZendeskTickets: boolean,
+  enableProctoredExams: boolean,
+  supportsOnboarding: boolean,
+  reviewDashboardAvailable: boolean,
+}

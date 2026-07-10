@@ -1,6 +1,6 @@
 import { camelCaseObject, getAuthenticatedHttpClient, snakeCaseObject } from '@openedx/frontend-base';
 import { getApiBaseUrl } from '@src/data/api';
-import { getAttempts, getAllowances, addAllowance, deleteAllowance, getSpecialExams, resetAttempt, resumeAttempt } from '@src/specialExams/data/api';
+import { getAttempts, getAllowances, addAllowance, deleteAllowance, getSpecialExams, resetAttempt, resumeAttempt, getProctoringSettings, getOnboardingStatuses, getReviewDashboardUrl } from '@src/specialExams/data/api';
 import { AttemptsParams, Attempt, AddAllowanceParams, DeleteAllowanceParams } from '@src/specialExams/types';
 import { DataList } from '@src/types';
 
@@ -460,6 +460,94 @@ describe('specialExams api', () => {
       mockHttpClient.put.mockRejectedValue(error);
 
       await expect(resumeAttempt({ attemptId, userId })).rejects.toThrow('Failed to resume attempt');
+    });
+  });
+
+  describe('getProctoringSettings', () => {
+    it('makes correct API call and returns camelCase data', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      const mockResponseData = {
+        proctoring_provider: 'proctortrack',
+        proctoring_escalation_email: 'proctor@example.com',
+        create_zendesk_tickets: true,
+        enable_proctored_exams: true,
+        supports_onboarding: true,
+        review_dashboard_available: true,
+      };
+
+      mockHttpClient.get.mockResolvedValue({ data: mockResponseData });
+      mockCamelCaseObject.mockReturnValue(mockResponseData);
+
+      const result = await getProctoringSettings(courseId);
+
+      expect(mockGetAuthenticatedHttpClient).toHaveBeenCalled();
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        'https://test-lms.com/api/instructor/v2/courses/course-v1:edX+Test+2023/proctoring_settings'
+      );
+      expect(mockCamelCaseObject).toHaveBeenCalledWith(mockResponseData);
+      expect(result).toBe(mockResponseData);
+    });
+
+    it('handles API error', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      mockHttpClient.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(getProctoringSettings(courseId)).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('getOnboardingStatuses', () => {
+    const params = { page: 0, emailOrUsername: '' };
+
+    it('makes correct API call and returns camelCase data', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      const mockResponseData = {
+        count: 1,
+        num_pages: 1,
+        results: [
+          { username: 'student1', enrollment_mode: 'verified', status: 'verified', modified: '2023-01-01T10:00:00Z' },
+        ],
+      };
+
+      mockHttpClient.get.mockResolvedValue({ data: mockResponseData });
+      mockCamelCaseObject.mockReturnValue(mockResponseData);
+
+      const result = await getOnboardingStatuses(courseId, params);
+
+      expect(mockGetAuthenticatedHttpClient).toHaveBeenCalled();
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        'https://test-lms.com/api/edx_proctoring/v1/user_onboarding/status/course_id/course-v1:edX+Test+2023?page=1'
+      );
+      expect(mockCamelCaseObject).toHaveBeenCalledWith(mockResponseData);
+      expect(result).toBe(mockResponseData);
+    });
+
+    it('passes the search term as text_search and increments the page', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      const paramsWithSearch = { page: 2, emailOrUsername: 'student@example.com' };
+      mockHttpClient.get.mockResolvedValue({ data: { count: 0, num_pages: 0, results: [] } });
+
+      await getOnboardingStatuses(courseId, paramsWithSearch);
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        'https://test-lms.com/api/edx_proctoring/v1/user_onboarding/status/course_id/course-v1:edX+Test+2023?page=3&text_search=student%40example.com'
+      );
+    });
+
+    it('handles API error', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      mockHttpClient.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(getOnboardingStatuses(courseId, params)).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('getReviewDashboardUrl', () => {
+    it('builds the edx_proctoring instructor dashboard URL for the course', () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      expect(getReviewDashboardUrl(courseId)).toBe(
+        'https://test-lms.com/api/edx_proctoring/v1/instructor/course-v1:edX+Test+2023'
+      );
     });
   });
 });
