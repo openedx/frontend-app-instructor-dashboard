@@ -1,6 +1,7 @@
 import { helpButtonSlotOperation, SlotOperation, WidgetOperationTypes } from '@openedx/frontend-base';
 import CourseInfoSlot from '@src/slots/CourseInfoSlot/CourseInfoSlot';
-import { appId, instructorDashboardRole } from '@src/constants';
+import EnrollmentActions from '@src/enrollments/components/EnrollmentActions';
+import { appId, enrollmentActionsSlotId, enrollmentActionsWidgetId, instructorDashboardRole } from '@src/constants';
 
 const slots: SlotOperation[] = [
   helpButtonSlotOperation({ appId, role: instructorDashboardRole }),
@@ -9,6 +10,12 @@ const slots: SlotOperation[] = [
     id: 'org.openedx.frontend.widget.slotShowcase.headerLink',
     op: WidgetOperationTypes.APPEND,
     element: <CourseInfoSlot />,
+  },
+  {
+    slotId: enrollmentActionsSlotId,
+    id: enrollmentActionsWidgetId,
+    op: WidgetOperationTypes.APPEND,
+    component: EnrollmentActions,
   },
 ];
 

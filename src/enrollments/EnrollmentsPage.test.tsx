@@ -11,11 +11,22 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ courseId: 'test-course-id' }),
 }));
 
+// The enrollment action buttons (Add Beta Testers / Enroll Learners) are rendered through a slot.
+// Stub the slot here; the buttons and their gating are covered by EnrollmentActions.test.tsx.
+jest.mock('@openedx/frontend-base', () => ({
+  ...jest.requireActual('@openedx/frontend-base'),
+  Slot: () => <div data-testid="enrollment-actions-slot" />,
+}));
+
 jest.mock('./data/apiHook', () => ({
   useEnrollments: jest.fn(),
   useEnrollmentByUserId: jest.fn(),
   useUpdateEnrollments: jest.fn(),
   useUpdateBetaTesters: jest.fn(),
+}));
+
+jest.mock('@src/data/apiHook', () => ({
+  useCourseInfo: () => ({ data: { permissions: { admin: true, instructor: true, dataResearcher: false } } }),
 }));
 
 jest.mock('./components/EnrollmentsList', () => {
@@ -65,11 +76,10 @@ describe('EnrollmentsPage', () => {
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
   });
 
-  it('renders action buttons', () => {
+  it('renders the check enrollment status action and the enrollment actions slot', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
     expect(screen.getByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: new RegExp(messages.addBetaTesters.defaultMessage) })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: new RegExp(messages.enrollLearners.defaultMessage) })).toBeInTheDocument();
+    expect(screen.getByTestId('enrollment-actions-slot')).toBeInTheDocument();
   });
 
   it('renders EnrollmentsList component', () => {
