@@ -11,12 +11,33 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ courseId: 'test-course-id' }),
 }));
 
-// The enrollment action buttons (Add Beta Testers / Enroll Learners) are rendered through a slot.
-// Stub the slot here; the buttons and their gating are covered by EnrollmentActions.test.tsx.
+// The enrollment action buttons live in a slot (default widget covered by EnrollmentActionsSlot.test.tsx).
+// Stub the slot to render buttons wired to the handlers the page passes in, so the page's modal
+// open/close wiring is exercised here.
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
-  Slot: () => <div data-testid="enrollment-actions-slot" />,
+  Slot: ({ onEnrollLearners, onAddBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void }) => (
+    <div data-testid="enrollment-actions-slot">
+      <button type="button" onClick={onAddBetaTesters}>slot-add-beta-testers</button>
+      <button type="button" onClick={onEnrollLearners}>slot-enroll-learners</button>
+    </div>
+  ),
 }));
+
+// Stub the action modals; their internals are covered by their own test files. Each stub exposes a
+// close control so the page's onClose handlers are exercised.
+jest.mock('./components/EnrollLearnersModal', () => {
+  const MockEnrollLearnersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+    isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-enroll-learners</button></div> : null
+  );
+  return MockEnrollLearnersModal;
+});
+jest.mock('./components/AddBetaTestersModal', () => {
+  const MockAddBetaTestersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+    isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-add-beta-testers</button></div> : null
+  );
+  return MockAddBetaTestersModal;
+});
 
 jest.mock('./data/apiHook', () => ({
   useEnrollments: jest.fn(),
@@ -148,6 +169,28 @@ describe('EnrollmentsPage', () => {
     const closeUnenrollButton = screen.getByText('Cancel');
     await user.click(closeUnenrollButton);
 
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the Enroll Learners modal via the slot handler', async () => {
+    renderWithAlertAndIntl(<EnrollmentsPage />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByText('slot-enroll-learners'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    await user.click(screen.getByText('close-enroll-learners'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the Add Beta Testers modal via the slot handler', async () => {
+    renderWithAlertAndIntl(<EnrollmentsPage />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByText('slot-add-beta-testers'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    await user.click(screen.getByText('close-add-beta-testers'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
