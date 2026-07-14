@@ -17,14 +17,14 @@ export interface EnrollmentActionsSlotProps {
 /**
  * Default widget for the enrollment actions slot (`enrollmentActionsSlotId`).
  *
- * It renders the "Add Beta Testers" and "Enroll Learners" buttons.
+ * It renders the "Add Beta Testers" and "Enroll Learners" buttons with no permission gating.
  *
  * The slot passes `permissions`, `onEnrollLearners` and `onAddBetaTesters` to every widget
  * registered in it, so a site operator can REPLACE this widget from `site.config` with their own
  * component that decides whether to show each button and which permission gates it — without
- * changing this MFE.
+ * changing this MFE. See this folder's README for details.
  */
-const EnrollmentActions = ({ onEnrollLearners, onAddBetaTesters }: EnrollmentActionsSlotProps) => {
+const EnrollmentActionsSlot = ({ onEnrollLearners, onAddBetaTesters }: EnrollmentActionsSlotProps) => {
   const intl = useIntl();
 
   return (
@@ -35,4 +35,4 @@ const EnrollmentActions = ({ onEnrollLearners, onAddBetaTesters }: EnrollmentAct
   );
 };
 
-export default EnrollmentActions;
+export default EnrollmentActionsSlot;
