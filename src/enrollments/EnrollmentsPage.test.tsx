@@ -17,10 +17,10 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
   Slot: ({ onEnrollLearners, onAddBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void }) => (
-    <div data-testid="enrollment-actions-slot">
-      <button type="button" onClick={onAddBetaTesters}>slot-add-beta-testers</button>
-      <button type="button" onClick={onEnrollLearners}>slot-enroll-learners</button>
-    </div>
+    <>
+      <button type="button" onClick={onAddBetaTesters}>Add Beta Testers</button>
+      <button type="button" onClick={onEnrollLearners}>Enroll Learners</button>
+    </>
   ),
 }));
 
@@ -97,10 +97,11 @@ describe('EnrollmentsPage', () => {
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
   });
 
-  it('renders the check enrollment status action and the enrollment actions slot', () => {
+  it('renders the check enrollment status action and the enrollment action buttons', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
     expect(screen.getByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByTestId('enrollment-actions-slot')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.addBetaTesters.defaultMessage })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage })).toBeInTheDocument();
   });
 
   it('renders EnrollmentsList component', () => {
@@ -176,7 +177,7 @@ describe('EnrollmentsPage', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
     const user = userEvent.setup();
 
-    await user.click(screen.getByText('slot-enroll-learners'));
+    await user.click(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     await user.click(screen.getByText('close-enroll-learners'));
@@ -187,7 +188,7 @@ describe('EnrollmentsPage', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
     const user = userEvent.setup();
 
-    await user.click(screen.getByText('slot-add-beta-testers'));
+    await user.click(screen.getByRole('button', { name: messages.addBetaTesters.defaultMessage }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     await user.click(screen.getByText('close-add-beta-testers'));

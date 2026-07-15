@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Slot, useIntl } from '@openedx/frontend-base';
 import { ActionRow, Dropdown, IconButton } from '@openedx/paragon';
@@ -45,17 +45,19 @@ const EnrollmentsPage = () => {
     setIsEnrollmentStatusModalOpen(false);
   };
 
-  // Passed to the enrollment actions slot so slot widgets can open the modals, which stay owned
-  // by this page regardless of how a site operator renders the buttons.
-  const handleEnrollLearners = useCallback(() => {
+  const handleEnrollLearners = () => {
     setIsEnrollLearnersModalOpen(true);
     clearAlerts();
-  }, [clearAlerts]);
+  };
 
-  const handleAddBetaTesters = useCallback(() => {
+  const handleCloseEnrollLearnersModal = () => {
+    setIsEnrollLearnersModalOpen(false);
+  };
+
+  const handleAddBetaTesters = () => {
     setIsAddBetaTestersModalOpen(true);
     clearAlerts();
-  }, [clearAlerts]);
+  };
 
   const handleBetaTesterChange = (learner: EnrolledLearner) => {
     setIsUpdateBetaTesterModalOpen(true);
@@ -97,7 +99,7 @@ const EnrollmentsPage = () => {
       <EnrollmentsList onUnenroll={handleUnenroll} onBetaTesterChange={handleBetaTesterChange} />
       <EnrollmentStatusModal isOpen={isEnrollmentStatusModalOpen} onClose={handleCloseEnrollmentStatusModal} />
       {selectedLearner && <UnenrollModal isOpen={isUnenrollModalOpen} learner={selectedLearner} onClose={handleUnenrollModalClose} />}
-      <EnrollLearnersModal isOpen={isEnrollLearnersModalOpen} onClose={() => setIsEnrollLearnersModalOpen(false)} />
+      <EnrollLearnersModal isOpen={isEnrollLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} />
       <AddBetaTestersModal isOpen={isAddBetaTestersModalOpen} onClose={() => setIsAddBetaTestersModalOpen(false)} />
       {selectedLearner && <UpdateBetaTesterModal isOpen={isUpdateBetaTesterModalOpen} learner={selectedLearner} onClose={handleCloseUpdateBetaTesterModal} />}
     </>
