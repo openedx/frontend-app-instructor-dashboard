@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useIntl } from '@openedx/frontend-base';
-import { ActionRow, Button, Dropdown, IconButton } from '@openedx/paragon';
+import { useParams } from 'react-router-dom';
+import { Slot, useIntl } from '@openedx/frontend-base';
+import { ActionRow, Dropdown, IconButton } from '@openedx/paragon';
 import { MoreVert } from '@openedx/paragon/icons';
 import messages from '@src/enrollments/messages';
 import AddBetaTestersModal from '@src/enrollments/components/AddBetaTestersModal';
@@ -10,17 +11,21 @@ import EnrollmentStatusModal from '@src/enrollments/components/EnrollmentStatusM
 import UnenrollModal from '@src/enrollments/components/UnenrollModal';
 import { EnrolledLearner } from '@src/enrollments/types';
 import { AlertOutlet, useAlert } from '@src/providers/AlertProvider';
+import { useCourseInfo } from '@src/data/apiHook';
+import { enrollmentActionsSlotId } from '@src/constants';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
 
 const EnrollmentsPage = () => {
   const intl = useIntl();
+  const { courseId = '' } = useParams<{ courseId: string }>();
+  const { data: courseInfo } = useCourseInfo(courseId);
+  const { clearAlerts } = useAlert();
   const [isEnrollmentStatusModalOpen, setIsEnrollmentStatusModalOpen] = useState(false);
   const [isEnrollLearnersModalOpen, setIsEnrollLearnersModalOpen] = useState(false);
   const [isAddBetaTestersModalOpen, setIsAddBetaTestersModalOpen] = useState(false);
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
   const [isUpdateBetaTesterModalOpen, setIsUpdateBetaTesterModalOpen] = useState(false);
   const [selectedLearner, setSelectedLearner] = useState<EnrolledLearner | null>(null);
-  const { clearAlerts } = useAlert();
 
   const handleOpenEnrollmentStatusModal = () => {
     setIsEnrollmentStatusModalOpen(true);
@@ -82,8 +87,12 @@ const EnrollmentsPage = () => {
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-          <Button variant="outline-primary" onClick={handleAddBetaTesters}>+ {intl.formatMessage(messages.addBetaTesters)}</Button>
-          <Button onClick={handleEnrollLearners}>+ {intl.formatMessage(messages.enrollLearners)}</Button>
+          <Slot
+            id={enrollmentActionsSlotId}
+            permissions={courseInfo?.permissions}
+            onEnrollLearners={handleEnrollLearners}
+            onAddBetaTesters={handleAddBetaTesters}
+          />
         </ActionRow>
       </div>
       <AlertOutlet />

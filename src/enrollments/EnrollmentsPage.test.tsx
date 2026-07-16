@@ -11,11 +11,43 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ courseId: 'test-course-id' }),
 }));
 
+// The enrollment action buttons live in a slot (default widget covered by EnrollmentActionsSlot.test.tsx).
+// Stub the slot to render buttons wired to the handlers the page passes in, so the page's modal
+// open/close wiring is exercised here.
+jest.mock('@openedx/frontend-base', () => ({
+  ...jest.requireActual('@openedx/frontend-base'),
+  Slot: ({ onEnrollLearners, onAddBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void }) => (
+    <>
+      <button type="button" onClick={onAddBetaTesters}>Add Beta Testers</button>
+      <button type="button" onClick={onEnrollLearners}>Enroll Learners</button>
+    </>
+  ),
+}));
+
+// Stub the action modals; their internals are covered by their own test files. Each stub exposes a
+// close control so the page's onClose handlers are exercised.
+jest.mock('./components/EnrollLearnersModal', () => {
+  const MockEnrollLearnersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+    isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-enroll-learners</button></div> : null
+  );
+  return MockEnrollLearnersModal;
+});
+jest.mock('./components/AddBetaTestersModal', () => {
+  const MockAddBetaTestersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+    isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-add-beta-testers</button></div> : null
+  );
+  return MockAddBetaTestersModal;
+});
+
 jest.mock('./data/apiHook', () => ({
   useEnrollments: jest.fn(),
   useEnrollmentByUserId: jest.fn(),
   useUpdateEnrollments: jest.fn(),
   useUpdateBetaTesters: jest.fn(),
+}));
+
+jest.mock('@src/data/apiHook', () => ({
+  useCourseInfo: () => ({ data: { permissions: { admin: true, instructor: true, dataResearcher: false } } }),
 }));
 
 jest.mock('./components/EnrollmentsList', () => {
@@ -65,11 +97,11 @@ describe('EnrollmentsPage', () => {
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
   });
 
-  it('renders action buttons', () => {
+  it('renders the check enrollment status action and the enrollment action buttons', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
     expect(screen.getByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: new RegExp(messages.addBetaTesters.defaultMessage) })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: new RegExp(messages.enrollLearners.defaultMessage) })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.addBetaTesters.defaultMessage })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage })).toBeInTheDocument();
   });
 
   it('renders EnrollmentsList component', () => {
@@ -138,6 +170,28 @@ describe('EnrollmentsPage', () => {
     const closeUnenrollButton = screen.getByText('Cancel');
     await user.click(closeUnenrollButton);
 
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the Enroll Learners modal via the slot handler', async () => {
+    renderWithAlertAndIntl(<EnrollmentsPage />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    await user.click(screen.getByText('close-enroll-learners'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the Add Beta Testers modal via the slot handler', async () => {
+    renderWithAlertAndIntl(<EnrollmentsPage />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: messages.addBetaTesters.defaultMessage }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    await user.click(screen.getByText('close-add-beta-testers'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
