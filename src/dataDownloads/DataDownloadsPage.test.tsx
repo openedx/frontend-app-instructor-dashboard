@@ -21,6 +21,9 @@ jest.mock('@openedx/frontend-base', () => ({
 jest.mock('@src/data/api', () => ({
   getApiBaseUrl: jest.fn(() => 'http://lms.example.com'),
 }));
+jest.mock('@src/data/apiHook', () => ({
+  useCourseInfo: () => ({ data: { certificatesEnabled: false } }),
+}));
 
 const mockUseGeneratedReports = useGeneratedReports as jest.MockedFunction<typeof useGeneratedReports>;
 const mockUseGenerateReportLink = useGenerateReportLink as jest.MockedFunction<typeof useGenerateReportLink>;
