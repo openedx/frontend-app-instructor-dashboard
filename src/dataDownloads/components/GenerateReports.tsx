@@ -9,6 +9,7 @@ interface GenerateReportsProps {
   onGenerateProblemResponsesReport: (problemLocation?: string) => void,
   isGenerating: boolean,
   problemResponsesError?: string,
+  certificatesEnabled?: boolean,
 }
 
 interface ReportSectionProps {
@@ -55,6 +56,7 @@ const GenerateReports = ({
   onGenerateProblemResponsesReport,
   isGenerating,
   problemResponsesError,
+  certificatesEnabled = false,
 }: GenerateReportsProps) => {
   const intl = useIntl();
   const [problemLocation, setProblemLocation] = useState('');
@@ -203,19 +205,21 @@ const GenerateReports = ({
             </div>
           </Tab>
 
-          <Tab eventKey="certificates" title={intl.formatMessage(messages.certificateReportsTabTitle)}>
-            <div className="d-flex flex-column px-3.5">
-              <ReportSection
-                titleMessage={messages.issuedCertificatesTitle}
-                descriptionMessage={messages.issuedCertificatesDescription}
-                buttonMessage={messages.generateCertificatesReport}
-                onGenerate={() => onGenerateReport('issued_certificates')}
-                isFirst
-                isLast
-                isGenerating={isGenerating}
-              />
-            </div>
-          </Tab>
+          {certificatesEnabled && (
+            <Tab eventKey="certificates" title={intl.formatMessage(messages.certificateReportsTabTitle)}>
+              <div className="d-flex flex-column px-3.5">
+                <ReportSection
+                  titleMessage={messages.issuedCertificatesTitle}
+                  descriptionMessage={messages.issuedCertificatesDescription}
+                  buttonMessage={messages.generateCertificatesReport}
+                  onGenerate={() => onGenerateReport('issued_certificates')}
+                  isFirst
+                  isLast
+                  isGenerating={isGenerating}
+                />
+              </div>
+            </Tab>
+          )}
         </Tabs>
       </Card>
     </>

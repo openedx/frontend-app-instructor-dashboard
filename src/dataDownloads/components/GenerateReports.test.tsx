@@ -7,12 +7,17 @@ import messages from '@src/dataDownloads/messages';
 const mockOnGenerateReport = jest.fn();
 const mockOnGenerateProblemResponsesReport = jest.fn();
 
-const renderComponent = (isGenerating = false, problemResponsesError?: string) => renderWithIntl(
+const renderComponent = (
+  isGenerating = false,
+  problemResponsesError?: string,
+  certificatesEnabled = false,
+) => renderWithIntl(
   <GenerateReports
     onGenerateReport={mockOnGenerateReport}
     onGenerateProblemResponsesReport={mockOnGenerateProblemResponsesReport}
     isGenerating={isGenerating}
     problemResponsesError={problemResponsesError}
+    certificatesEnabled={certificatesEnabled}
   />
 );
 
@@ -21,13 +26,24 @@ describe('GenerateReports', () => {
     jest.clearAllMocks();
   });
 
-  it('should render the component with all tabs', () => {
+  it('should render the component with the core report tabs', () => {
     renderComponent();
 
     expect(screen.getByText(messages.generateReportsTitle.defaultMessage)).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: messages.enrollmentReportsTabTitle.defaultMessage })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: messages.gradingReportsTabTitle.defaultMessage })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: messages.problemResponseReportsTabTitle.defaultMessage })).toBeInTheDocument();
+  });
+
+  it('should not render the Certificate Reports tab when certificates are disabled for the course', () => {
+    renderComponent();
+
+    expect(screen.queryByRole('tab', { name: messages.certificateReportsTabTitle.defaultMessage })).not.toBeInTheDocument();
+  });
+
+  it('should render the Certificate Reports tab when certificates are enabled for the course', () => {
+    renderComponent(false, undefined, true);
+
     expect(screen.getByRole('tab', { name: messages.certificateReportsTabTitle.defaultMessage })).toBeInTheDocument();
   });
 
@@ -207,7 +223,7 @@ describe('GenerateReports', () => {
   describe('Certificate Reports Tab', () => {
     it('should render certificate report section', async () => {
       const user = userEvent.setup();
-      renderComponent();
+      renderComponent(false, undefined, true);
 
       const tab = screen.getByRole('tab', { name: messages.certificateReportsTabTitle.defaultMessage });
       await user.click(tab);
@@ -217,7 +233,7 @@ describe('GenerateReports', () => {
 
     it('should call onGenerateReport with issued_certificates when button is clicked', async () => {
       const user = userEvent.setup();
-      renderComponent();
+      renderComponent(false, undefined, true);
 
       const tab = screen.getByRole('tab', { name: messages.certificateReportsTabTitle.defaultMessage });
       await user.click(tab);

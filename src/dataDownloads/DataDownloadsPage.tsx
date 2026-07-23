@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useGeneratedReports, useGenerateReportLink } from './data/apiHook';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { getApiBaseUrl } from '@src/data/api';
+import { useCourseInfo } from '@src/data/apiHook';
 import { getReportTypeDisplayName } from './utils';
 import PageNotFound from '@src/components/PageNotFound';
 import { useAlert } from '@src/providers/AlertProvider';
@@ -20,6 +21,7 @@ const DataDownloadsPage = () => {
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialReportCountRef = useRef<number | null>(null);
 
+  const { data: courseInfo } = useCourseInfo(courseId);
   const { data: reportsData, isLoading, error } = useGeneratedReports(courseId, { enablePolling: isPolling });
   const { mutate: generateReportLinkMutate, isPending: isGenerating } = useGenerateReportLink(courseId);
 
@@ -183,6 +185,7 @@ const DataDownloadsPage = () => {
         onGenerateProblemResponsesReport={handleGenerateProblemResponsesReport}
         isGenerating={isGenerating}
         problemResponsesError={problemResponsesError}
+        certificatesEnabled={courseInfo?.certificatesEnabled}
       />
       <PendingTasks />
     </>
