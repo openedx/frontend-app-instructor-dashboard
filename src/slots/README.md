@@ -2,121 +2,42 @@
 
 ## Overview
 
-Slots in `frontend-app-instructor-dashboard` use the slot system from `@openedx/frontend-base` to provide modular extension points in the application. This system allows different widgets to be dynamically registered at specific UI locations.
+Slots in `frontend-app-instructor-dashboard` use the slot system from
+[`@openedx/frontend-base`](https://github.com/openedx/frontend-base) to
+provide modular extension points in the Instructor Dashboard MFE.
+Widgets can be dynamically registered at specific UI locations from a
+`site.config` without changing this MFE's code.
 
-## Slot Architecture
+Each subdirectory below has its own README describing a single
+extension point — its slot ID, the default widget, the props passed to
+widgets, and an example `site.config` snippet.
 
-### Main Components
+## Slots exposed by this MFE
 
-1. **Slot Operations**: Operation definitions that specify how and where widgets will be inserted
-2. **Slot Components**: React components that act as containers for widgets
-3. **Widget Components**: Individual components that are inserted into slots
+- [`org.openedx.frontend.slot.instructorDashboard.enrollmentActions.v1`](./EnrollmentActionsSlot/)
+  — Action buttons ("Enroll Learners" / "Add Beta Testers") in the
+  header of the **Enrollments** tab.
+- [`org.openedx.frontend.slot.instructorDashboard.tabs.v1`](./PlaceholderSlot/)
+  — Register additional tabs in the instructor dashboard navigation.
+  Widgets registered into this slot use the
+  [`PlaceholderSlot`](./PlaceholderSlot/) helper element to carry
+  `tabId`, `title`, `url`, and `sortOrder` props.
+- [`org.openedx.frontend.slot.instructorDashboard.routes.v1`](./PlaceholderSlot/)
+  — Register the content rendered when a custom tab (added via the
+  `tabs.v1` slot) is active. Also uses
+  [`PlaceholderSlot`](./PlaceholderSlot/).
 
-## Instructor Tabs Slot
+## Widgets provided by this MFE for other apps' slots
 
-### Description
-We created following slots to handle Instructor Tabs:
-- Tab Slots uses the slot context to render tab widgets.
-- Route Slots uses registered slots to render tab content dynamically.
+- [`CourseInfoSlot`](./CourseInfoSlot/) — Widget this MFE registers into
+  the shell header's
+  `org.openedx.frontend.slot.header.primaryLinks.v1` slot to display
+  the current course's organization, course number, and title next to
+  the site logo while on the instructor dashboard.
 
+## Helpers
 
-### 1. Slot Operations Definition
+- [`SlotUtils.tsx`](./SlotUtils.tsx) — `useWidgetProps` /
+  `extractWidgetProps` helpers used to read props off widgets registered
+  into prop-carrying slots such as the tabs and routes slots above.
 
-The following `site.config.dev.tsx` will add a custom tab, route and tab content in dev environment.
-
-```tsx
-import { WidgetOperationTypes } from '@openedx/frontend-base';
-import { PlaceholderSlot } from './src/slots/PlaceholderSlot/PlaceholderSlot';
-import { EnvironmentTypes, SiteConfig, footerApp, headerApp, shellApp } from '@openedx/frontend-base';
-
-import { instructorDashboardApp } from './src';
-
-import '@openedx/frontend-base/shell/style';
-
-const siteConfig: SiteConfig = {
-  siteId: 'instructor-dev',
-  siteName: 'Instructor Dev',
-  baseUrl: 'http://apps.local.openedx.io:8080',
-  lmsBaseUrl: 'http://local.openedx.io:8000',
-  loginUrl: 'http://local.openedx.io:8000/login',
-  logoutUrl: 'http://local.openedx.io:8000/logout',
-
-  environment: EnvironmentTypes.DEVELOPMENT,
-  apps: [
-    shellApp,
-    headerApp,
-    footerApp,
-    {
-      ...instructorDashboardApp,
-      slots: [
-        {
-          slotId: 'org.openedx.frontend.slot.instructorDashboard.tabs.v1',
-          id: 'org.openedx.frontend.widget.instructorDashboard.tab.my_tab',
-          op: WidgetOperationTypes.APPEND,
-          element: <PlaceholderSlot tabId="my_tab" title="New Tab" url="my_tab" sortOrder={25} />,
-        },
-        {
-          slotId: 'org.openedx.frontend.slot.instructorDashboard.routes.v1',
-          id: 'org.openedx.frontend.widget.instructorDashboard.route.my_tab',
-          op: WidgetOperationTypes.APPEND,
-          element: <PlaceholderSlot tabId="my_tab" content={<div>Dynamic Content</div>} />,
-        }
-      ]
-    }
-  ],
-  externalRoutes: [
-    {
-      role: 'profile',
-      url: 'http://apps.local.openedx.io:1995/profile/'
-    },
-    {
-      role: 'account',
-      url: 'http://apps.local.openedx.io:1997/account/'
-    },
-    {
-      role: 'logout',
-      url: 'http://local.openedx.io:8000/logout'
-    },
-  ],
-
-  accessTokenCookieName: 'edx-jwt-cookie-header-payload',
-};
-
-export default siteConfig;
-```
-
-#### UI with New Tab Selected and Dynamic Content Displayed
-
-![Instructor Tabs with New Tab and Dynamic Content Displayed](./PlaceholderSlot/NewTabSlot.png)
-
-
-### 2. How it works
-#### 2.1 Explanation on Slot Element
-
-The `PlaceholderSlot` component acts as a placeholder that maintains the necessary props:
-
-```tsx
-export const PlaceholderSlot = (_props: Record<string, any>) => null;
-```
-
-#### 2.2 Explanation of Slot Consumer
-
-[`InstructorNav`](../instructorTabsSlot/InstructorNav.tsx) component consumes the registered slots and tabs coming from the endpoint, orders them, and renders them.
-
-[`TabContent`](../instructorTabsSlot/routes.tsx) consumes the registered slots for the content of each tab.
-
-```tsx
-const TabContent = () => {
-  const { tabId } = useParams<{ tabId: string }>();
-  const routeWidgets = useWidgetProps('org.openedx.frontend.slot.instructorDashboard.routes.v1') as InstructorRouteProps[];
-
-  const tabRoutes = [
-    ...defaultTabs.filter(
-      defaultTab => !routeWidgets.some(slotTab => slotTab.tabId === defaultTab.tabId)
-    ),
-    ...routeWidgets
-  ];
-
-  return tabRoutes.find(tab => tab.tabId === tabId)?.content;
-};
-```
