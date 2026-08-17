@@ -15,7 +15,12 @@ import { useCourseInfo } from '@src/data/apiHook';
 import { enrollmentActionsSlotId } from '@src/constants';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
 
-const EnrollmentsPage = () => {
+interface EnrollmentsPageProps {
+  hideBetaTesters?: boolean,
+  hideEnrollmentStatus?: boolean,
+}
+
+const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false }: EnrollmentsPageProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { data: courseInfo } = useCourseInfo(courseId);
@@ -74,21 +79,24 @@ const EnrollmentsPage = () => {
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="text-primary-700">{intl.formatMessage(messages.enrollmentsPageTitle)}</h3>
         <ActionRow>
-          <Dropdown>
-            <Dropdown.Toggle
-              as={IconButton}
-              src={MoreVert}
-              alt={intl.formatMessage(messages.checkEnrollmentStatus)}
-              id="check-enrollment-status-menu"
-            />
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
-                {intl.formatMessage(messages.checkEnrollmentStatus)}
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+          {!hideEnrollmentStatus && (
+            <Dropdown>
+              <Dropdown.Toggle
+                as={IconButton}
+                src={MoreVert}
+                alt={intl.formatMessage(messages.checkEnrollmentStatus)}
+                id="check-enrollment-status-menu"
+              />
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
+                  {intl.formatMessage(messages.checkEnrollmentStatus)}
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
           <Slot
             id={enrollmentActionsSlotId}
+            hideBetaTesters={hideBetaTesters}
             permissions={courseInfo?.permissions}
             onEnrollLearners={handleEnrollLearners}
             onAddBetaTesters={handleAddBetaTesters}
@@ -96,7 +104,7 @@ const EnrollmentsPage = () => {
         </ActionRow>
       </div>
       <AlertOutlet />
-      <EnrollmentsList onUnenroll={handleUnenroll} onBetaTesterChange={handleBetaTesterChange} />
+      <EnrollmentsList onUnenroll={handleUnenroll} onBetaTesterChange={handleBetaTesterChange} hideBetaTesters={hideBetaTesters} />
       <EnrollmentStatusModal isOpen={isEnrollmentStatusModalOpen} onClose={handleCloseEnrollmentStatusModal} />
       {selectedLearner && <UnenrollModal isOpen={isUnenrollModalOpen} learner={selectedLearner} onClose={handleUnenrollModalClose} />}
       <EnrollLearnersModal isOpen={isEnrollLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} />

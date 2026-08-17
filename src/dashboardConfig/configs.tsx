@@ -41,6 +41,7 @@ export const ccxCoachConfig: DashboardConfig = {
   variantId: 'ccxCoach',
   defaultTabs: [
     { tabId: 'new', content: <NewCCXCoachCourse /> },
+    { tabId: 'enrollments', content: <EnrollmentsPage hideBetaTesters hideEnrollmentStatus /> }
   ],
   routesSlotId: ccxCoachRoutesSlotId,
   navTabsSlotId: ccxCoachTabsSlotId,

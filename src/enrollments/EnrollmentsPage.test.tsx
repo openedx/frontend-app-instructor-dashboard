@@ -16,9 +16,9 @@ jest.mock('react-router-dom', () => ({
 // open/close wiring is exercised here.
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
-  Slot: ({ onEnrollLearners, onAddBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void }) => (
+  Slot: ({ onEnrollLearners, onAddBetaTesters, hideBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void, hideBetaTesters?: boolean }) => (
     <>
-      <button type="button" onClick={onAddBetaTesters}>Add Beta Testers</button>
+      {!hideBetaTesters && <button type="button" onClick={onAddBetaTesters}>Add Beta Testers</button>}
       <button type="button" onClick={onEnrollLearners}>Enroll Learners</button>
     </>
   ),
@@ -51,9 +51,9 @@ jest.mock('@src/data/apiHook', () => ({
 }));
 
 jest.mock('./components/EnrollmentsList', () => {
-  return function MockEnrollmentsList({ onUnenroll }: { onUnenroll: (learner: EnrolledLearner) => void }) {
+  return function MockEnrollmentsList({ onUnenroll, hideBetaTesters }: { onUnenroll: (learner: EnrolledLearner) => void, hideBetaTesters?: boolean }) {
     return (
-      <div role="table">
+      <div role="table" data-hide-beta-testers={String(!!hideBetaTesters)}>
         <button onClick={() => onUnenroll({
           fullName: 'Tester',
           email: 'test@example.com',
@@ -199,5 +199,35 @@ describe('EnrollmentsPage', () => {
     renderWithAlertAndIntl(<EnrollmentsPage />);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  describe('when hideBetaTesters is true', () => {
+    it('does not render the Add Beta Testers button', () => {
+      renderWithAlertAndIntl(<EnrollmentsPage hideBetaTesters />);
+
+      expect(screen.queryByRole('button', { name: messages.addBetaTesters.defaultMessage })).not.toBeInTheDocument();
+      // The Enroll Learners button is still rendered
+      expect(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage })).toBeInTheDocument();
+    });
+
+    it('forwards hideBetaTesters to the EnrollmentsList', () => {
+      renderWithAlertAndIntl(<EnrollmentsPage hideBetaTesters />);
+
+      expect(screen.getByRole('table')).toHaveAttribute('data-hide-beta-testers', 'true');
+    });
+
+    it('does not forward hideBetaTesters by default', () => {
+      renderWithAlertAndIntl(<EnrollmentsPage />);
+
+      expect(screen.getByRole('table')).toHaveAttribute('data-hide-beta-testers', 'false');
+    });
+  });
+
+  describe('when hideEnrollmentStatus is true', () => {
+    it('does not render the check enrollment status action', () => {
+      renderWithAlertAndIntl(<EnrollmentsPage hideEnrollmentStatus />);
+
+      expect(screen.queryByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage })).not.toBeInTheDocument();
+    });
   });
 });

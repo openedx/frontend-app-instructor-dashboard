@@ -18,6 +18,7 @@ const betaTesterOptions = [
 ];
 
 interface EnrollmentsListProps {
+  hideBetaTesters: boolean,
   onUnenroll: (learner: EnrolledLearner) => void,
   onBetaTesterChange: (learner: EnrolledLearner) => void,
 }
@@ -72,7 +73,7 @@ const BetaTesterFilter = ({ column: { filterValue, setFilter } }: { column: { fi
   );
 };
 
-const EnrollmentsList = ({ onUnenroll, onBetaTesterChange }: EnrollmentsListProps) => {
+const EnrollmentsList = ({ hideBetaTesters, onUnenroll, onBetaTesterChange }: EnrollmentsListProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams();
   const [filters, setFilters] = useState({ page: 0, username: '', isBetaTester: '' });
@@ -117,12 +118,14 @@ const EnrollmentsList = ({ onUnenroll, onBetaTesterChange }: EnrollmentsListProp
       ),
       disableFilters: true,
     },
-    {
-      accessor: 'isBetaTester',
-      Header: intl.formatMessage(messages.betaTester),
-      Cell: ({ value }: { value: string }) => (value ? intl.formatMessage(messages.trueLabel) : ''),
-      Filter: BetaTesterFilter
-    },
+    ...(hideBetaTesters ? [] : [
+      {
+        accessor: 'isBetaTester',
+        Header: intl.formatMessage(messages.betaTester),
+        Cell: ({ value }: { value: string }) => (value ? intl.formatMessage(messages.trueLabel) : ''),
+        Filter: BetaTesterFilter,
+      },
+    ]),
   ];
 
   const ActionCustomCell = useCallback(({ row: { original } }: TableCellValue<EnrolledLearner>) => {
@@ -152,21 +155,23 @@ const EnrollmentsList = ({ onUnenroll, onBetaTesterChange }: EnrollmentsListProp
         <Button className="pl-0" onClick={() => onUnenroll(original)} variant="link">
           {intl.formatMessage(messages.unenrollButton)}
         </Button>
-        <OverlayTrigger
-          trigger="click"
-          placement="bottom-end"
-          overlay={popoverContent}
-          rootClose
-        >
-          <IconButton
-            alt={intl.formatMessage(messages.changeBetaTesterStatus)}
-            className="lead"
-            iconAs={MoreVert}
-          />
-        </OverlayTrigger>
+        {!hideBetaTesters && (
+          <OverlayTrigger
+            trigger="click"
+            placement="bottom-end"
+            overlay={popoverContent}
+            rootClose
+          >
+            <IconButton
+              alt={intl.formatMessage(messages.changeBetaTesterStatus)}
+              className="lead"
+              iconAs={MoreVert}
+            />
+          </OverlayTrigger>
+        )}
       </ActionRow>
     );
-  }, [intl, onBetaTesterChange, onUnenroll]);
+  }, [intl, onBetaTesterChange, onUnenroll, hideBetaTesters]);
 
   return (
     <DataTable
@@ -186,7 +191,7 @@ const EnrollmentsList = ({ onUnenroll, onBetaTesterChange }: EnrollmentsListProp
         pageSize: ENROLLMENTS_PAGE_SIZE,
         filters: [
           { id: 'username', value: filters.username },
-          { id: 'isBetaTester', value: filters.isBetaTester },
+          ...(hideBetaTesters ? [] : [{ id: 'isBetaTester', value: filters.isBetaTester }]),
         ]
       }}
       isFilterable
@@ -195,7 +200,7 @@ const EnrollmentsList = ({ onUnenroll, onBetaTesterChange }: EnrollmentsListProp
       itemCount={data.count}
       manualFilters
       manualPagination
-      numBreakoutFilters={2}
+      numBreakoutFilters={hideBetaTesters ? 1 : 2}
       pageSize={ENROLLMENTS_PAGE_SIZE}
       pageCount={data.numPages}
       FilterStatusComponent={() => null}

@@ -31,9 +31,9 @@ const mockLearners = [
   },
 ];
 
-const renderComponent = (onUnenroll = jest.fn(), onBetaTesterChange = jest.fn()) => {
+const renderComponent = (onUnenroll = jest.fn(), onBetaTesterChange = jest.fn(), hideBetaTesters = false) => {
   return renderWithIntl(
-    <EnrollmentsList onUnenroll={onUnenroll} onBetaTesterChange={onBetaTesterChange} />
+    <EnrollmentsList onUnenroll={onUnenroll} onBetaTesterChange={onBetaTesterChange} hideBetaTesters={hideBetaTesters} />
   );
 };
 
@@ -256,6 +256,55 @@ describe('EnrollmentsList', () => {
       actionButtons.forEach(button => {
         expect(button).toHaveAttribute('aria-label', messages.changeBetaTesterStatus.defaultMessage);
       });
+    });
+  });
+
+  describe('when hideBetaTesters is true', () => {
+    const renderWithHiddenBetaTesters = (onUnenroll = jest.fn(), onBetaTesterChange = jest.fn()) => (
+      renderComponent(onUnenroll, onBetaTesterChange, true)
+    );
+
+    test('does not render the Beta Tester column', () => {
+      renderWithHiddenBetaTesters();
+
+      expect(screen.queryByText(messages.betaTester.defaultMessage)).not.toBeInTheDocument();
+      // Other columns are still rendered
+      expect(screen.getByText('Username')).toBeInTheDocument();
+      expect(screen.getByText('Name')).toBeInTheDocument();
+      expect(screen.getByText('Email')).toBeInTheDocument();
+      expect(screen.getByText('Track')).toBeInTheDocument();
+    });
+
+    test('does not render the beta tester filter dropdown', () => {
+      renderWithHiddenBetaTesters();
+
+      expect(screen.queryByDisplayValue(/all enrollees/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('Beta Testers')).not.toBeInTheDocument();
+      expect(screen.queryByText('Non-Beta Testers')).not.toBeInTheDocument();
+      // The username filter is still present
+      expect(screen.getByPlaceholderText(/search enrollments/i)).toBeInTheDocument();
+    });
+
+    test('does not render the beta tester status value in rows', () => {
+      renderWithHiddenBetaTesters();
+
+      const rows = screen.getAllByRole('row');
+      expect(rows[1]).not.toHaveTextContent('True');
+    });
+
+    test('does not render the change beta tester status action button', () => {
+      renderWithHiddenBetaTesters();
+
+      expect(
+        screen.queryByRole('button', { name: messages.changeBetaTesterStatus.defaultMessage }),
+      ).not.toBeInTheDocument();
+    });
+
+    test('still renders the unenroll button for each learner', () => {
+      renderWithHiddenBetaTesters();
+
+      const unenrollButtons = screen.getAllByRole('button', { name: /unenroll/i });
+      expect(unenrollButtons).toHaveLength(2);
     });
   });
 });

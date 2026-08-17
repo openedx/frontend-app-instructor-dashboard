@@ -12,6 +12,8 @@ export interface EnrollmentActionsSlotProps {
   onEnrollLearners: () => void,
   /** Opens the Add Beta Testers modal (owned by the Enrollments page). */
   onAddBetaTesters: () => void,
+  /** Hide Beta Testers Button */
+  hideBetaTesters?: boolean,
 }
 
 /**
@@ -24,12 +26,12 @@ export interface EnrollmentActionsSlotProps {
  * component that decides whether to show each button and which permission gates it — without
  * changing this MFE. See this folder's README for details.
  */
-const EnrollmentActionsSlot = ({ onEnrollLearners, onAddBetaTesters }: EnrollmentActionsSlotProps) => {
+const EnrollmentActionsSlot = ({ onEnrollLearners, onAddBetaTesters, hideBetaTesters = false }: EnrollmentActionsSlotProps) => {
   const intl = useIntl();
 
   return (
     <>
-      <Button variant="outline-primary" onClick={onAddBetaTesters}>+ {intl.formatMessage(messages.addBetaTesters)}</Button>
+      {!hideBetaTesters && <Button variant="outline-primary" onClick={onAddBetaTesters}>+ {intl.formatMessage(messages.addBetaTesters)}</Button>}
       <Button onClick={onEnrollLearners}>+ {intl.formatMessage(messages.enrollLearners)}</Button>
     </>
   );
