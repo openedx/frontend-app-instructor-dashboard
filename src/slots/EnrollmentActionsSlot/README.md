@@ -8,6 +8,7 @@
 * `permissions` - Course permission flags from the instructor course-info API (e.g. `admin`, `instructor`, `dataResearcher`). Provided so a widget can decide which actions to show; the MFE applies no gating.
 * `onEnrollLearners` - Opens the Enroll Learners modal (owned by the Enrollments page).
 * `onAddBetaTesters` - Opens the Add Beta Testers modal (owned by the Enrollments page).
+* `hideBetaTesters` - Indicates whether the Add Beta Testers button should be hidden. Set to `true` when the course does not support beta testing (e.g. ccx-coach courses) so a replacement widget can omit the button accordingly.
 
 ## Description
 
