@@ -1,5 +1,10 @@
 import { camelCaseObject, getAuthenticatedHttpClient, getSiteConfig } from '@openedx/frontend-base';
-import { createCcxCoachCourse, getCcxCoachInfo } from './api';
+import {
+  createCcxCoachCourse,
+  getCcxCoachGradingPolicy,
+  getCcxCoachInfo,
+  saveCcxCoachGradingPolicy,
+} from './api';
 
 jest.mock('@openedx/frontend-base');
 
@@ -8,6 +13,7 @@ const mockBaseUrl = 'https://lms.example.com';
 const mockHttpClient = {
   get: jest.fn(),
   post: jest.fn(),
+  put: jest.fn(),
 };
 
 const mockGetSiteConfig = getSiteConfig as jest.MockedFunction<typeof getSiteConfig>;
@@ -91,5 +97,63 @@ describe('createCcxCoachCourse', () => {
     mockHttpClient.post.mockRejectedValueOnce(mockError);
 
     await expect(createCcxCoachCourse(courseId, ccxCourseName)).rejects.toThrow('Server error');
+  });
+});
+
+describe('getCcxCoachGradingPolicy', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const mockGradingPolicy = '{ "GRADER": [] }';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockGetSiteConfig as jest.Mock).mockReturnValue({ lmsBaseUrl: mockBaseUrl });
+    mockGetAuthenticatedHttpClient.mockReturnValue(mockHttpClient as any);
+    mockHttpClient.get.mockResolvedValue({ data: mockGradingPolicy });
+  });
+
+  it('should fetch grading policy and return raw payload', async () => {
+    const result = await getCcxCoachGradingPolicy(courseId);
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `${mockBaseUrl}/api/ccx_coach/v2/courses/${courseId}/grading_policy`
+    );
+    expect(result).toEqual(mockGradingPolicy);
+  });
+
+  it('should propagate errors from the HTTP client', async () => {
+    const mockError = new Error('Network error');
+    mockHttpClient.get.mockRejectedValueOnce(mockError);
+
+    await expect(getCcxCoachGradingPolicy(courseId)).rejects.toThrow('Network error');
+  });
+});
+
+describe('saveCcxCoachGradingPolicy', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const gradingPolicy = '{ "GRADER": [{ "type": "Homework" }] }';
+  const mockResponse = { success: true };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockGetSiteConfig as jest.Mock).mockReturnValue({ lmsBaseUrl: mockBaseUrl });
+    mockGetAuthenticatedHttpClient.mockReturnValue(mockHttpClient as any);
+    mockHttpClient.put.mockResolvedValue({ data: mockResponse });
+  });
+
+  it('should PUT grading policy payload and return API response', async () => {
+    const result = await saveCcxCoachGradingPolicy(courseId, gradingPolicy);
+
+    expect(mockHttpClient.put).toHaveBeenCalledWith(
+      `${mockBaseUrl}/api/ccx_coach/v2/courses/${courseId}/grading_policy`,
+      { policy: gradingPolicy }
+    );
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should propagate errors from the HTTP client', async () => {
+    const mockError = new Error('Server error');
+    mockHttpClient.put.mockRejectedValueOnce(mockError);
+
+    await expect(saveCcxCoachGradingPolicy(courseId, gradingPolicy)).rejects.toThrow('Server error');
   });
 });

@@ -6,6 +6,7 @@ import DataDownloadsPage from '@src/dataDownloads/DataDownloadsPage';
 import DateExtensionsPage from '@src/dateExtensions/DateExtensionsPage';
 import EnrollmentsPage from '@src/enrollments/EnrollmentsPage';
 import GradingPage from '@src/grading/GradingPage';
+import GradingPolicyPage from '@src/ccxCoach/pages/gradingPolicy/GradingPolicyPage';
 import NewCCXCoachCourse from '@src/ccxCoach/pages/NewCCXCourse/NewCCXCourse';
 import OpenResponsesPage from '@src/openResponses/OpenResponsesPage';
 import SpecialExamsPage from '@src/specialExams/SpecialExamsPage';
@@ -41,7 +42,8 @@ export const ccxCoachConfig: DashboardConfig = {
   variantId: 'ccxCoach',
   defaultTabs: [
     { tabId: 'new', content: <NewCCXCoachCourse /> },
-    { tabId: 'enrollments', content: <EnrollmentsPage hideBetaTesters hideEnrollmentStatus /> }
+    { tabId: 'enrollments', content: <EnrollmentsPage hideBetaTesters hideEnrollmentStatus /> },
+    { tabId: 'grading_policy', content: <GradingPolicyPage /> },
   ],
   routesSlotId: ccxCoachRoutesSlotId,
   navTabsSlotId: ccxCoachTabsSlotId,

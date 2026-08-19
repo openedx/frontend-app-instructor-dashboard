@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCcxCoachCourse, getCcxCoachInfo } from './api';
+import { createCcxCoachCourse, getCcxCoachGradingPolicy, getCcxCoachInfo, saveCcxCoachGradingPolicy } from './api';
 import { ccxCoachInfoQueryKeys } from './queryKeys';
 
 export const useCcxCoachInfo = (courseId: string) => (
@@ -21,6 +21,27 @@ export const useCreateCcxCoachCourse = (courseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ccxCoachInfoQueryKeys.byCourse(courseId),
         exact: false,
+      });
+    },
+  });
+};
+
+export const useGradingPolicy = (courseId: string) => (
+  useQuery({
+    queryKey: ccxCoachInfoQueryKeys.gradingPolicy(courseId),
+    queryFn: () => getCcxCoachGradingPolicy(courseId),
+    enabled: !!courseId,
+  })
+);
+
+export const useSaveGradingPolicy = (courseId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (gradingPolicy: string) => saveCcxCoachGradingPolicy(courseId, gradingPolicy),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ccxCoachInfoQueryKeys.gradingPolicy(courseId),
+        exact: true,
       });
     },
   });
