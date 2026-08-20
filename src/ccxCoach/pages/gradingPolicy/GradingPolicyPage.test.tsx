@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '@src/testUtils';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
@@ -86,11 +86,10 @@ describe('GradingPolicyPage', () => {
 
   it('enables action buttons after editing the grading policy', async () => {
     renderWithIntl(<GradingPolicyPage />);
+    const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, {
-      target: { value: '{"GRADER":[{"type":"Homework"}]}' },
-    });
+    user.type(input, '{"GRADER":[{"type":"Homework"}]}');
 
     expect(mockHandleChange).toHaveBeenCalled();
     expect(screen.getByRole('button', { name: messages.discardButton.defaultMessage })).toBeEnabled();
@@ -102,9 +101,8 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, {
-      target: { value: '{"GRADER":[{"type":"Homework"}]}' },
-    });
+
+    user.type(input, '{"GRADER":[{"type":"Homework"}]}');
 
     await user.click(screen.getByRole('button', { name: messages.discardButton.defaultMessage }));
 
@@ -121,9 +119,7 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, {
-      target: { value: '{"GRADER":[{"type":"Exam"}]}' },
-    });
+    user.type(input, '{"GRADER":[{"type":"Exam"}]}');
 
     await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
 
@@ -143,9 +139,7 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, {
-      target: { value: '{"GRADER":[{"type":"Exam"}]}' },
-    });
+    user.type(input, '{"GRADER":[{"type":"Exam"}]}');
 
     await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
 
