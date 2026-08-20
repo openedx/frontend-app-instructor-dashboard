@@ -46,6 +46,16 @@ const messages = defineMessages({
     defaultMessage: 'Close',
     description: 'Label for the close button in the Grading Policy page',
   },
+  cancelButton: {
+    id: 'gradingPolicy.cancelButton',
+    defaultMessage: 'Cancel',
+    description: 'Label for the cancel button in the Grading Policy page',
+  },
+  confirmationMessage: {
+    id: 'gradingPolicy.confirmationMessage',
+    defaultMessage: 'Errors in the grading policy can lead to the course failing to display. This form does not check the validity of the policy before saving.',
+    description: 'Confirmation message displayed when saving changes to the grading policy',
+  },
 });
 
 export default messages;

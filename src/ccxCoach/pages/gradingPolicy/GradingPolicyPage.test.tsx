@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '@src/testUtils';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
@@ -89,7 +89,9 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    user.type(input, '{"GRADER":[{"type":"Homework"}]}');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Homework"}]}');
 
     expect(mockHandleChange).toHaveBeenCalled();
     expect(screen.getByRole('button', { name: messages.discardButton.defaultMessage })).toBeEnabled();
@@ -101,13 +103,50 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-
-    user.type(input, '{"GRADER":[{"type":"Homework"}]}');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Homework"}]}');
 
     await user.click(screen.getByRole('button', { name: messages.discardButton.defaultMessage }));
 
     expect(mockHandleChange).toHaveBeenCalledWith('{"GRADER":[]}');
     expect(screen.getByRole('textbox')).toHaveValue('{"GRADER":[]}');
+  });
+
+  it('opens the confirmation modal when Save Grading Policy is clicked', async () => {
+    renderWithIntl(<GradingPolicyPage />);
+    const user = userEvent.setup();
+
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Homework"}]}');
+
+    await user.click(screen.getAllByRole('button', { name: messages.saveButton.defaultMessage })[0]);
+
+    const dialog = await screen.findByRole('dialog');
+
+    expect(within(dialog).getByText(messages.confirmationMessage.defaultMessage)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: messages.cancelButton.defaultMessage })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: messages.saveButton.defaultMessage })).toBeInTheDocument();
+  });
+
+  it('closes the confirmation modal on Cancel and does not call save mutation', async () => {
+    renderWithIntl(<GradingPolicyPage />);
+    const user = userEvent.setup();
+
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Homework"}]}');
+
+    await user.click(screen.getAllByRole('button', { name: messages.saveButton.defaultMessage })[0]);
+    const dialog = await screen.findByRole('dialog');
+
+    await user.click(within(dialog).getByRole('button', { name: messages.cancelButton.defaultMessage }));
+
+    expect(screen.queryByText(messages.confirmationMessage.defaultMessage)).not.toBeInTheDocument();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it('calls save mutation and shows success toast when save succeeds', async () => {
@@ -119,15 +158,21 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    user.type(input, '{"GRADER":[{"type":"Exam"}]}');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Exam"}]}');
 
-    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    await user.click(screen.getAllByRole('button', { name: messages.saveButton.defaultMessage })[0]);
+    const dialog = await screen.findByRole('dialog');
+
+    await user.click(within(dialog).getByRole('button', { name: messages.saveButton.defaultMessage }));
 
     expect(mockMutate).toHaveBeenCalledWith('{"GRADER":[{"type":"Exam"}]}', expect.objectContaining({
       onSuccess: expect.any(Function),
       onError: expect.any(Function),
     }));
     expect(mockShowToast).toHaveBeenCalledWith(messages.saveSuccess.defaultMessage);
+    expect(screen.queryByText(messages.confirmationMessage.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('shows error modal when save fails', async () => {
@@ -139,9 +184,14 @@ describe('GradingPolicyPage', () => {
     const user = userEvent.setup();
 
     const input = screen.getByRole('textbox');
-    user.type(input, '{"GRADER":[{"type":"Exam"}]}');
+    await user.clear(input);
+    await user.click(input);
+    await user.paste('{"GRADER":[{"type":"Exam"}]}');
 
-    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    await user.click(screen.getAllByRole('button', { name: messages.saveButton.defaultMessage })[0]);
+    const dialog = await screen.findByRole('dialog');
+
+    await user.click(within(dialog).getByRole('button', { name: messages.saveButton.defaultMessage }));
 
     expect(mockShowModal).toHaveBeenCalledWith({
       confirmText: messages.closeButton.defaultMessage,

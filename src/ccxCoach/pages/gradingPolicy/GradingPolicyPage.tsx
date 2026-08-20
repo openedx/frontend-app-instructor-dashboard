@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useIntl } from '@openedx/frontend-base';
-import { ActionRow, Alert, Button, FormControl } from '@openedx/paragon';
+import { ActionRow, Alert, Button, FormControl, ModalDialog, useToggle } from '@openedx/paragon';
 import { Warning } from '@openedx/paragon/icons';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 import { useGradingPolicy, useSaveGradingPolicy } from '@src/ccxCoach/data/apiHook';
@@ -19,6 +19,7 @@ const GradingPolicyPage = () => {
     filterValue: gradingPolicy,
     setFilter: setGradingPolicy,
   });
+  const [isOpenConfigModal, openConfigModal, closeConfigModal] = useToggle(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleChange(event.target.value);
@@ -29,6 +30,7 @@ const GradingPolicyPage = () => {
   };
 
   const handleSaveChanges = () => {
+    closeConfigModal();
     saveGradingPolicy(gradingPolicy, {
       onSuccess: () => {
         handleChange(gradingPolicy);
@@ -65,8 +67,24 @@ const GradingPolicyPage = () => {
       />
       <ActionRow className="mt-4">
         <Button disabled={inputValue === data} variant="tertiary" onClick={handleDiscardChanges}>{intl.formatMessage(messages.discardButton)}</Button>
-        <Button disabled={inputValue === data} onClick={handleSaveChanges}>{intl.formatMessage(messages.saveButton)}</Button>
+        <Button disabled={inputValue === data} onClick={openConfigModal}>{intl.formatMessage(messages.saveButton)}</Button>
       </ActionRow>
+      <ModalDialog isOpen={isOpenConfigModal} title={intl.formatMessage(messages.warningTitle)} onClose={closeConfigModal} isOverflowVisible={false}>
+        <ModalDialog.Header>
+          <ModalDialog.Title className="text-primary-500">
+            {intl.formatMessage(messages.warningTitle)}
+          </ModalDialog.Title>
+        </ModalDialog.Header>
+        <ModalDialog.Body>
+          <p>{intl.formatMessage(messages.confirmationMessage)}</p>
+        </ModalDialog.Body>
+        <ModalDialog.Footer>
+          <ActionRow>
+            <Button variant="tertiary" onClick={closeConfigModal}>{intl.formatMessage(messages.cancelButton)}</Button>
+            <Button onClick={handleSaveChanges}>{intl.formatMessage(messages.saveButton)}</Button>
+          </ActionRow>
+        </ModalDialog.Footer>
+      </ModalDialog>
     </>
   );
 };
