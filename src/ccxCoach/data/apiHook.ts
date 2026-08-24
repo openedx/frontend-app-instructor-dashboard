@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCcxCoachCourse, getCcxCoachGradingPolicy, getCcxCoachInfo, saveCcxCoachGradingPolicy } from './api';
+import { createCcxCoachCourse, getCcxCoachGradingPolicy, getCcxCoachInfo, getCcxSchedule, saveCcxCoachGradingPolicy } from './api';
 import { ccxCoachInfoQueryKeys } from './queryKeys';
 
 export const useCcxCoachInfo = (courseId: string) => (
@@ -25,6 +25,14 @@ export const useCreateCcxCoachCourse = (courseId: string) => {
     },
   });
 };
+
+export const useCcxSchedule = (courseId: string) => (
+  useQuery({
+    queryKey: ccxCoachInfoQueryKeys.schedule(courseId),
+    queryFn: () => getCcxSchedule(courseId),
+    enabled: !!courseId,
+  })
+);
 
 export const useGradingPolicy = (courseId: string) => (
   useQuery({

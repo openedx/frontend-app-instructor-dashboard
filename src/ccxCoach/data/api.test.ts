@@ -3,6 +3,7 @@ import {
   createCcxCoachCourse,
   getCcxCoachGradingPolicy,
   getCcxCoachInfo,
+  getCcxSchedule,
   saveCcxCoachGradingPolicy,
 } from './api';
 
@@ -125,6 +126,37 @@ describe('getCcxCoachGradingPolicy', () => {
     mockHttpClient.get.mockRejectedValueOnce(mockError);
 
     await expect(getCcxCoachGradingPolicy(courseId)).rejects.toThrow('Network error');
+  });
+});
+
+describe('getCcxSchedule', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const mockData = [{ start_date: '2026-08-26T08:30:00Z', usage_key: 'block-v1:edX+DemoX+type@chapter+block@1' }];
+  const mockCamelCasedData = [{ startDate: '2026-08-26T08:30:00Z', usageKey: 'block-v1:edX+DemoX+type@chapter+block@1' }];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockGetSiteConfig as jest.Mock).mockReturnValue({ lmsBaseUrl: mockBaseUrl });
+    mockGetAuthenticatedHttpClient.mockReturnValue(mockHttpClient as any);
+    mockCamelCaseObject.mockReturnValue(mockCamelCasedData as any);
+    mockHttpClient.get.mockResolvedValue({ data: mockData });
+  });
+
+  it('should fetch schedule data and return camelCased payload', async () => {
+    const result = await getCcxSchedule(courseId);
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `${mockBaseUrl}/courses/${courseId}/ccx_schedule`
+    );
+    expect(mockCamelCaseObject).toHaveBeenCalledWith(mockData);
+    expect(result).toEqual(mockCamelCasedData);
+  });
+
+  it('should propagate errors from the HTTP client', async () => {
+    const mockError = new Error('Schedule fetch error');
+    mockHttpClient.get.mockRejectedValueOnce(mockError);
+
+    await expect(getCcxSchedule(courseId)).rejects.toThrow('Schedule fetch error');
   });
 });
 

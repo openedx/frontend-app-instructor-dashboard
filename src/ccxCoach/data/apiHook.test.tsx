@@ -4,10 +4,12 @@ import {
   createCcxCoachCourse,
   getCcxCoachGradingPolicy,
   getCcxCoachInfo,
+  getCcxSchedule,
   saveCcxCoachGradingPolicy,
 } from './api';
 import {
   useCcxCoachInfo,
+  useCcxSchedule,
   useCreateCcxCoachCourse,
   useGradingPolicy,
   useSaveGradingPolicy,
@@ -18,6 +20,7 @@ jest.mock('./api', () => ({
   getCcxCoachInfo: jest.fn(),
   createCcxCoachCourse: jest.fn(),
   getCcxCoachGradingPolicy: jest.fn(),
+  getCcxSchedule: jest.fn(),
   saveCcxCoachGradingPolicy: jest.fn(),
 }));
 
@@ -224,6 +227,39 @@ describe('useGradingPolicy', () => {
     });
 
     expect(getCcxCoachGradingPolicy).not.toHaveBeenCalled();
+    expect(result.current.data).toBe(undefined);
+  });
+});
+
+describe('useCcxSchedule', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const mockSchedule = [{ id: 'block-v1:edX+DemoX+type@chapter+block@1' }];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fetches schedule data successfully', async () => {
+    (getCcxSchedule as jest.Mock).mockResolvedValue(mockSchedule as any);
+
+    const { result } = renderHook(() => useCcxSchedule(courseId), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(getCcxSchedule).toHaveBeenCalledWith(courseId);
+    expect(result.current.data).toEqual(mockSchedule);
+  });
+
+  it('is disabled when courseId is empty', () => {
+    const { result } = renderHook(() => useCcxSchedule(''), {
+      wrapper: createWrapper(),
+    });
+
+    expect(getCcxSchedule).not.toHaveBeenCalled();
     expect(result.current.data).toBe(undefined);
   });
 });

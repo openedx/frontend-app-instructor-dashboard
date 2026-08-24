@@ -18,6 +18,12 @@ export const createCcxCoachCourse = async (courseId: string, ccxCourseName: stri
   return camelCaseObject(data);
 };
 
+export const getCcxSchedule = async (courseId: string) => {
+  const { data } = await getAuthenticatedHttpClient()
+    .get(`${getApiBaseUrl()}/courses/${courseId}/ccx_schedule`);
+  return camelCaseObject(data);
+};
+
 export const getCcxCoachGradingPolicy = async (courseId: string): Promise<string> => {
   const { data } = await getAuthenticatedHttpClient()
     .get(`${getApiBaseUrl()}/api/ccx_coach/v2/courses/${courseId}/grading_policy`);
