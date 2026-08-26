@@ -1,12 +1,13 @@
 import { useIntl } from '@openedx/frontend-base';
 import { ModalDialog, ActionRow, Button } from '@openedx/paragon';
 import messages from '../messages';
+import { BlockTypeT } from '../types';
 
 interface RemoveModalProps {
   onClose: () => void,
   onRemove: () => void,
   isOpen: boolean,
-  blockType: 'section' | 'subsection' | 'unit',
+  blockType: BlockTypeT,
 }
 
 const RemoveModal = ({ isOpen, onClose, onRemove, blockType }: RemoveModalProps): JSX.Element => {

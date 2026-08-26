@@ -6,7 +6,7 @@ import { Event } from '@openedx/paragon/icons';
 const EmptySchedule = () => {
   const intl = useIntl();
 
-  const onScheduleCCX = () => {
+  const handleScheduleCCX = () => {
     // Implement the logic to schedule a CCX course here
   };
 
@@ -15,7 +15,7 @@ const EmptySchedule = () => {
       <p className="m-0">
         {intl.formatMessage(messages.emptyScheduleMessage)}
       </p>
-      <Button className="ml-3 flex-shrink-0" iconBefore={Event} onClick={onScheduleCCX}>{intl.formatMessage(messages.schedulePageTitle)}</Button>
+      <Button className="ml-3 flex-shrink-0" iconBefore={Event} onClick={handleScheduleCCX}>{intl.formatMessage(messages.schedulePageTitle)}</Button>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, Form, FormControl, FormGroup, FormLabel, ModalDialog, Stack } from '@openedx/paragon';
 import messages from '../messages';
-import { BlockTypeT } from './EditSchedule';
+import { BlockTypeT } from '../types';
 
 interface ScheduleFormState {
   startDate: string,
@@ -45,16 +45,16 @@ const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & {
           <FormGroup>
             <FormLabel className="text-primary-500">{intl.formatMessage(messages.startDate)}</FormLabel>
             <Stack direction="horizontal" gap={2}>
-              <FormControl type="date" value={form.startDate} onChange={(value: string) => setForm({ ...form, startDate: value })} />
-              <FormControl type="time" value={form.startTime} onChange={(value: string) => setForm({ ...form, startTime: value })} />
+              <FormControl type="date" value={form.startDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, startDate: e.target.value })} />
+              <FormControl type="time" value={form.startTime} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, startTime: e.target.value })} />
             </Stack>
           </FormGroup>
           {type === 'subsection' && (
             <FormGroup className="mt-3">
               <FormLabel className="text-primary-500">{intl.formatMessage(messages.endDate)}</FormLabel>
               <Stack direction="horizontal" gap={2}>
-                <FormControl type="date" value={form.endDate} onChange={(value: string) => setForm({ ...form, endDate: value })} />
-                <FormControl type="time" value={form.endTime} onChange={(value: string) => setForm({ ...form, endTime: value })} />
+                <FormControl type="date" value={form.endDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, endDate: e.target.value })} />
+                <FormControl type="time" value={form.endTime} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, endTime: e.target.value })} />
               </Stack>
             </FormGroup>
           )}

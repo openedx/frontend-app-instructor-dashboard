@@ -1,9 +1,9 @@
+/* istanbul ignore file */
 import { useState } from 'react';
 import { useToggle } from '@openedx/paragon';
 import ScheduleModal from '@src/ccxCoach/pages/schedule/components/ScheduleModal';
 import RemoveModal from './RemoveModal';
-
-export type BlockTypeT = 'section' | 'subsection' | 'unit';
+import { BlockTypeT } from '../types';
 
 const EditSchedule = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
