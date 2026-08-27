@@ -1,27 +1,35 @@
 import { useIntl } from '@openedx/frontend-base';
 import { ModalDialog, ActionRow, Button } from '@openedx/paragon';
 import messages from '../messages';
-import { BlockTypeT } from '../types';
+import { CategoryType } from '../types';
 
 interface RemoveModalProps {
   onClose: () => void;
   onRemove: () => void;
   isOpen: boolean;
-  blockType: BlockTypeT;
+  category: CategoryType;
 }
 
-const RemoveModal = ({ isOpen, onClose, onRemove, blockType }: RemoveModalProps): JSX.Element => {
+const RemoveModal = ({ isOpen, onClose, onRemove, category }: RemoveModalProps): JSX.Element => {
   const intl = useIntl();
+  const localizedBlockType = intl.formatMessage(
+    category === 'chapter'
+      ? messages.blockTypeSection
+      : category === 'sequential'
+        ? messages.blockTypeSubsection
+        : messages.blockTypeUnit
+  );
+  const removeDialogTitle = intl.formatMessage(messages.removeDialogTitle, { blockType: localizedBlockType });
 
   return (
-    <ModalDialog isOpen={isOpen} title={intl.formatMessage(messages.removeDialogTitle)} onClose={onClose} isOverflowVisible={false}>
+    <ModalDialog isOpen={isOpen} title={removeDialogTitle} onClose={onClose} isOverflowVisible={false}>
       <ModalDialog.Header>
         <ModalDialog.Title className="text-primary-500">
-          {intl.formatMessage(messages.removeDialogTitle, { blockType })}
+          {removeDialogTitle}
         </ModalDialog.Title>
       </ModalDialog.Header>
       <ModalDialog.Body>
-        <p className="text-gray-700 mb-0">{intl.formatMessage(messages.removeConfirmation, { blockType })}</p>
+        <p className="text-gray-700 mb-0">{intl.formatMessage(messages.removeConfirmation, { blockType: localizedBlockType })}</p>
       </ModalDialog.Body>
       <ModalDialog.Footer>
         <ActionRow>
@@ -29,7 +37,7 @@ const RemoveModal = ({ isOpen, onClose, onRemove, blockType }: RemoveModalProps)
             {intl.formatMessage(messages.cancelButton)}
           </Button>
           <Button onClick={onRemove}>
-            {intl.formatMessage(messages.removeButton, { blockType })}
+            {intl.formatMessage(messages.removeButton, { blockType: localizedBlockType })}
           </Button>
         </ActionRow>
       </ModalDialog.Footer>

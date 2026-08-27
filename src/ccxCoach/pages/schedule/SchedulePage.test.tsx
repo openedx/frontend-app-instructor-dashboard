@@ -1,11 +1,13 @@
-import { screen } from '@testing-library/react';
-import { useCcxSchedule } from '@src/ccxCoach/data/apiHook';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useCcxSchedule, useSaveCcxSchedule } from '@src/ccxCoach/data/apiHook';
 import { renderWithIntl } from '@src/testUtils';
-import SchedulePage from './SchedulePage';
+import SchedulePage from '@src/ccxCoach/pages/schedule/SchedulePage';
 import messages from './messages';
 
 jest.mock('@src/ccxCoach/data/apiHook', () => ({
   useCcxSchedule: jest.fn(),
+  useSaveCcxSchedule: jest.fn(),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -17,15 +19,19 @@ jest.mock('@src/ccxCoach/pages/schedule/components/EmptySchedule', () => functio
   return <div>EmptySchedule</div>;
 });
 
-jest.mock('@src/ccxCoach/pages/schedule/components/EditSchedule', () => function MockEditSchedule() {
-  return <div>EditSchedule</div>;
+jest.mock('@src/ccxCoach/pages/schedule/components/Schedule', () => function MockSchedule({ isEditing }: { isEditing: boolean }) {
+  return <div>{isEditing ? 'ScheduleEditing' : 'Schedule'}</div>;
 });
 
 const mockUseCcxSchedule = useCcxSchedule as jest.MockedFunction<typeof useCcxSchedule>;
 
 describe('SchedulePage', () => {
+  const mockMutate = jest.fn();
   beforeEach(() => {
     jest.clearAllMocks();
+    (useSaveCcxSchedule as jest.Mock).mockReturnValue({
+      mutate: mockMutate,
+    } as any);
   });
 
   it('renders loading skeleton while schedule data is loading', () => {
@@ -44,9 +50,9 @@ describe('SchedulePage', () => {
 
     expect(screen.getByText(messages.schedulePageTitle.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText('EmptySchedule')).toBeInTheDocument();
-    expect(screen.queryByText('EditSchedule')).not.toBeInTheDocument();
-    expect(container.firstChild).toHaveClass('mb-3');
+    expect(screen.queryByText('Schedule')).not.toBeInTheDocument();
     expect(container.firstChild).not.toHaveClass('d-flex');
+    expect(screen.queryByRole('button', { name: messages.editCcxSchedule.defaultMessage })).not.toBeInTheDocument();
   });
 
   it('renders edit state and uses flex wrapper when schedule has entries', () => {
@@ -55,9 +61,26 @@ describe('SchedulePage', () => {
     const { container } = renderWithIntl(<SchedulePage />);
 
     expect(screen.getByRole('button', { name: messages.editCcxSchedule.defaultMessage })).toBeInTheDocument();
-    expect(screen.getByText('EditSchedule')).toBeInTheDocument();
+    expect(screen.getByText('Schedule')).toBeInTheDocument();
     expect(screen.queryByText('EmptySchedule')).not.toBeInTheDocument();
     expect(container.firstChild).toHaveClass('d-flex');
     expect(container.firstChild).toHaveClass('justify-content-between');
+  });
+
+  it('shows tooltip when the edit button is disabled', async () => {
+    const user = userEvent.setup();
+    mockUseCcxSchedule.mockReturnValue({ isLoading: false, data: [{ id: 'block-1' }] } as any);
+
+    renderWithIntl(<SchedulePage />);
+
+    await user.click(screen.getByRole('button', { name: messages.editCcxSchedule.defaultMessage }));
+
+    const disabledEditButton = screen.getByRole('button', { name: messages.editCcxSchedule.defaultMessage });
+    expect(disabledEditButton).toBeDisabled();
+    await user.hover(disabledEditButton.parentElement as HTMLElement);
+
+    await waitFor(() => {
+      expect(screen.getByText(messages.editCcxScheduleTooltip.defaultMessage)).toBeInTheDocument();
+    });
   });
 });

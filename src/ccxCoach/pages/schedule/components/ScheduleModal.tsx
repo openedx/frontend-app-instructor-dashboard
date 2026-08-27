@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, Form, FormControl, FormGroup, FormLabel, ModalDialog, Stack } from '@openedx/paragon';
 import messages from '../messages';
-import { BlockTypeT } from '../types';
+import { CategoryType } from '../types';
 
 interface ScheduleFormState {
   startDate: string;
@@ -12,12 +12,13 @@ interface ScheduleFormState {
 }
 
 interface ScheduleModalProps {
-  type: Partial<BlockTypeT>;
+  isOpen: boolean;
+  category: CategoryType;
   onClose: () => void;
   onSave: (startDate: string, endDate?: string) => void;
 }
 
-const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & { isOpen: boolean }): JSX.Element => {
+const ScheduleModal = ({ isOpen, category, onClose, onSave }: ScheduleModalProps): JSX.Element => {
   const intl = useIntl();
   const [form, setForm] = useState<ScheduleFormState>({
     startDate: '',
@@ -28,14 +29,14 @@ const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    onSave(`${form.startDate}T${form.startTime}`, `${form.endDate}T${form.endTime}`);
+    onSave(`${form.startDate} ${form.startTime}`, `${form.endDate} ${form.endTime}`);
   };
 
   return (
-    <ModalDialog isOpen={isOpen} title={type === 'subsection' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)} onClose={onClose} isOverflowVisible={false}>
+    <ModalDialog isOpen={isOpen} title={category === 'sequential' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)} onClose={onClose} isOverflowVisible={false}>
       <ModalDialog.Header className="border-bottom p-3">
         <ModalDialog.Title className="text-primary-500">
-          {type === 'subsection' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)}
+          {category === 'sequential' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)}
         </ModalDialog.Title>
       </ModalDialog.Header>
       <Form onSubmit={handleSubmit} className="position-relative overflow-auto">
@@ -49,7 +50,7 @@ const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & {
               <FormControl type="time" value={form.startTime} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, startTime: e.target.value })} />
             </Stack>
           </FormGroup>
-          {type === 'subsection' && (
+          {category === 'sequential' && (
             <FormGroup className="mt-3">
               <FormLabel className="text-primary-500">{intl.formatMessage(messages.endDate)}</FormLabel>
               <Stack direction="horizontal" gap={2}>
@@ -62,7 +63,7 @@ const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & {
         <ModalDialog.Footer className="border-top p-4">
           <ActionRow>
             <Button variant="tertiary" onClick={onClose}>{intl.formatMessage(messages.cancelButton)}</Button>
-            <Button type="submit">{intl.formatMessage(messages.saveButton)}</Button>
+            <Button disabled={!form.startDate || !form.startTime} type="submit">{intl.formatMessage(messages.scheduleContent)}</Button>
           </ActionRow>
         </ModalDialog.Footer>
       </Form>

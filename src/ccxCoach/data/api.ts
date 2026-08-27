@@ -1,6 +1,7 @@
 import { camelCaseObject, getAuthenticatedHttpClient } from '@openedx/frontend-base';
 import { getApiBaseUrl } from '@src/data/api';
 import { CcxCoachInfoResponse } from '../types';
+import { BlockAttributes } from '../pages/schedule/types';
 
 export const getCcxCoachInfo = async (courseId: string): Promise<CcxCoachInfoResponse> => {
   const { data } = await getAuthenticatedHttpClient()
@@ -21,6 +22,13 @@ export const createCcxCoachCourse = async (courseId: string, ccxCourseName: stri
 export const getCcxSchedule = async (courseId: string) => {
   const { data } = await getAuthenticatedHttpClient()
     .get(`${getApiBaseUrl()}/courses/${courseId}/ccx_schedule`);
+  return camelCaseObject(data);
+};
+
+// TODO: change it to a put/patch in backend
+export const saveCcxSchedule = async (courseId: string, editedSchedule: BlockAttributes[]) => {
+  const { data } = await getAuthenticatedHttpClient()
+    .post(`${getApiBaseUrl()}/courses/${courseId}/save_ccx`, editedSchedule);
   return camelCaseObject(data);
 };
 

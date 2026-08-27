@@ -16,6 +16,11 @@ const messages = defineMessages({
     defaultMessage: 'Edit CCX Schedule',
     description: 'Button label for editing the CCX schedule',
   },
+  editCcxScheduleTooltip: {
+    id: 'schedule.editCcxScheduleTooltip',
+    defaultMessage: 'Editing CCX Schedule. To exit click Save or Cancel below',
+    description: 'Tooltip shown when the edit CCX schedule button is disabled',
+  },
   subsectionDialogTitle: {
     id: 'schedule.subsectionDialogTitle',
     defaultMessage: 'Schedule Subsection',
@@ -51,10 +56,15 @@ const messages = defineMessages({
     defaultMessage: 'Cancel',
     description: 'Label for the cancel button in the scheduling dialog',
   },
-  saveButton: {
-    id: 'schedule.saveButton',
+  scheduleContent: {
+    id: 'schedule.scheduleContent',
     defaultMessage: 'Schedule Content',
     description: 'Label for the save changes button in the scheduling dialog',
+  },
+  saveButton: {
+    id: 'schedule.saveButton',
+    defaultMessage: 'Save',
+    description: 'Label for the save button in the scheduling dialog',
   },
   removeDialogTitle: {
     id: 'schedule.removeDialogTitle',
@@ -70,6 +80,41 @@ const messages = defineMessages({
     id: 'schedule.removeButton',
     defaultMessage: 'Remove {blockType}',
     description: 'Label for the remove button in the Remove Scheduled Content dialog',
+  },
+  blockTypeSection: {
+    id: 'schedule.blockTypeSection',
+    defaultMessage: 'Section',
+    description: 'Localized label for section block type',
+  },
+  blockTypeSubsection: {
+    id: 'schedule.blockTypeSubsection',
+    defaultMessage: 'Subsection',
+    description: 'Localized label for subsection block type',
+  },
+  blockTypeUnit: {
+    id: 'schedule.blockTypeUnit',
+    defaultMessage: 'Unit',
+    description: 'Localized label for unit block type',
+  },
+  start: {
+    id: 'schedule.start',
+    defaultMessage: 'Start:',
+    description: 'Label for the start date in the schedule',
+  },
+  addSection: {
+    id: 'schedule.addSection',
+    defaultMessage: 'Add Section',
+    description: 'Label for the button to add a new section in the schedule',
+  },
+  addSubsection: {
+    id: 'schedule.addSubsection',
+    defaultMessage: 'Add Subsection',
+    description: 'Label for the button to add a new subsection in the schedule',
+  },
+  addUnit: {
+    id: 'schedule.addUnit',
+    defaultMessage: 'Add Unit',
+    description: 'Label for the button to add a new unit in the schedule',
   },
 });
 

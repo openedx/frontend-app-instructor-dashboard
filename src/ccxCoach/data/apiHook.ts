@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCcxCoachCourse, getCcxCoachGradingPolicy, getCcxCoachInfo, getCcxSchedule, saveCcxCoachGradingPolicy } from './api';
+import { createCcxCoachCourse, getCcxCoachGradingPolicy, getCcxCoachInfo, getCcxSchedule, saveCcxCoachGradingPolicy, saveCcxSchedule } from './api';
 import { ccxCoachInfoQueryKeys } from './queryKeys';
+import { BlockAttributes } from '../pages/schedule/types';
 
 export const useCcxCoachInfo = (courseId: string) => (
   useQuery({
@@ -33,6 +34,19 @@ export const useCcxSchedule = (courseId: string) => (
     enabled: !!courseId,
   })
 );
+
+export const useSaveCcxSchedule = (courseId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (editedSchedule: BlockAttributes[]) => saveCcxSchedule(courseId, editedSchedule),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ccxCoachInfoQueryKeys.schedule(courseId),
+        exact: true,
+      });
+    },
+  });
+};
 
 export const useGradingPolicy = (courseId: string) => (
   useQuery({

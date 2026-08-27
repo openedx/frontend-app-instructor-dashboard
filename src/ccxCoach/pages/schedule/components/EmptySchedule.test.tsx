@@ -6,7 +6,7 @@ import messages from '../messages';
 
 describe('EmptySchedule', () => {
   it('renders empty state message and schedule button', () => {
-    const { container } = renderWithIntl(<EmptySchedule />);
+    const { container } = renderWithIntl(<EmptySchedule onScheduleCCX={jest.fn()} />);
 
     expect(screen.getByText(messages.emptyScheduleMessage.defaultMessage)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: messages.schedulePageTitle.defaultMessage })).toBeInTheDocument();
@@ -14,11 +14,13 @@ describe('EmptySchedule', () => {
   });
 
   it('allows clicking schedule button', async () => {
-    renderWithIntl(<EmptySchedule />);
+    const onScheduleCCXMock = jest.fn();
+    renderWithIntl(<EmptySchedule onScheduleCCX={onScheduleCCXMock} />);
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('button', { name: messages.schedulePageTitle.defaultMessage }));
 
     expect(screen.getByRole('button', { name: messages.schedulePageTitle.defaultMessage })).toBeInTheDocument();
+    expect(onScheduleCCXMock).toHaveBeenCalledTimes(1);
   });
 });

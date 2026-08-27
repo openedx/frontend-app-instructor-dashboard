@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '@src/testUtils';
-import ScheduleModal from './ScheduleModal';
+import ScheduleModal from '@src/ccxCoach/pages/schedule/components/ScheduleModal';
 import messages from '../messages';
 
 describe('ScheduleModal', () => {
@@ -9,7 +9,7 @@ describe('ScheduleModal', () => {
     renderWithIntl(
       <ScheduleModal
         isOpen
-        type="section"
+        category="chapter"
         onClose={jest.fn()}
         onSave={jest.fn()}
       />
@@ -23,7 +23,7 @@ describe('ScheduleModal', () => {
     renderWithIntl(
       <ScheduleModal
         isOpen
-        type="subsection"
+        category="sequential"
         onClose={jest.fn()}
         onSave={jest.fn()}
       />
@@ -38,7 +38,7 @@ describe('ScheduleModal', () => {
     renderWithIntl(
       <ScheduleModal
         isOpen
-        type="section"
+        category="chapter"
         onClose={onClose}
         onSave={jest.fn()}
       />
@@ -51,11 +51,15 @@ describe('ScheduleModal', () => {
   });
 
   it('submits date and time values through onSave', async () => {
+    const startDate = '2026-08-26';
+    const startTime = '08:30';
+    const endDate = '2026-08-27';
+    const endTime = '09:45';
     const onSave = jest.fn();
     renderWithIntl(
       <ScheduleModal
         isOpen
-        type="subsection"
+        category="sequential"
         onClose={jest.fn()}
         onSave={onSave}
       />
@@ -66,16 +70,14 @@ describe('ScheduleModal', () => {
     const dateInputs = document.querySelectorAll('input[type="date"]');
     const timeInputs = document.querySelectorAll('input[type="time"]');
 
-    await user.type(dateInputs[0] as HTMLInputElement, '2026-08-26');
-    await user.type(timeInputs[0] as HTMLInputElement, '08:30');
-    await user.type(dateInputs[1] as HTMLInputElement, '2026-08-27');
-    await user.type(timeInputs[1] as HTMLInputElement, '09:45');
+    await user.type(dateInputs[0] as HTMLInputElement, startDate);
+    await user.type(timeInputs[0] as HTMLInputElement, startTime);
+    await user.type(dateInputs[1] as HTMLInputElement, endDate);
+    await user.type(timeInputs[1] as HTMLInputElement, endTime);
 
-    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: messages.scheduleContent.defaultMessage }));
 
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalledWith(expect.any(String), expect.any(String));
-    expect(onSave.mock.calls[0][0]).toContain('T');
-    expect(onSave.mock.calls[0][1]).toContain('T');
+    expect(onSave).toHaveBeenCalledWith(`${startDate} ${startTime}`, `${endDate} ${endTime}`);
   });
 });

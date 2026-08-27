@@ -1,0 +1,187 @@
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderWithIntl } from '@src/testUtils';
+import Schedule from '@src/ccxCoach/pages/schedule/components/Schedule';
+import messages from '../messages';
+
+const mockScheduleModal = jest.fn<JSX.Element, [Record<string, unknown>]>(() => <div>Schedule Modal</div>);
+const mockRemoveModal = jest.fn<JSX.Element, [Record<string, unknown>]>((props) => (
+  props.isOpen ? <button type="button" onClick={props.onRemove as () => void}>Confirm Remove</button> : <div>Remove Modal</div>
+));
+
+const renderMockScheduleModal = (props: Record<string, unknown>) => (
+  props.isOpen
+    ? <button type="button" onClick={() => (props.onSave as (startDate: string, endDate?: string) => void)('2026-08-26 08:30', '2026-08-27 09:45')}>Confirm Schedule</button>
+    : <div>Schedule Modal</div>
+);
+
+jest.mock('@src/ccxCoach/pages/schedule/components/ScheduleModal', () => function MockScheduleModal(props) {
+  return mockScheduleModal(props);
+});
+jest.mock('@src/ccxCoach/pages/schedule/components/RemoveModal', () => function MockRemoveModal(props) {
+  return mockRemoveModal(props);
+});
+
+const mockScheduleData = [{
+  location: 'section-location',
+  displayName: 'Section One',
+  category: 'chapter' as const,
+  start: '2026-01-01 00:00',
+  hidden: false,
+  children: [{
+    location: 'subsection-location',
+    displayName: 'Subsection One',
+    category: 'sequential' as const,
+    start: '2026-01-01 00:00',
+    due: '2026-05-20 00:00',
+    hidden: false,
+    children: [{
+      location: 'unit-location',
+      displayName: 'Unit One',
+      category: 'vertical' as const,
+      start: '2026-01-01 00:00',
+      due: '2026-05-20 00:00',
+      hidden: true,
+    }],
+  }],
+}];
+
+describe('Schedule', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockScheduleModal.mockImplementation(renderMockScheduleModal);
+  });
+
+  it('renders schedule and remove modals with expected props when removing a block', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={jest.fn()} onCancel={jest.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Subsection' }));
+
+    expect(mockScheduleModal).toHaveBeenCalled();
+    expect(mockScheduleModal).toHaveBeenLastCalledWith(expect.objectContaining({
+      isOpen: false,
+      category: 'sequential',
+      onClose: expect.any(Function),
+      onSave: expect.any(Function),
+    }));
+
+    expect(mockRemoveModal).toHaveBeenCalled();
+    expect(mockRemoveModal).toHaveBeenLastCalledWith(expect.objectContaining({
+      isOpen: true,
+      category: 'sequential',
+      onClose: expect.any(Function),
+      onRemove: expect.any(Function),
+    }));
+  });
+
+  it('updates a vertical block locally on add and saves the edited tree', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={onSave} onCancel={jest.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: messages.addUnit.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+
+    expect(onSave).toHaveBeenCalledWith([expect.objectContaining({
+      hidden: false,
+      children: [expect.objectContaining({
+        hidden: false,
+        children: [expect.objectContaining({
+          location: 'unit-location',
+          hidden: false,
+        })],
+      })],
+    })]);
+  });
+
+  it('toggles section and subsection content visibility', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={jest.fn()} onCancel={jest.fn()} />);
+
+    expect(screen.getByText('Subsection One')).toBeVisible();
+    expect(screen.getByText('Unit One')).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Section One' }));
+
+    await waitFor(() => expect(screen.queryByText('Subsection One')).not.toBeInTheDocument());
+    expect(screen.queryByText('Unit One')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Section One' }));
+    await user.click(screen.getByRole('button', { name: 'Subsection One' }));
+
+    expect(screen.getByText('Subsection One')).toBeVisible();
+    await waitFor(() => expect(screen.queryByText('Unit One')).not.toBeInTheDocument());
+  });
+
+  it('updates a sequential block locally on remove and saves the edited tree', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={onSave} onCancel={jest.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Subsection' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Remove' }));
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+
+    expect(onSave).toHaveBeenCalledWith([expect.objectContaining({
+      children: [expect.objectContaining({
+        location: 'subsection-location',
+        hidden: true,
+        children: [expect.objectContaining({
+          location: 'unit-location',
+          hidden: true,
+        })],
+      })],
+    })]);
+  });
+
+  it('saves normalized start date when scheduling a chapter', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    const scheduleData = [{
+      ...mockScheduleData[0],
+      hidden: true,
+    }];
+    renderWithIntl(<Schedule scheduleData={scheduleData} isEditing onSave={onSave} onCancel={jest.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: messages.addSection.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Schedule' }));
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+
+    expect(onSave).toHaveBeenCalledWith([expect.objectContaining({
+      location: 'section-location',
+      hidden: false,
+      start: '2026-08-26 08:30',
+      children: [expect.objectContaining({
+        location: 'subsection-location',
+        start: '2026-01-01 00:00',
+      })],
+    })]);
+  });
+
+  it('saves normalized start and due dates when scheduling a sequential', async () => {
+    const onSave = jest.fn();
+    const user = userEvent.setup();
+    const scheduleData = [{
+      ...mockScheduleData[0],
+      children: [{
+        ...mockScheduleData[0].children[0],
+        hidden: true,
+      }],
+    }];
+    renderWithIntl(<Schedule scheduleData={scheduleData} isEditing onSave={onSave} onCancel={jest.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: messages.addSubsection.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Schedule' }));
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+
+    expect(onSave).toHaveBeenCalledWith([expect.objectContaining({
+      children: [expect.objectContaining({
+        location: 'subsection-location',
+        hidden: false,
+        start: '2026-08-26 08:30',
+        due: '2026-08-27 09:45',
+      })],
+    })]);
+  });
+});
