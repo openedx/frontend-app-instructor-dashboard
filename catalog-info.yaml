@@ -25,4 +25,4 @@ metadata:
 spec:
   owner: group:committers-frontend-app-instructor-dashboard
   type: "library"
-  lifecycle: "experimental"
+  lifecycle: "production"

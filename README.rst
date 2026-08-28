@@ -25,12 +25,6 @@ specifically designed for instructors to track student progress, and facilitate 
 Getting Started
 ***************
 
-After copying the template repository, you'll want to do a find-and-replace to
-replace all instances of ``frontend-app-instructor-dashboard`` with the name of
-your new repository.  Also edit index.html to replace "Application Template"
-with a friendly name for this application that users will see in their browser
-tab.
-
 Prerequisites
 =============
 
@@ -49,9 +43,9 @@ Cloning and Startup
 
   ``git clone https://github.com/openedx/frontend-app-instructor-dashboard.git``
 
-2. Use node v20.x.
+2. Use node v24.x.
 
-   The current version of the micro-frontend build scripts support node 20.
+   The current version of the micro-frontend build scripts support node 24.
    Using other major versions of node *may* work, but this is unsupported.  For
    convenience, this repository includes an .nvmrc file to help in setting the
    correct node version via `nvm <https://github.com/nvm-sh/nvm>`_.
@@ -78,7 +72,7 @@ Project Structure
 The source for this project is organized into nested submodules according to
 the `Feature-based Application Organization ADR`_.
 
-.. _Feature-based Application Organization ADR: https://github.com/openedx/frontend-app-instructor-dashboard/blob/master/docs/decisions/0002-feature-based-application-organization.rst
+.. _Feature-based Application Organization ADR: https://github.com/openedx/frontend-app-instructor-dashboard/blob/main/docs/decisions/0002-feature-based-application-organization.rst
 
 Internationalization
 ====================
@@ -86,7 +80,7 @@ Internationalization
 Please see refer to the `frontend-base i18n howto`_ for documentation on
 internationalization.
 
-.. _frontend-base i18n howto: https://github.com/openedx/frontend-base/blob/master/docs/how_tos/i18n.rst
+.. _frontend-base i18n howto: https://github.com/openedx/frontend-base/blob/main/docs/how_tos/i18n.rst
 
 AlertsProvider
 ==============
@@ -154,6 +148,38 @@ The AlertsProvider is a centralized alert management system that provides four t
       </div>
     ))}
 
+Branches and Releases
+*********************
+
+This app is published to NPM by ``semantic-release``, and its branches follow
+`OEP-10 ADR 0002`_:
+
+``main``
+  Unstable.  Every merge publishes a prerelease on the ``alpha`` dist-tag.
+  Breaking changes land here with no DEPR process and no warning, so it is
+  not supported in production.  All changes, including bug fixes, should
+  target this branch first.
+
+``stable``
+  Carries the newest stable major and owns the ``latest`` dist-tag.  Changes
+  arrive here as backports from ``main``, and no breaking change lands after
+  publication.
+
+``n.x`` and ``n.m.x``
+  Maintenance branches for majors and minors that ``stable`` has moved past.
+  Each owns the dist-tag matching its own name, so consumers select a
+  maintained line by semver range, e.g. ``"1.x"``.
+
+Both ``.releaserc`` and the ``Release CI`` workflow already know the whole
+layout, including the maintenance branch patterns, so a new line starts
+publishing as soon as it is pushed.
+
+This repository is not branched or tagged for Open edX releases in its own
+right.  It participates by published version instead, per `OEP-10 ADR 0003`_.
+
+.. _OEP-10 ADR 0002: https://docs.openedx.org/projects/openedx-proposals/en/latest/processes/oep-0010/decisions/0002-frontend-stable-branches.html
+.. _OEP-10 ADR 0003: https://docs.openedx.org/projects/openedx-proposals/en/latest/processes/oep-0010/decisions/0003-frontend-release-strategy.html
+
 Getting Help
 ************
 
@@ -198,6 +224,9 @@ to have a discussion about your new feature idea with the maintainers prior to
 beginning development to maximize the chances of your change being accepted.
 You can start a conversation by creating a new issue on this repo summarizing
 your idea.
+
+All changes, including bug fixes, should target ``main`` first; see `Branches
+and Releases`_ for how they reach ``stable`` and the maintenance lines.
 
 The Open edX Code of Conduct
 ****************************
