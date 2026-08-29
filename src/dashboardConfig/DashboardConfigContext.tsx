@@ -1,7 +1,7 @@
 import {
   createContext, ReactNode, useContext,
 } from 'react';
-import { MessageDescriptor } from 'react-intl';
+import { MessageDescriptor } from '@openedx/frontend-base';
 import type { TabProps } from '@src/instructorNav/InstructorNav';
 
 export interface DashboardRouteProps {

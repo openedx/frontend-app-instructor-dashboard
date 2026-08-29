@@ -74,6 +74,27 @@ the `Feature-based Application Organization ADR`_.
 
 .. _Feature-based Application Organization ADR: https://github.com/openedx/frontend-app-instructor-dashboard/blob/main/docs/decisions/0002-feature-based-application-organization.rst
 
+Configuration
+=============
+
+``getAppConfig`` resolves three sources, in order of increasing precedence:
+the app's bundled ``defaultConfig``, the site's ``commonAppConfig``, and the
+app's ``config``. The first is the app author's, at build time; the other two
+are the operator's, the second applying to every app on the site and the third
+to this app alone.
+
+The instructor dashboard reads exactly one field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+   * - ``SUPPORT_URL``
+     - Target of the help button the app adds to the header. The button is
+       not rendered when this is unset.
+
 Internationalization
 ====================
 

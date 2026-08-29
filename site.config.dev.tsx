@@ -21,7 +21,6 @@ const siteConfig: SiteConfig = {
     {
       ...instructorDashboardApp,
       config: {
-        ...instructorDashboardApp.config,
         SUPPORT_URL: 'https://docs.openedx.org/en/latest/educators/index.html',
       }
     }
