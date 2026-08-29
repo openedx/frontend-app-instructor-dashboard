@@ -3,12 +3,12 @@ import { ModalDialog, ActionRow, Button } from '@openedx/paragon';
 import messages from '../messages';
 
 interface ResetExtensionsModalProps {
-  isOpen: boolean,
-  message: string,
-  title: string,
-  onCancelReset: () => void,
-  onClose: () => void,
-  onConfirmReset: () => void,
+  isOpen: boolean;
+  message: string;
+  title: string;
+  onCancelReset: () => void;
+  onClose: () => void;
+  onConfirmReset: () => void;
 }
 
 const ResetExtensionsModal = ({

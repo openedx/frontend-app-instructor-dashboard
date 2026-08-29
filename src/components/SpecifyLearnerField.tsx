@@ -10,12 +10,12 @@ import { SelectedLearner } from '@src/types';
 import messages from './messages';
 
 interface SpecifyLearnerFieldProps {
-  learner?: SelectedLearner,
-  onClickSelect: (emailOrUsername: string) => void,
+  learner?: SelectedLearner;
+  onClickSelect: (emailOrUsername: string) => void;
 }
 
 interface SpecifyLearnerFieldRef {
-  reset: () => void,
+  reset: () => void;
 }
 
 type ErrorState = 'not_enrolled' | 'not_found' | 'generic_error' | null;

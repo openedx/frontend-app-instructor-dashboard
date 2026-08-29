@@ -4,10 +4,10 @@ import messages from '../messages';
 import { BlockTypeT } from '../types';
 
 interface RemoveModalProps {
-  onClose: () => void,
-  onRemove: () => void,
-  isOpen: boolean,
-  blockType: BlockTypeT,
+  onClose: () => void;
+  onRemove: () => void;
+  isOpen: boolean;
+  blockType: BlockTypeT;
 }
 
 const RemoveModal = ({ isOpen, onClose, onRemove, blockType }: RemoveModalProps): JSX.Element => {

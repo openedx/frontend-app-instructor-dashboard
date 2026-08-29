@@ -5,16 +5,16 @@ import messages from '../messages';
 import { BlockTypeT } from '../types';
 
 interface ScheduleFormState {
-  startDate: string,
-  startTime: string,
-  endDate: string,
-  endTime: string,
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
 }
 
 interface ScheduleModalProps {
-  type: Partial<BlockTypeT>,
-  onClose: () => void,
-  onSave: (startDate: string, endDate?: string) => void,
+  type: Partial<BlockTypeT>;
+  onClose: () => void;
+  onSave: (startDate: string, endDate?: string) => void;
 }
 
 const ScheduleModal = ({ isOpen, type, onClose, onSave }: ScheduleModalProps & { isOpen: boolean }): JSX.Element => {

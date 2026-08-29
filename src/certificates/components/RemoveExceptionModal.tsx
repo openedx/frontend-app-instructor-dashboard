@@ -3,11 +3,11 @@ import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
 interface RemoveExceptionModalProps {
-  isOpen: boolean,
-  email: string,
-  onClose: () => void,
-  onConfirm: () => void,
-  isSubmitting: boolean,
+  isOpen: boolean;
+  email: string;
+  onClose: () => void;
+  onConfirm: () => void;
+  isSubmitting: boolean;
 }
 
 const RemoveExceptionModal = ({

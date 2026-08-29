@@ -11,9 +11,9 @@ import { Allowance } from '@src/specialExams/types';
 import { DataTableFetchDataProps, TableCellValue } from '@src/types';
 
 interface AllowanceList {
-  onClickAdd: () => void,
-  onEdit: (allowance: Allowance) => void,
-  onDelete: (allowance: Allowance) => void,
+  onClickAdd: () => void;
+  onEdit: (allowance: Allowance) => void;
+  onDelete: (allowance: Allowance) => void;
 }
 
 const AllowancesList = ({ onClickAdd, onEdit, onDelete }: AllowanceList) => {

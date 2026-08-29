@@ -7,7 +7,7 @@ import { useRoles } from '@src/courseTeam/data/apiHook';
 import messages from '@src/courseTeam/messages';
 import { Role } from '@src/courseTeam/types';
 
-const RoleFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string, setFilter: (value: string) => void } }) => {
+const RoleFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string; setFilter: (value: string) => void } }) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { data } = useRoles(courseId);

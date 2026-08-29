@@ -26,52 +26,52 @@ export enum SpecialCase {
 }
 
 export interface CertificateData {
-  username: string,
-  email: string,
-  enrollmentTrack: string,
-  certificateStatus: CertificateStatus,
-  specialCase: SpecialCase,
-  exceptionGranted?: string,
-  exceptionNotes?: string,
-  invalidatedBy?: string,
-  invalidationDate?: string,
-  invalidationNote?: string,
+  username: string;
+  email: string;
+  enrollmentTrack: string;
+  certificateStatus: CertificateStatus;
+  specialCase: SpecialCase;
+  exceptionGranted?: string;
+  exceptionNotes?: string;
+  invalidatedBy?: string;
+  invalidationDate?: string;
+  invalidationNote?: string;
 }
 
 export interface InstructorTask {
-  taskId: string,
-  taskName: string,
-  taskState: string,
-  taskOutput?: string,
-  created: string,
-  updated: string,
+  taskId: string;
+  taskName: string;
+  taskState: string;
+  taskOutput?: string;
+  created: string;
+  updated: string;
 }
 
 export interface CertificateGenerationHistory {
-  taskName: string,
-  date: string,
-  details: string,
+  taskName: string;
+  date: string;
+  details: string;
 }
 
 export interface CertificateQueryParams extends PaginationParams {
-  filter: CertificateFilter,
-  search: string,
+  filter: CertificateFilter;
+  search: string;
 }
 
 export interface GrantExceptionRequest {
-  learners: string[],
-  notes?: string,
+  learners: string[];
+  notes?: string;
 }
 
 export interface InvalidateCertificateRequest {
-  learners: string[],
-  notes?: string,
+  learners: string[];
+  notes?: string;
 }
 
 export interface RemoveExceptionRequest {
-  username: string,
+  username: string;
 }
 
 export interface RemoveInvalidationRequest {
-  username: string,
+  username: string;
 }

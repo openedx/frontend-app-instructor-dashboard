@@ -7,9 +7,9 @@ import { DownloadReportData } from '@src/dataDownloads/types';
 import { ReportNameCell } from './ReportNameCell';
 
 interface DataDownloadTableProps {
-  data: DownloadReportData[],
-  isLoading: boolean,
-  onDownloadClick: (downloadLink: string, reportName: string) => void,
+  data: DownloadReportData[];
+  isLoading: boolean;
+  onDownloadClick: (downloadLink: string, reportName: string) => void;
 }
 
 const DEFAULT_PAGE_SIZE = 10;

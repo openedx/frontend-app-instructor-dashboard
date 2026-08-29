@@ -7,13 +7,13 @@ export interface EnrollmentActionsSlotProps {
    * Course permissions from the instructor API (e.g. `admin`, `instructor`, `dataResearcher`).
    * Provided so a slot widget can decide which actions to show, but not interpreted by this MFE.
    */
-  permissions?: Record<string, boolean | undefined>,
+  permissions?: Record<string, boolean | undefined>;
   /** Opens the Enroll Learners modal (owned by the Enrollments page). */
-  onEnrollLearners: () => void,
+  onEnrollLearners: () => void;
   /** Opens the Add Beta Testers modal (owned by the Enrollments page). */
-  onAddBetaTesters: () => void,
+  onAddBetaTesters: () => void;
   /** Hide Beta Testers Button */
-  hideBetaTesters?: boolean,
+  hideBetaTesters?: boolean;
 }
 
 /**

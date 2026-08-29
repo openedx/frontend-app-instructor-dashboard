@@ -12,7 +12,7 @@ export const parseObject = (input: any): string => {
 export const parseLearnersCount = (learners: string): number =>
   learners.split(/[\n,]/).filter((l) => l.trim()).length;
 
-export const filterCertificates = <T extends { username: string, email: string }>(
+export const filterCertificates = <T extends { username: string; email: string }>(
   data: T[],
   filterFn: (item: T) => boolean,
   search: string,

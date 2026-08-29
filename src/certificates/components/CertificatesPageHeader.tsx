@@ -4,9 +4,9 @@ import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
 interface CertificatesPageHeaderProps {
-  onGrantExceptions: () => void,
-  onInvalidateCertificate: () => void,
-  onStudentGeneratedCertificates?: () => void,
+  onGrantExceptions: () => void;
+  onInvalidateCertificate: () => void;
+  onStudentGeneratedCertificates?: () => void;
 }
 
 const CertificatesPageHeader = ({

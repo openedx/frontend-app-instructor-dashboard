@@ -14,7 +14,7 @@ const SelectedCohortInfo = () => {
   const { mutate: addLearnersToCohortsBulk } = useAddLearnersToCohortsBulk(courseId);
   const { showToast } = useAlert();
 
-  const handleProcessUpload = ({ fileData, handleError }: { fileData: FormData, requestConfig?: RequestInit, handleError?: (error: Error) => void }) => {
+  const handleProcessUpload = ({ fileData, handleError }: { fileData: FormData; requestConfig?: RequestInit; handleError?: (error: Error) => void }) => {
     // Create new FormData with the correct field name for cohorts API
     const correctedFormData = new FormData();
 

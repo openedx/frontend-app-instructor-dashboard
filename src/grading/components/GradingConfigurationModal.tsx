@@ -6,8 +6,8 @@ import { useGradingConfiguration } from '@src/grading/data/apiHook';
 import CodeEditor from '@src/components/CodeEditor';
 
 interface GradingConfigurationModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const GradingConfigurationModal = ({ isOpen, onClose }: GradingConfigurationModalProps) => {

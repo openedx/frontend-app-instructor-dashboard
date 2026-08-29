@@ -7,9 +7,9 @@ import messages from '@src/enrollments/messages';
 import { EnrolledLearner } from '@src/enrollments/types';
 
 interface UnenrollModalProps {
-  learner: EnrolledLearner,
-  isOpen: boolean,
-  onClose: () => void,
+  learner: EnrolledLearner;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const UnenrollModal = ({ learner, isOpen, onClose }: UnenrollModalProps) => {

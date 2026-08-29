@@ -9,9 +9,9 @@ import { ObjectCell } from './ObjectCell';
 import { PendingTask, TableCellValue } from '@src/types';
 
 interface PendingTasksProps {
-  isPolling?: boolean,
-  isOpen?: boolean,
-  onToggle?: () => void,
+  isPolling?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 const PendingTasks = ({ isPolling = false, isOpen = false, onToggle }: PendingTasksProps) => {

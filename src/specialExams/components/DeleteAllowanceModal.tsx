@@ -7,9 +7,9 @@ import { Allowance } from '@src/specialExams/types';
 import { useAlert } from '@src/providers/AlertProvider';
 
 interface DeleteAllowanceProps {
-  allowance: Allowance,
-  isOpen: boolean,
-  onClose: () => void,
+  allowance: Allowance;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const DeleteAllowanceModal = ({ allowance, isOpen, onClose }: DeleteAllowanceProps) => {

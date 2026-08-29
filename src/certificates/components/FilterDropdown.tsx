@@ -5,9 +5,9 @@ import { CertificateFilter } from '@src/certificates/types';
 import messages from '@src/certificates/messages';
 
 interface FilterDropdownProps {
-  value: CertificateFilter,
-  onChange: (value: CertificateFilter) => void,
-  className?: string,
+  value: CertificateFilter;
+  onChange: (value: CertificateFilter) => void;
+  className?: string;
 }
 
 const FILTER_OPTIONS = [

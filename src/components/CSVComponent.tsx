@@ -4,15 +4,15 @@ import { Card, Dropzone, Hyperlink } from '@openedx/paragon';
 import messages from './messages';
 
 interface CSVComponentProps {
-  templateLink?: string,
-  onProcessUpload: ({ fileData, requestConfig, handleError }: { fileData: FormData, requestConfig?: RequestInit, handleError?: (error: Error) => void }) => void,
+  templateLink?: string;
+  onProcessUpload: ({ fileData, requestConfig, handleError }: { fileData: FormData; requestConfig?: RequestInit; handleError?: (error: Error) => void }) => void;
 }
 
 const CSVComponent = ({ templateLink, onProcessUpload }: CSVComponentProps) => {
   const intl = useIntl();
   const [fileName, setFileName] = useState<string>('');
 
-  const handleProcessUpload = ({ fileData, requestConfig, handleError }: { fileData: FormData, requestConfig?: RequestInit, handleError?: (error: Error) => void }) => {
+  const handleProcessUpload = ({ fileData, requestConfig, handleError }: { fileData: FormData; requestConfig?: RequestInit; handleError?: (error: Error) => void }) => {
     const file = fileData.getAll('file');
     if (file && file.length > 0 && file[0] instanceof File) {
       setFileName(file[0].name);

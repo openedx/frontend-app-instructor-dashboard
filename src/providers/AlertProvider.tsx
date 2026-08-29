@@ -4,68 +4,68 @@ import { WarningFilled, Error as ErrorIcon, Info as InfoIcon, CheckCircle } from
 
 // Toast Alert Types
 interface ToastAlert {
-  id: string,
-  type: 'toast',
-  message: string,
-  visible: boolean,
-  delay?: number,
+  id: string;
+  type: 'toast';
+  message: string;
+  visible: boolean;
+  delay?: number;
 }
 
 // Modal Alert Types
 interface ModalAlert {
-  id: string,
-  type: 'modal',
-  title?: string,
-  message: string,
-  variant: 'default' | 'warning' | 'danger' | 'success',
-  isOpen: boolean,
-  confirmText?: string,
-  cancelText?: string,
-  onConfirm?: (id: string) => void,
-  onCancel?: () => void,
+  id: string;
+  type: 'modal';
+  title?: string;
+  message: string;
+  variant: 'default' | 'warning' | 'danger' | 'success';
+  isOpen: boolean;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: (id: string) => void;
+  onCancel?: () => void;
 }
 
 export type AlertType = 'success' | 'error' | 'info' | 'warning' | 'danger';
 
 export interface AlertProps {
-  id: string,
-  type: AlertType,
-  message: string,
-  extraContent?: ReactNode,
+  id: string;
+  type: AlertType;
+  message: string;
+  extraContent?: ReactNode;
 }
 
 interface InlineAlert {
-  id: string,
-  type: 'inline',
-  message: string,
-  variant: 'success' | 'danger' | 'warning' | 'info',
-  dismissible?: boolean,
+  id: string;
+  type: 'inline';
+  message: string;
+  variant: 'success' | 'danger' | 'warning' | 'info';
+  dismissible?: boolean;
 }
 
 interface AlertContextType {
-  showToast: (message: string, delay?: number) => void,
+  showToast: (message: string, delay?: number) => void;
   showModal: (options: {
-    title?: string,
-    message: string,
-    variant?: 'default' | 'warning' | 'danger' | 'success',
-    confirmText?: string,
-    cancelText?: string,
-    onConfirm?: (id: string) => void,
-    onCancel?: () => void,
-  }) => void,
-  showInlineAlert: (message: string, variant?: 'success' | 'danger' | 'warning' | 'info', dismissible?: boolean) => string,
-  dismissInlineAlert: (id: string) => void,
-  inlineAlerts: InlineAlert[],
-  alerts: AlertProps[],
-  addAlert: (alert: Omit<AlertProps, 'id'>) => void,
-  removeAlert: (id: string) => void,
-  clearAlerts: () => void,
+    title?: string;
+    message: string;
+    variant?: 'default' | 'warning' | 'danger' | 'success';
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm?: (id: string) => void;
+    onCancel?: () => void;
+  }) => void;
+  showInlineAlert: (message: string, variant?: 'success' | 'danger' | 'warning' | 'info', dismissible?: boolean) => string;
+  dismissInlineAlert: (id: string) => void;
+  inlineAlerts: InlineAlert[];
+  alerts: AlertProps[];
+  addAlert: (alert: Omit<AlertProps, 'id'>) => void;
+  removeAlert: (id: string) => void;
+  clearAlerts: () => void;
 }
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
 interface AlertProviderProps {
-  children: ReactNode,
+  children: ReactNode;
 }
 
 const variantIcons: Record<string, any> = {
@@ -98,13 +98,13 @@ export const AlertProvider: FC<AlertProviderProps> = ({ children }) => {
 
   // Modal Methods
   const showModal = useCallback((options: {
-    title?: string,
-    message: string,
-    variant?: 'default' | 'warning' | 'danger' | 'success',
-    confirmText?: string,
-    cancelText?: string,
-    onConfirm?: (id: string) => void,
-    onCancel?: () => void,
+    title?: string;
+    message: string;
+    variant?: 'default' | 'warning' | 'danger' | 'success';
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm?: (id: string) => void;
+    onCancel?: () => void;
   }) => {
     const id = `modal-${Date.now()}-${Math.random()}`;
     const newModal: ModalAlert = {

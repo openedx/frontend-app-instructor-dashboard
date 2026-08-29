@@ -10,13 +10,13 @@ import { CohortData } from '@src/cohorts/types';
 import { useCohortContext } from '@src/cohorts/components/CohortContext';
 
 interface CohortsFormProps {
-  disableManualAssignment?: boolean,
-  onCancel: () => void,
-  onSubmit: (data: Partial<CohortData>) => void,
+  disableManualAssignment?: boolean;
+  onCancel: () => void;
+  onSubmit: (data: Partial<CohortData>) => void;
 }
 
 export interface CohortsFormRef {
-  resetForm: () => void,
+  resetForm: () => void;
 }
 
 const CohortsForm = forwardRef<CohortsFormRef, CohortsFormProps>(({ disableManualAssignment = false, onCancel, onSubmit }, ref) => {

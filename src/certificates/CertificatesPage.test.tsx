@@ -29,7 +29,7 @@ jest.mock('@src/data/apiHook', () => ({
 }));
 
 jest.mock('@src/components/PendingTasks', () => ({
-  PendingTasks: function MockPendingTasks({ onToggle }: { isOpen: boolean, onToggle: () => void }) {
+  PendingTasks: function MockPendingTasks({ onToggle }: { isOpen: boolean; onToggle: () => void }) {
     return (
       <div data-testid="pending-tasks">
         Pending Tasks

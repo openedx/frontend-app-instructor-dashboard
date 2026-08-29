@@ -8,11 +8,11 @@ import messages from '@src/cohorts/messages';
 import { useAlert } from '@src/providers/AlertProvider';
 
 interface AddLearnersResponse {
-  added: string[],
-  changed: string[],
-  preassigned: string[],
-  present: string[],
-  unknown: string[],
+  added: string[];
+  changed: string[];
+  preassigned: string[];
+  present: string[];
+  unknown: string[];
 }
 
 const ManageLearners = () => {

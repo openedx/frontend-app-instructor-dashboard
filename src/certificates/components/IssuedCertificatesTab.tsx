@@ -3,19 +3,19 @@ import CertificatesToolbar from '@src/certificates/components/CertificatesToolba
 import { CertificateData, CertificateFilter } from '@src/certificates/types';
 
 interface IssuedCertificatesTabProps {
-  data: CertificateData[],
-  isLoading: boolean,
-  itemCount: number,
-  pageCount: number,
-  search: string,
-  onSearchChange: (value: string) => void,
-  filter: CertificateFilter,
-  onFilterChange: (value: CertificateFilter) => void,
-  currentPage: number,
-  onPageChange: (page: number) => void,
-  onRemoveException: (username: string, email: string) => void,
-  onRemoveInvalidation: (username: string, email: string) => void,
-  onRegenerateCertificates: () => void,
+  data: CertificateData[];
+  isLoading: boolean;
+  itemCount: number;
+  pageCount: number;
+  search: string;
+  onSearchChange: (value: string) => void;
+  filter: CertificateFilter;
+  onFilterChange: (value: CertificateFilter) => void;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  onRemoveException: (username: string, email: string) => void;
+  onRemoveInvalidation: (username: string, email: string) => void;
+  onRegenerateCertificates: () => void;
 }
 
 const IssuedCertificatesTab = ({

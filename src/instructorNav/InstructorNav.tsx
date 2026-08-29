@@ -7,14 +7,14 @@ import { useWidgetProps } from '@src/slots/SlotUtils';
 import { useDashboardConfig } from '@src/dashboardConfig/DashboardConfigContext';
 
 export interface TabProps {
-  tabId: string,
-  url: string,
-  title: string,
-  sortOrder: number,
+  tabId: string;
+  url: string;
+  title: string;
+  sortOrder: number;
 }
 
 const InstructorNav = () => {
-  const { courseId = '', tabId = '' } = useParams<{ courseId: string, tabId?: string }>();
+  const { courseId = '', tabId = '' } = useParams<{ courseId: string; tabId?: string }>();
   const { useTabsInfo, navTabsSlotId } = useDashboardConfig();
   const { data: courseInfo, isLoading } = useTabsInfo(courseId);
   const widgetPropsArray = useWidgetProps(navTabsSlotId) as TabProps[];

@@ -3,10 +3,10 @@ import { FormLabel, FormControl, FormGroup } from '@openedx/paragon';
 import { useGradedSubsections } from '../data/apiHook';
 
 interface SelectGradedSubsectionProps {
-  label?: string,
-  placeholder: string,
-  value?: string,
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void,
+  label?: string;
+  placeholder: string;
+  value?: string;
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const SelectGradedSubsection = ({ label, placeholder, value, onChange }: SelectGradedSubsectionProps) => {

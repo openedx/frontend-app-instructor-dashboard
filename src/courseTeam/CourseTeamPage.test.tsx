@@ -49,7 +49,7 @@ jest.mock('./components/AddTeamMemberModal', () => {
 });
 
 jest.mock('./components/EditTeamMemberModal', () => {
-  return function EditTeamMemberModal({ isOpen, user }: { isOpen?: boolean, user?: any }) {
+  return function EditTeamMemberModal({ isOpen, user }: { isOpen?: boolean; user?: any }) {
     return isOpen && user ? <div>Edit Team Member Modal for {user.username}</div> : null;
   };
 });

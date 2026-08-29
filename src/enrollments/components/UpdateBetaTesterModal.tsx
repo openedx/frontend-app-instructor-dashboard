@@ -8,9 +8,9 @@ import messages from '@src/enrollments/messages';
 import { EnrolledLearner } from '@src/enrollments/types';
 
 interface UpdateBetaTesterModalProps {
-  learner: EnrolledLearner,
-  isOpen: boolean,
-  onClose: () => void,
+  learner: EnrolledLearner;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const UpdateBetaTesterModal = ({ learner, isOpen, onClose }: UpdateBetaTesterModalProps) => {

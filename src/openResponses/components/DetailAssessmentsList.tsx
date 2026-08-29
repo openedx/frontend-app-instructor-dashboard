@@ -9,7 +9,7 @@ import { ORARecord } from '../types';
 const DETAILS_PAGE_SIZE = 25;
 
 interface DataTableFetchDataProps {
-  pageIndex: number,
+  pageIndex: number;
 }
 
 const DetailAssessmentsList = () => {

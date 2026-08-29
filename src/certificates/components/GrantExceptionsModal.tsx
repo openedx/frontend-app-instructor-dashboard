@@ -5,11 +5,11 @@ import { InfoOutline } from '@openedx/paragon/icons';
 import messages from '@src/certificates/messages';
 
 interface GrantExceptionsModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onSubmit: (learners: string[], notes: string) => void,
-  onUploadCsv: (file: File) => void,
-  isSubmitting: boolean,
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (learners: string[], notes: string) => void;
+  onUploadCsv: (file: File) => void;
+  isSubmitting: boolean;
 }
 
 const GrantExceptionsModal = ({

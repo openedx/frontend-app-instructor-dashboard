@@ -5,12 +5,12 @@ import { CertificateFilter } from '@src/certificates/types';
 import messages from '@src/certificates/messages';
 
 interface RegenerateCertificatesModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onConfirm: () => void,
-  isSubmitting: boolean,
-  filter: CertificateFilter,
-  learnerCount: number,
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isSubmitting: boolean;
+  filter: CertificateFilter;
+  learnerCount: number;
 }
 
 const RegenerateCertificatesModal = ({

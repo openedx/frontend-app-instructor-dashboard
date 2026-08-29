@@ -2,9 +2,9 @@ import React, { FC } from 'react';
 import { formatNumberWithCommas } from './utils';
 
 interface EnrollmentCounterProps {
-  label: string,
-  count: string | number,
-  icon?: React.ReactNode,
+  label: string;
+  count: string | number;
+  icon?: React.ReactNode;
 }
 
 const EnrollmentCounter: FC<EnrollmentCounterProps> = (props) => {

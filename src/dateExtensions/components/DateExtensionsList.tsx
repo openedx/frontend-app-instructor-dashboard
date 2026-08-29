@@ -13,11 +13,11 @@ import UsernameFilter from '@src/components/UsernameFilter';
 const DATE_EXTENSIONS_PAGE_SIZE = 25;
 
 export interface DateExtensionListProps {
-  onResetExtensions?: (user: LearnerDateExtension) => void,
-  onClickAdd?: () => void,
+  onResetExtensions?: (user: LearnerDateExtension) => void;
+  onClickAdd?: () => void;
 }
 
-const GradedSubsectionFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string, setFilter: (value: string) => void } }) => {
+const GradedSubsectionFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string; setFilter: (value: string) => void } }) => {
   const intl = useIntl();
   const { inputValue, handleChange } = useDebouncedFilter({
     filterValue,
@@ -43,7 +43,7 @@ const DateExtensionsList = ({
 }: DateExtensionListProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
-  const [filters, setFilters] = useState<{ page: number, emailOrUsername: string, blockId: string }>({
+  const [filters, setFilters] = useState<{ page: number; emailOrUsername: string; blockId: string }>({
     page: 0,
     emailOrUsername: '',
     blockId: '',

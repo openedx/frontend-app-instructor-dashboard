@@ -14,7 +14,7 @@ export const useDateExtensions = (courseId: string, params: DateExtensionQueryPa
 export const useResetDateExtensionMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ courseId, params }: { courseId: string, params: ResetDueDateParams }) =>
+    mutationFn: ({ courseId, params }: { courseId: string; params: ResetDueDateParams }) =>
       resetDateExtension(courseId, params),
     onSuccess: (_, { courseId }) => {
       queryClient.invalidateQueries({ queryKey: dateExtensionsQueryKeys.byCourse(courseId), exact: false });
@@ -25,7 +25,7 @@ export const useResetDateExtensionMutation = () => {
 export const useAddDateExtensionMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ courseId, extensionData }: { courseId: string, extensionData: any }) =>
+    mutationFn: ({ courseId, extensionData }: { courseId: string; extensionData: any }) =>
       addDateExtension(courseId, extensionData),
     onSuccess: (_, { courseId }) => {
       queryClient.invalidateQueries({ queryKey: dateExtensionsQueryKeys.byCourse(courseId), exact: false });

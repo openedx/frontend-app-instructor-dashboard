@@ -16,7 +16,7 @@ jest.mock('react-router-dom', () => ({
 // open/close wiring is exercised here.
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
-  Slot: ({ onEnrollLearners, onAddBetaTesters, hideBetaTesters }: { onEnrollLearners: () => void, onAddBetaTesters: () => void, hideBetaTesters?: boolean }) => (
+  Slot: ({ onEnrollLearners, onAddBetaTesters, hideBetaTesters }: { onEnrollLearners: () => void; onAddBetaTesters: () => void; hideBetaTesters?: boolean }) => (
     <>
       {!hideBetaTesters && <button type="button" onClick={onAddBetaTesters}>Add Beta Testers</button>}
       <button type="button" onClick={onEnrollLearners}>Enroll Learners</button>
@@ -27,13 +27,13 @@ jest.mock('@openedx/frontend-base', () => ({
 // Stub the action modals; their internals are covered by their own test files. Each stub exposes a
 // close control so the page's onClose handlers are exercised.
 jest.mock('./components/EnrollLearnersModal', () => {
-  const MockEnrollLearnersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+  const MockEnrollLearnersModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
     isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-enroll-learners</button></div> : null
   );
   return MockEnrollLearnersModal;
 });
 jest.mock('./components/AddBetaTestersModal', () => {
-  const MockAddBetaTestersModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
+  const MockAddBetaTestersModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
     isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-add-beta-testers</button></div> : null
   );
   return MockAddBetaTestersModal;
@@ -51,7 +51,7 @@ jest.mock('@src/data/apiHook', () => ({
 }));
 
 jest.mock('./components/EnrollmentsList', () => {
-  return function MockEnrollmentsList({ onUnenroll, hideBetaTesters }: { onUnenroll: (learner: EnrolledLearner) => void, hideBetaTesters?: boolean }) {
+  return function MockEnrollmentsList({ onUnenroll, hideBetaTesters }: { onUnenroll: (learner: EnrolledLearner) => void; hideBetaTesters?: boolean }) {
     return (
       <div role="table" data-hide-beta-testers={String(!!hideBetaTesters)}>
         <button onClick={() => onUnenroll({

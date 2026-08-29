@@ -21,7 +21,7 @@ export const useGeneratedReports = (courseId: string, options?: { enablePolling?
 export const useGenerateReportLink = (courseId: string) => (
   useMutation({
     mutationKey: queryKeys.generateReportLink(courseId),
-    mutationFn: ({ reportType, problemLocation }: { reportType: string, problemLocation?: string }) =>
+    mutationFn: ({ reportType, problemLocation }: { reportType: string; problemLocation?: string }) =>
       generateReportLink(courseId, reportType, problemLocation),
   })
 );

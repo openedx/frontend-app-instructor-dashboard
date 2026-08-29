@@ -8,22 +8,22 @@ import { CERTIFICATES_TABLE_PAGE_SIZE } from '@src/certificates/constants';
 import messages from '@src/certificates/messages';
 
 interface CertificateTableProps {
-  data: CertificateData[],
-  isLoading: boolean,
-  itemCount: number,
-  pageCount: number,
-  currentPage: number,
-  filter: CertificateFilter,
-  onPageChange: (pageIndex: number) => void,
-  onRemoveException: (username: string, email: string) => void,
-  onRemoveInvalidation: (username: string, email: string) => void,
+  data: CertificateData[];
+  isLoading: boolean;
+  itemCount: number;
+  pageCount: number;
+  currentPage: number;
+  filter: CertificateFilter;
+  onPageChange: (pageIndex: number) => void;
+  onRemoveException: (username: string, email: string) => void;
+  onRemoveInvalidation: (username: string, email: string) => void;
 }
 
 interface ColumnType {
-  Header: string,
-  accessor?: string,
-  id?: string,
-  Cell?: ({ row, value }: { row?: { original: CertificateData }, value?: string }) => JSX.Element | null,
+  Header: string;
+  accessor?: string;
+  id?: string;
+  Cell?: ({ row, value }: { row?: { original: CertificateData }; value?: string }) => JSX.Element | null;
 }
 
 const CertificateTable = ({

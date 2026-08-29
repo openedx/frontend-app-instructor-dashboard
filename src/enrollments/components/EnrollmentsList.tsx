@@ -18,12 +18,12 @@ const betaTesterOptions = [
 ];
 
 interface EnrollmentsListProps {
-  hideBetaTesters: boolean,
-  onUnenroll: (learner: EnrolledLearner) => void,
-  onBetaTesterChange: (learner: EnrolledLearner) => void,
+  hideBetaTesters: boolean;
+  onUnenroll: (learner: EnrolledLearner) => void;
+  onBetaTesterChange: (learner: EnrolledLearner) => void;
 }
 
-const UsernameFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string, setFilter: (value: string) => void } }) => {
+const UsernameFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string; setFilter: (value: string) => void } }) => {
   const intl = useIntl();
   const { inputValue, handleChange } = useDebouncedFilter({
     filterValue,
@@ -45,7 +45,7 @@ const UsernameFilter = ({ column: { filterValue, setFilter } }: { column: { filt
   );
 };
 
-const BetaTesterFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string, setFilter: (value: string) => void } }) => {
+const BetaTesterFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string; setFilter: (value: string) => void } }) => {
   const intl = useIntl();
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

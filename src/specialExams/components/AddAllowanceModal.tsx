@@ -9,8 +9,8 @@ import { AddAllowanceForm, AddAllowanceParams } from '@src/specialExams/types';
 import { useAlert } from '@src/providers/AlertProvider';
 
 interface AddAllowanceModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const examTypeOptions = [

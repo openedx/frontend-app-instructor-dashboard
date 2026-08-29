@@ -10,9 +10,9 @@ import { TEAM_MEMBER_ACTION } from '../constants';
 import { useCourseInfo } from '@src/data/apiHook';
 
 interface EditTeamMemberModalProps {
-  isOpen: boolean,
-  user: CourseTeamMember,
-  onClose: () => void,
+  isOpen: boolean;
+  user: CourseTeamMember;
+  onClose: () => void;
 }
 
 const EditTeamMemberModal = ({ isOpen, user, onClose }: EditTeamMemberModalProps) => {

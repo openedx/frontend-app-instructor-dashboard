@@ -11,9 +11,9 @@ import { Allowance } from '@src/specialExams/types';
 import { useAlert } from '@src/providers/AlertProvider';
 
 interface EditAllowanceModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  allowance: Allowance,
+  isOpen: boolean;
+  onClose: () => void;
+  allowance: Allowance;
 }
 
 const EditAllowanceModal = ({ isOpen, onClose, allowance }: EditAllowanceModalProps) => {

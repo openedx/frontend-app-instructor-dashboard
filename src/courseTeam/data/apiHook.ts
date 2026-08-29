@@ -33,7 +33,7 @@ export const useAddTeamMember = (courseId: string) => {
 export const useRemoveTeamMember = (courseId: string) => {
   const queryClient = useQueryClient();
   return (useMutation({
-    mutationFn: ({ identifier, roles }: { identifier: string, roles: string[] }) => removeTeamMember(courseId, identifier, roles),
+    mutationFn: ({ identifier, roles }: { identifier: string; roles: string[] }) => removeTeamMember(courseId, identifier, roles),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courseTeamQueryKeys.byCourse(courseId) });
     }

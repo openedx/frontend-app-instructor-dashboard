@@ -27,7 +27,7 @@ jest.mock('@src/components/SpecifyLearnerField', () => ({
 }));
 jest.mock('@src/components/SpecifyProblemField', () => ({
   __esModule: true,
-  default: ({ onClickSelect, disabled }: { onClickSelect: (value: string, event: React.MouseEvent<HTMLButtonElement>) => void, disabled?: boolean }) => (
+  default: ({ onClickSelect, disabled }: { onClickSelect: (value: string, event: React.MouseEvent<HTMLButtonElement>) => void; disabled?: boolean }) => (
     <div data-testid="specify-problem-field">
       <button
         onClick={(event) => onClickSelect('block-v1:test+problem', event)}

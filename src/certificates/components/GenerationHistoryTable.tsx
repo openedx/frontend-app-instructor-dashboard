@@ -5,12 +5,12 @@ import type { CertificateGenerationHistory } from '@src/certificates/types';
 import messages from '@src/certificates/messages';
 
 interface GenerationHistoryTableProps {
-  data: CertificateGenerationHistory[],
-  isLoading: boolean,
-  itemCount: number,
-  pageCount: number,
-  currentPage: number,
-  onPageChange: (pageIndex: number) => void,
+  data: CertificateGenerationHistory[];
+  isLoading: boolean;
+  itemCount: number;
+  pageCount: number;
+  currentPage: number;
+  onPageChange: (pageIndex: number) => void;
 }
 
 const GenerationHistoryTable = ({

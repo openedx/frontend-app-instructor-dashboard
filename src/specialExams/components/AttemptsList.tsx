@@ -12,8 +12,8 @@ import { DataTableFetchDataProps, TableCellValue } from '@src/types';
 export const ATTEMPTS_PAGE_SIZE = 25;
 
 interface AttemptsListProps {
-  onResume: (attempt: Attempt) => void,
-  onReset: (attempt: Attempt) => void,
+  onResume: (attempt: Attempt) => void;
+  onReset: (attempt: Attempt) => void;
 }
 
 const AttemptsList = ({ onResume, onReset }: AttemptsListProps) => {

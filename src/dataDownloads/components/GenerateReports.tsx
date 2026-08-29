@@ -5,21 +5,21 @@ import { useState, useCallback } from 'react';
 import messages from '@src/dataDownloads/messages';
 
 interface GenerateReportsProps {
-  onGenerateReport: (reportType: string) => void,
-  onGenerateProblemResponsesReport: (problemLocation?: string) => void,
-  isGenerating: boolean,
-  problemResponsesError?: string,
-  certificatesEnabled?: boolean,
+  onGenerateReport: (reportType: string) => void;
+  onGenerateProblemResponsesReport: (problemLocation?: string) => void;
+  isGenerating: boolean;
+  problemResponsesError?: string;
+  certificatesEnabled?: boolean;
 }
 
 interface ReportSectionProps {
-  titleMessage: { id: string, defaultMessage: string, description?: string },
-  descriptionMessage: { id: string, defaultMessage: string, description?: string },
-  buttonMessage: { id: string, defaultMessage: string, description?: string },
-  onGenerate: () => void,
-  isFirst?: boolean,
-  isLast?: boolean,
-  isGenerating: boolean,
+  titleMessage: { id: string; defaultMessage: string; description?: string };
+  descriptionMessage: { id: string; defaultMessage: string; description?: string };
+  buttonMessage: { id: string; defaultMessage: string; description?: string };
+  onGenerate: () => void;
+  isFirst?: boolean;
+  isLast?: boolean;
+  isGenerating: boolean;
 }
 
 const ReportSection = ({

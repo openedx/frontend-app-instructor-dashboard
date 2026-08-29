@@ -8,8 +8,8 @@ import messages from '@src/enrollments/messages';
 import { useAlert } from '@src/providers/AlertProvider';
 
 export interface EnrollLearnersModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const EnrollLearnersModal = ({

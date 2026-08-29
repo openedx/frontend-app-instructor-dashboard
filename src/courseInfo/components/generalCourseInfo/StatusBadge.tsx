@@ -1,7 +1,7 @@
 import { Badge } from '@openedx/paragon';
 
 interface StatusBadgeProps {
-  status: string,
+  status: string;
 }
 
 const STATUS_VARIANTS: Record<string, string> = {

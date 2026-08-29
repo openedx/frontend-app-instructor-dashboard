@@ -3,7 +3,7 @@ import { EditorView, basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 
 interface CodeEditorProps {
-  data: string,
+  data: string;
 }
 
 const decodeHtml = (raw: string): string => {

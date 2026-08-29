@@ -1,12 +1,12 @@
 export interface ApiError {
   response?: {
     data?: {
-      error?: string,
-      message?: string,
-      detail?: string,
-    } | string,
-  },
-  message?: string,
+      error?: string;
+      message?: string;
+      detail?: string;
+    } | string;
+  };
+  message?: string;
 }
 
 export const getErrorMessage = (error: ApiError, fallbackMessage: string): string => {

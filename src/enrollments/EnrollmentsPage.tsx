@@ -16,8 +16,8 @@ import { enrollmentActionsSlotId } from '@src/constants';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
 
 interface EnrollmentsPageProps {
-  hideBetaTesters?: boolean,
-  hideEnrollmentStatus?: boolean,
+  hideBetaTesters?: boolean;
+  hideEnrollmentStatus?: boolean;
 }
 
 const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false }: EnrollmentsPageProps) => {

@@ -9,8 +9,8 @@ import { useAlert } from '@src/providers/AlertProvider';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 
 export interface AddBetaTestersModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const AddBetaTestersModal = ({

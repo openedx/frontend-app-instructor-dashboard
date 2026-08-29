@@ -13,8 +13,8 @@ import { useLearner, usePendingTasks, useProblemDetails } from '@src/data/apiHoo
 import { useAlert } from '@src/providers/AlertProvider';
 
 interface GradingLearnerContentProps {
-  toolType: GradingToolsType,
-  onShowTasks: () => void,
+  toolType: GradingToolsType;
+  onShowTasks: () => void;
 }
 
 const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentProps) => {
@@ -26,7 +26,7 @@ const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentP
   const learnerFieldRef = useRef<{ reset: () => void }>(null);
   const problemFieldRef = useRef<{ reset: () => void }>(null);
   const [showCurrentStatus, setShowCurrentStatus] = useState(false);
-  const [confirmationModalData, setConfirmationModalData] = useState<{ message: string, confirmButtonLabel: string, action?: () => void }>({ message: '', confirmButtonLabel: '', action: undefined });
+  const [confirmationModalData, setConfirmationModalData] = useState<{ message: string; confirmButtonLabel: string; action?: () => void }>({ message: '', confirmButtonLabel: '', action: undefined });
   const { data: problemData = { currentScore: { score: 0, total: null }, attempts: { current: null, total: 0 } }, isError: isProblemDataError, refetch: refetchProblemData } = useProblemDetails(courseId, blockId, usernameOrEmail);
   const { data: learnerData = { username: '', progressUrl: '' } } = useLearner(courseId, usernameOrEmail);
   const { showModal, showToast } = useAlert();

@@ -3,7 +3,7 @@ import { Button, Hyperlink } from '@openedx/paragon';
 import messages from '../messages';
 
 interface DisabledCohortsViewProps {
-  onEnableCohorts: () => void,
+  onEnableCohorts: () => void;
 }
 
 const DisabledCohortsView = ({ onEnableCohorts }: DisabledCohortsViewProps) => {

@@ -9,16 +9,16 @@ import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 import { useProblemDetails } from '@src/data/apiHook';
 
 interface SpecifyProblemFieldProps {
-  buttonLabel: string,
-  disabled?: boolean,
-  fieldLabel: string,
-  problemResponsesError?: string,
-  usernameOrEmail?: string,
-  onClickSelect: (problemLocation: string, event: React.MouseEvent<HTMLButtonElement>) => void,
+  buttonLabel: string;
+  disabled?: boolean;
+  fieldLabel: string;
+  problemResponsesError?: string;
+  usernameOrEmail?: string;
+  onClickSelect: (problemLocation: string, event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 interface SpecifyProblemFieldRef {
-  reset: () => void,
+  reset: () => void;
 }
 
 const SpecifyProblemField = forwardRef<SpecifyProblemFieldRef, SpecifyProblemFieldProps>(({

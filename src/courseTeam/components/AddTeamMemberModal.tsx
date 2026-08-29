@@ -10,8 +10,8 @@ import { useAlert } from '@src/providers/AlertProvider';
 import { TEAM_MEMBER_ACTION } from '../constants';
 
 interface AddTeamMemberModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const AddTeamMemberModal = ({

@@ -7,10 +7,10 @@ import messages from '@src/dateExtensions/messages';
 import { AddDateExtensionFormData, AddDateExtensionParams } from '@src/dateExtensions/types';
 
 interface AddExtensionModalProps {
-  isOpen: boolean,
-  title: string,
-  onClose: () => void,
-  onSubmit: ({ emailOrUsername, blockId, dueDatetime, reason }: AddDateExtensionParams) => void,
+  isOpen: boolean;
+  title: string;
+  onClose: () => void;
+  onSubmit: ({ emailOrUsername, blockId, dueDatetime, reason }: AddDateExtensionParams) => void;
 }
 
 const initialFormData: AddDateExtensionFormData = {

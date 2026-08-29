@@ -6,8 +6,8 @@ import { useEnrollmentByUserId } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
 
 interface EnrollmentStatusModalProps {
-  isOpen: boolean,
-  onClose: () => void,
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const EnrollmentStatusModal = ({ isOpen, onClose }: EnrollmentStatusModalProps) => {

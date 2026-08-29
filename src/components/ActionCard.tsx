@@ -1,13 +1,13 @@
 import { Button, Card } from '@openedx/paragon';
 
 export interface ActionCardProps {
-  buttonLabel?: string,
-  customAction?: React.ReactNode,
-  description: string,
-  hasBorderBottom?: boolean,
-  isLoading?: boolean,
-  title: string,
-  onButtonClick?: () => void,
+  buttonLabel?: string;
+  customAction?: React.ReactNode;
+  description: string;
+  hasBorderBottom?: boolean;
+  isLoading?: boolean;
+  title: string;
+  onButtonClick?: () => void;
 }
 
 const ActionCard = ({

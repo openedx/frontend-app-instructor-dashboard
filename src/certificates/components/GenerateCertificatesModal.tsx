@@ -4,11 +4,11 @@ import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
 interface GenerateCertificatesModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onConfirm: (onlyWithoutCertificate: boolean) => void,
-  isSubmitting: boolean,
-  learnerCount: number,
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (onlyWithoutCertificate: boolean) => void;
+  isSubmitting: boolean;
+  learnerCount: number;
 }
 
 const GenerateCertificatesModal = ({

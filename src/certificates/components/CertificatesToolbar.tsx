@@ -7,11 +7,11 @@ import messages from '@src/certificates/messages';
 import '../CertificatesPage.scss';
 
 interface CertificatesToolbarProps {
-  search: string,
-  onSearchChange: (value: string) => void,
-  filter: CertificateFilter,
-  onFilterChange: (value: CertificateFilter) => void,
-  onRegenerateCertificates: () => void,
+  search: string;
+  onSearchChange: (value: string) => void;
+  filter: CertificateFilter;
+  onFilterChange: (value: CertificateFilter) => void;
+  onRegenerateCertificates: () => void;
 }
 
 const CertificatesToolbar = ({

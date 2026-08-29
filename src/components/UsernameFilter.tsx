@@ -4,7 +4,7 @@ import { Search } from '@openedx/paragon/icons';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 import messages from '@src/components/messages';
 
-const UsernameFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string, setFilter: (value: string) => void } }) => {
+const UsernameFilter = ({ column: { filterValue, setFilter } }: { column: { filterValue: string; setFilter: (value: string) => void } }) => {
   const intl = useIntl();
   const { inputValue, handleChange } = useDebouncedFilter({
     filterValue,

@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { ActionRow, Button, Form, ModalDialog } from '@openedx/paragon';
 
 interface LearnerActionModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onSubmit: (learners: string[], notes: string) => void,
-  isSubmitting: boolean,
-  title: string,
-  description: string,
-  notesLabel: string,
-  notesPlaceholder: string,
-  submitLabel: string,
-  cancelLabel: string,
-  learnersLabel: string,
-  learnersPlaceholder: string,
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (learners: string[], notes: string) => void;
+  isSubmitting: boolean;
+  title: string;
+  description: string;
+  notesLabel: string;
+  notesPlaceholder: string;
+  submitLabel: string;
+  cancelLabel: string;
+  learnersLabel: string;
+  learnersPlaceholder: string;
 }
 
 const LearnerActionModal = ({

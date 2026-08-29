@@ -4,11 +4,11 @@ import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/certificates/messages';
 
 interface DisableCertificatesModalProps {
-  isOpen: boolean,
-  isEnabled: boolean,
-  onClose: () => void,
-  onConfirm: () => void,
-  isSubmitting: boolean,
+  isOpen: boolean;
+  isEnabled: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isSubmitting: boolean;
 }
 
 const DisableCertificatesModal = ({

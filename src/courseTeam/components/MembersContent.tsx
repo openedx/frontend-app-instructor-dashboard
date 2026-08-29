@@ -12,7 +12,7 @@ import { DataTableFetchDataProps } from '@src/types';
 const TEAM_MEMBERS_PAGE_SIZE = 25;
 
 interface MembersContentProps {
-  onEdit: (user: CourseTeamMember) => void,
+  onEdit: (user: CourseTeamMember) => void;
 }
 
 const MembersContent = ({ onEdit }: MembersContentProps) => {

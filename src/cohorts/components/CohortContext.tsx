@@ -2,16 +2,16 @@ import { createContext, useContext, useState, ReactNode, useCallback, FC, useMem
 import { CohortData } from '../types';
 
 interface CohortContextType {
-  selectedCohort: CohortData | null,
-  setSelectedCohort: (cohort: CohortData) => void,
-  clearSelectedCohort: () => void,
-  updateCohortField: (field: keyof CohortData, value: string) => void,
+  selectedCohort: CohortData | null;
+  setSelectedCohort: (cohort: CohortData) => void;
+  clearSelectedCohort: () => void;
+  updateCohortField: (field: keyof CohortData, value: string) => void;
 }
 
 const CohortContext = createContext<CohortContextType | undefined>(undefined);
 
 interface CohortProviderProps {
-  children: ReactNode,
+  children: ReactNode;
 }
 
 const areCohortsEqual = (prev: CohortData | null, current: CohortData): boolean => {

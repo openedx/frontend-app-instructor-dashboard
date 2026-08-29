@@ -3,9 +3,9 @@ import { useIntl } from '@openedx/frontend-base';
 import messages from '../messages';
 
 interface DisableCohortsModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onConfirmDisable: () => void,
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirmDisable: () => void;
 }
 
 const DisableCohortsModal = ({ isOpen, onClose, onConfirmDisable }: DisableCohortsModalProps) => {

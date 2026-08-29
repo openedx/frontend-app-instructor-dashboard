@@ -50,7 +50,7 @@ export const useContentGroupsData = (courseId: string) => (
 export const usePatchCohort = (courseId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ cohortId, cohortInfo }: { cohortId: number, cohortInfo: CohortData }) =>
+    mutationFn: ({ cohortId, cohortInfo }: { cohortId: number; cohortInfo: CohortData }) =>
       patchCohort(courseId, cohortId, cohortInfo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cohortsQueryKeys.byCourse(courseId) });

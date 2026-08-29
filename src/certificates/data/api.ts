@@ -49,7 +49,7 @@ export const getInstructorTasks = async (
 export const grantBulkExceptions = async (
   courseId: string,
   request: GrantExceptionRequest,
-): Promise<{ success: string[], errors: { learner: string, message: string }[] }> => {
+): Promise<{ success: string[]; errors: { learner: string; message: string }[] }> => {
   const { data } = await getAuthenticatedHttpClient().post(
     `${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}/certificates/exceptions`,
     {
@@ -63,7 +63,7 @@ export const grantBulkExceptions = async (
 export const uploadBulkExceptionsCsv = async (
   courseId: string,
   file: File,
-): Promise<{ success: string[], errors: { learner: string, message: string }[] }> => {
+): Promise<{ success: string[]; errors: { learner: string; message: string }[] }> => {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -82,7 +82,7 @@ export const uploadBulkExceptionsCsv = async (
 export const invalidateCertificate = async (
   courseId: string,
   request: InvalidateCertificateRequest,
-): Promise<{ success: string[], errors: { learner: string, message: string }[] }> => {
+): Promise<{ success: string[]; errors: { learner: string; message: string }[] }> => {
   const { data } = await getAuthenticatedHttpClient().post(
     `${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}/certificates/invalidations`,
     {
@@ -142,7 +142,7 @@ export const regenerateCertificates = async (
   filter: string,
   onlyWithoutCertificate?: boolean,
 ): Promise<void> => {
-  const body: { statuses?: string[], student_set?: string } = {};
+  const body: { statuses?: string[]; student_set?: string } = {};
 
   // Map filter to backend parameters (must match backend filter logic)
   switch (filter) {

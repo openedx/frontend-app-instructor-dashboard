@@ -4,10 +4,10 @@ import { ActionRow, Button, Form, ModalDialog } from '@openedx/paragon';
 import messages from '@src/certificates/messages';
 
 interface InvalidateCertificateModalProps {
-  isOpen: boolean,
-  onClose: () => void,
-  onSubmit: (learners: string[], notes: string) => void,
-  isSubmitting: boolean,
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (learners: string[], notes: string) => void;
+  isSubmitting: boolean;
 }
 
 const InvalidateCertificateModal = ({

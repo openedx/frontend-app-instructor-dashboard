@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { debounce } from 'lodash';
 
 interface UseDebouncedFilterProps {
-  filterValue: string,
-  setFilter: (value: string) => void,
-  delay?: number,
+  filterValue: string;
+  setFilter: (value: string) => void;
+  delay?: number;
 }
 
 /**

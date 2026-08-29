@@ -4,7 +4,7 @@ import messages from '@src/dataDownloads/messages';
 import { DataDownloadsCellProps } from '@src/dataDownloads/types';
 
 interface DownloadLinkCellProps extends DataDownloadsCellProps {
-  onDownloadClick: (downloadLink: string, reportName: string) => void,
+  onDownloadClick: (downloadLink: string, reportName: string) => void;
 }
 
 const DownloadLinkCell = ({ row, onDownloadClick }: DownloadLinkCellProps) => {

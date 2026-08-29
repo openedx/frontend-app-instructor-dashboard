@@ -1,7 +1,7 @@
 import { parseObject } from '@src/utils/formatters';
 
 interface ObjectCellProps {
-  value: Record<string, any> | null,
+  value: Record<string, any> | null;
 }
 
 const ObjectCell = ({ value }: ObjectCellProps) => {

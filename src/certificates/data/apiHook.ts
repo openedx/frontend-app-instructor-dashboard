@@ -153,7 +153,7 @@ export const useToggleCertificateGeneration = (courseId: string) => {
 export const useRegenerateCertificates = (courseId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ filter, onlyWithoutCertificate }: { filter: string, onlyWithoutCertificate?: boolean }) =>
+    mutationFn: ({ filter, onlyWithoutCertificate }: { filter: string; onlyWithoutCertificate?: boolean }) =>
       regenerateCertificates(courseId, filter, onlyWithoutCertificate),
     onSuccess: () => {
       queryClient.invalidateQueries({

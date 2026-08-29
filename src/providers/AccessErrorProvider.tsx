@@ -7,17 +7,17 @@ import messages from '@src/providers/messages';
 type ErrorType = 'forbidden' | 'unauthorized' | 'generic' | null;
 
 interface AccessErrorContextType {
-  errorType: ErrorType,
-  setErrorType: (error: ErrorType) => void,
-  clearError: () => void,
-  isLoading: boolean,
-  setLoading: (loading: boolean) => void,
+  errorType: ErrorType;
+  setErrorType: (error: ErrorType) => void;
+  clearError: () => void;
+  isLoading: boolean;
+  setLoading: (loading: boolean) => void;
 }
 
 const AccessErrorContext = createContext<AccessErrorContextType | undefined>(undefined);
 
 interface AccessErrorProviderProps {
-  children: ReactNode,
+  children: ReactNode;
 }
 
 export const AccessErrorProvider: FC<AccessErrorProviderProps> = ({ children }) => {
@@ -44,7 +44,7 @@ export const AccessErrorProvider: FC<AccessErrorProviderProps> = ({ children }) 
 };
 
 interface AccessErrorGuardProps {
-  children: ReactNode,
+  children: ReactNode;
 }
 
 export const AccessErrorGuard: FC<AccessErrorGuardProps> = ({ children }) => {
