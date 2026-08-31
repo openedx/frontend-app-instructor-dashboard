@@ -152,6 +152,13 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
     closeRemoveModal();
   };
 
+  const handleCancel = () => {
+    setEditedScheduleData(scheduleData);
+    setSelectedLocation('');
+    setSelectedCategory(null);
+    onCancel();
+  };
+
   return (
     <ScheduleEditProvider initiallyHidden={initiallyHiddenLocations}>
       {
@@ -167,7 +174,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
       }
       { isEditing && (
         <ActionRow className="position-sticky bg-white border-top p-3 mt-4 mx-n4" style={{ bottom: 0 }}>
-          <Button variant="tertiary" onClick={onCancel}>
+          <Button variant="tertiary" onClick={handleCancel}>
             {intl.formatMessage(messages.cancelButton)}
           </Button>
           <Button onClick={() => onSave(editedScheduleData)}>

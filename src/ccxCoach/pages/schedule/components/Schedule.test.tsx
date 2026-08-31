@@ -1,7 +1,9 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { renderWithIntl } from '@src/testUtils';
 import Schedule from '@src/ccxCoach/pages/schedule/components/Schedule';
+import { BlockAttributes } from '@src/ccxCoach/pages/schedule/types';
 import messages from '../messages';
 
 const mockScheduleModal = jest.fn<JSX.Element, [Record<string, unknown>]>(() => <div>Schedule Modal</div>);
@@ -51,6 +53,22 @@ describe('Schedule', () => {
     jest.clearAllMocks();
     mockScheduleModal.mockImplementation(renderMockScheduleModal);
   });
+
+  const ScheduleHarness = ({ scheduleData, onSave = jest.fn() }: { scheduleData: BlockAttributes[]; onSave?: (data: BlockAttributes[]) => void }) => {
+    const [isEditing, setIsEditing] = useState(true);
+    return (
+      <Schedule
+        scheduleData={scheduleData}
+        isEditing={isEditing}
+        onSave={(data) => {
+          onSave(data);
+          setIsEditing(false);
+        }}
+        onCancel={() => setIsEditing(false)}
+        startEditing={() => setIsEditing(true)}
+      />
+    );
+  };
 
   it('hides blocks flagged as hidden when not editing', () => {
     const hiddenScheduleData = [{
@@ -168,6 +186,27 @@ describe('Schedule', () => {
 
     expect(screen.getByRole('button', { name: 'Subsection will be removed' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: messages.addUnit.defaultMessage })).toBeInTheDocument();
+  });
+
+  it('reverts the edited tree to the initial schedule when the user cancels', async () => {
+    const user = userEvent.setup();
+    const scheduleData = [{
+      ...mockScheduleData[0],
+      children: [{
+        ...mockScheduleData[0].children[0],
+        hidden: true,
+      }],
+    }];
+
+    renderWithIntl(<ScheduleHarness scheduleData={scheduleData} />);
+
+    await user.click(screen.getByRole('button', { name: messages.addSubsection.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Schedule' }));
+    expect(screen.getByRole('button', { name: 'Remove Subsection' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: messages.cancelButton.defaultMessage }));
+
+    expect(screen.queryByText('Subsection One')).not.toBeInTheDocument();
   });
 
   it('does not hide section and subsection parents when removing one unit with visible siblings', async () => {
