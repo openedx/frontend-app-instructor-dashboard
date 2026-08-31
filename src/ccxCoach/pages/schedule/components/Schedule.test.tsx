@@ -52,6 +52,27 @@ describe('Schedule', () => {
     mockScheduleModal.mockImplementation(renderMockScheduleModal);
   });
 
+  it('hides blocks flagged as hidden when not editing', () => {
+    const hiddenScheduleData = [{
+      ...mockScheduleData[0],
+      hidden: true,
+      children: [{
+        ...mockScheduleData[0].children[0],
+        hidden: true,
+        children: [{
+          ...mockScheduleData[0].children[0].children[0],
+          hidden: true,
+        }],
+      }],
+    }];
+
+    renderWithIntl(<Schedule scheduleData={hiddenScheduleData} isEditing={false} onSave={jest.fn()} onCancel={jest.fn()} startEditing={jest.fn()} />);
+
+    expect(screen.queryByText('Section One')).not.toBeInTheDocument();
+    expect(screen.queryByText('Subsection One')).not.toBeInTheDocument();
+    expect(screen.queryByText('Unit One')).not.toBeInTheDocument();
+  });
+
   it('renders schedule and remove modals with expected props when removing a block', async () => {
     const user = userEvent.setup();
     renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={jest.fn()} onCancel={jest.fn()} startEditing={jest.fn()} />);

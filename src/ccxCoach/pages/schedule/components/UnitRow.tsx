@@ -1,9 +1,5 @@
-import { useIntl } from '@openedx/frontend-base';
-import { Button, Card } from '@openedx/paragon';
-import { Add, Delete } from '@openedx/paragon/icons';
-import WillBeRemovedButton from '@src/ccxCoach/pages/schedule/components/WillBeRemovedButton';
-import { useScheduleEdit } from '@src/ccxCoach/pages/schedule/components/ScheduleEditContext';
-import messages from '../messages';
+import { Card } from '@openedx/paragon';
+import BlockActions from '@src/ccxCoach/pages/schedule/components/BlockActions';
 import { EditableBlockAttributes } from '../types';
 
 const UnitRow = ({
@@ -15,18 +11,6 @@ const UnitRow = ({
   onAdd,
   onRemove
 }: EditableBlockAttributes) => {
-  const intl = useIntl();
-  const { initiallyHidden } = useScheduleEdit();
-  const wasInitiallyHidden = initiallyHidden.has(location);
-
-  const handleAdd = () => {
-    onAdd(location, category);
-  };
-
-  const handleRemove = () => {
-    onRemove(location, category);
-  };
-
   if (hidden && !isEditing) {
     return null;
   }
@@ -37,20 +21,14 @@ const UnitRow = ({
         className="d-flex align-items-center justify-content-between p-0"
       >
         <h5 className="text-primary-700 mb-0">{displayName}</h5>
-        {isEditing && hidden && wasInitiallyHidden && (
-          <Button iconBefore={Add} variant="outline-primary" onClick={handleAdd}>{intl.formatMessage(messages.addUnit)}</Button>
-        )}
-        {isEditing && hidden && !wasInitiallyHidden && (
-          <WillBeRemovedButton
-            blockType={intl.formatMessage(messages.blockTypeUnit)}
-            onUndo={handleAdd}
-          />
-        )}
-        {isEditing && !hidden && (
-          <Button iconBefore={Delete} variant="tertiary" onClick={handleRemove}>
-            {intl.formatMessage(messages.removeButton, { blockType: intl.formatMessage(messages.blockTypeUnit) })}
-          </Button>
-        )}
+        <BlockActions
+          category={category}
+          location={location}
+          hidden={hidden}
+          isEditing={isEditing}
+          onAdd={onAdd}
+          onRemove={onRemove}
+        />
       </Card.Section>
     </Card>
   );

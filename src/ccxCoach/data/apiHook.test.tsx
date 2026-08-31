@@ -6,12 +6,14 @@ import {
   getCcxCoachInfo,
   getCcxSchedule,
   saveCcxCoachGradingPolicy,
+  saveCcxSchedule,
 } from './api';
 import {
   useCcxCoachInfo,
   useCcxSchedule,
   useCreateCcxCoachCourse,
   useGradingPolicy,
+  useSaveCcxSchedule,
   useSaveGradingPolicy,
 } from './apiHook';
 import { ccxCoachInfoQueryKeys } from './queryKeys';
@@ -22,6 +24,7 @@ jest.mock('./api', () => ({
   getCcxCoachGradingPolicy: jest.fn(),
   getCcxSchedule: jest.fn(),
   saveCcxCoachGradingPolicy: jest.fn(),
+  saveCcxSchedule: jest.fn(),
 }));
 
 const mockCcxCoachData = {
@@ -337,6 +340,95 @@ describe('useSaveGradingPolicy', () => {
     });
 
     result.current.mutate(updatedPolicy);
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBe(mockError);
+    expect(invalidateSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('useSaveCcxSchedule', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const editedSchedule = [{
+    category: 'chapter' as const,
+    displayName: 'Section',
+    hidden: false,
+    location: 'block-v1:edX+DemoX+type@chapter+block@1',
+    start: '2026-08-26 08:30',
+  }];
+
+  const createWrapperWithClient = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    Wrapper.displayName = 'TestWrapperWithClient';
+    return { Wrapper, queryClient };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls saveCcxSchedule with course id and edited schedule payload', async () => {
+    (saveCcxSchedule as jest.Mock).mockResolvedValue({ success: true } as any);
+    const { Wrapper } = createWrapperWithClient();
+
+    const { result } = renderHook(() => useSaveCcxSchedule(courseId), {
+      wrapper: Wrapper,
+    });
+
+    result.current.mutate(editedSchedule);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(saveCcxSchedule).toHaveBeenCalledWith(courseId, editedSchedule);
+  });
+
+  it('invalidates schedule query with exact match on success', async () => {
+    (saveCcxSchedule as jest.Mock).mockResolvedValue({ success: true } as any);
+    const { Wrapper, queryClient } = createWrapperWithClient();
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useSaveCcxSchedule(courseId), {
+      wrapper: Wrapper,
+    });
+
+    result.current.mutate(editedSchedule);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ccxCoachInfoQueryKeys.schedule(courseId),
+      exact: true,
+    });
+  });
+
+  it('surfaces API errors and does not invalidate cache', async () => {
+    const mockError = new Error('Save schedule failed');
+    (saveCcxSchedule as jest.Mock).mockRejectedValue(mockError);
+    const { Wrapper, queryClient } = createWrapperWithClient();
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useSaveCcxSchedule(courseId), {
+      wrapper: Wrapper,
+    });
+
+    result.current.mutate(editedSchedule);
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);

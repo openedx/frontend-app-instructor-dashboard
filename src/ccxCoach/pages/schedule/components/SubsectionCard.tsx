@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { Button, Card, Collapsible, Icon } from '@openedx/paragon';
-import { AccessTime, Add, ArrowDropDown, ArrowDropUp, Delete } from '@openedx/paragon/icons';
+import { AccessTime, ArrowDropDown, ArrowDropUp } from '@openedx/paragon/icons';
+import BlockActions from '@src/ccxCoach/pages/schedule/components/BlockActions';
 import UnitRow from '@src/ccxCoach/pages/schedule/components/UnitRow';
-import WillBeRemovedButton from '@src/ccxCoach/pages/schedule/components/WillBeRemovedButton';
-import { useScheduleEdit } from '@src/ccxCoach/pages/schedule/components/ScheduleEditContext';
 import { EditableBlockAttributes } from '../types';
 import messages from '../messages';
 
@@ -21,16 +20,10 @@ const SubsectionCard = ({
   onRemove,
 }: EditableBlockAttributes) => {
   const intl = useIntl();
-  const { initiallyHidden } = useScheduleEdit();
   const [isOpen, setIsOpen] = useState(true);
-  const wasInitiallyHidden = initiallyHidden.has(location);
 
   const handleAdd = () => {
     onAdd(location, category);
-  };
-
-  const handleRemove = () => {
-    onRemove(location, category);
   };
 
   if (hidden && !isEditing) {
@@ -52,20 +45,14 @@ const SubsectionCard = ({
             </Collapsible.Visible>
             <h4 className="text-primary-700 mb-0">{displayName}</h4>
           </Collapsible.Trigger>
-          {isEditing && hidden && wasInitiallyHidden && (
-            <Button iconBefore={Add} variant="outline-primary" onClick={handleAdd}>{intl.formatMessage(messages.addSubsection)}</Button>
-          )}
-          {isEditing && hidden && !wasInitiallyHidden && (
-            <WillBeRemovedButton
-              blockType={intl.formatMessage(messages.blockTypeSubsection)}
-              onUndo={handleAdd}
-            />
-          )}
-          {isEditing && !hidden && (
-            <Button iconBefore={Delete} variant="tertiary" onClick={handleRemove}>
-              {intl.formatMessage(messages.removeButton, { blockType: intl.formatMessage(messages.blockTypeSubsection) })}
-            </Button>
-          )}
+          <BlockActions
+            category={category}
+            location={location}
+            hidden={hidden}
+            isEditing={isEditing}
+            onAdd={onAdd}
+            onRemove={onRemove}
+          />
         </Card.Section>
         <Card.Section className="p-0 ml-4 mt-2">
           {start && (

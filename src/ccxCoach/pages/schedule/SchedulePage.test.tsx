@@ -19,8 +19,13 @@ jest.mock('@src/ccxCoach/pages/schedule/components/EmptySchedule', () => functio
   return <div>EmptySchedule</div>;
 });
 
-jest.mock('@src/ccxCoach/pages/schedule/components/Schedule', () => function MockSchedule({ isEditing }: { isEditing: boolean }) {
-  return <div>{isEditing ? 'ScheduleEditing' : 'Schedule'}</div>;
+jest.mock('@src/ccxCoach/pages/schedule/components/Schedule', () => function MockSchedule({ isEditing, onSave }: { isEditing: boolean, onSave: (data: any[]) => void }) {
+  return (
+    <div>
+      {isEditing ? 'ScheduleEditing' : 'Schedule'}
+      <button type="button" onClick={() => onSave([{ location: 'block-1', hidden: false }])}>Trigger Save</button>
+    </div>
+  );
 });
 
 const mockUseCcxSchedule = useCcxSchedule as jest.MockedFunction<typeof useCcxSchedule>;
@@ -82,5 +87,20 @@ describe('SchedulePage', () => {
     await waitFor(() => {
       expect(screen.getByText(messages.editCcxScheduleTooltip.defaultMessage)).toBeInTheDocument();
     });
+  });
+
+  it('mutates the schedule and exits edit mode when Schedule triggers onSave', async () => {
+    const user = userEvent.setup();
+    mockUseCcxSchedule.mockReturnValue({ isLoading: false, data: [{ id: 'block-1' }] } as any);
+
+    renderWithIntl(<SchedulePage />);
+
+    await user.click(screen.getByRole('button', { name: messages.editCcxSchedule.defaultMessage }));
+    expect(screen.getByText('ScheduleEditing')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Trigger Save' }));
+
+    expect(mockMutate).toHaveBeenCalledWith([{ location: 'block-1', hidden: false }]);
+    expect(screen.getByText('Schedule')).toBeInTheDocument();
   });
 });

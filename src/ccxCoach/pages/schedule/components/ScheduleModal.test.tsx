@@ -101,4 +101,17 @@ describe('ScheduleModal', () => {
     expect(dateInputs[1]).toHaveValue('2026-08-27');
     expect(timeInputs[1]).toHaveValue('09:45');
   });
+
+  it('disables the submit button when the start date is missing', () => {
+    renderWithIntl(
+      <ScheduleModal
+        isOpen
+        category="chapter"
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: messages.scheduleContent.defaultMessage })).toBeDisabled();
+  });
 });

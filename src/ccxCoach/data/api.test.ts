@@ -5,6 +5,7 @@ import {
   getCcxCoachInfo,
   getCcxSchedule,
   saveCcxCoachGradingPolicy,
+  saveCcxSchedule,
 } from './api';
 
 jest.mock('@openedx/frontend-base');
@@ -187,5 +188,44 @@ describe('saveCcxCoachGradingPolicy', () => {
     mockHttpClient.put.mockRejectedValueOnce(mockError);
 
     await expect(saveCcxCoachGradingPolicy(courseId, gradingPolicy)).rejects.toThrow('Server error');
+  });
+});
+
+describe('saveCcxSchedule', () => {
+  const courseId = 'course-v1:edX+DemoX+Demo_Course';
+  const editedSchedule = [{
+    category: 'chapter' as const,
+    displayName: 'Section',
+    hidden: false,
+    location: 'block-v1:edX+DemoX+type@chapter+block@1',
+    start: '2026-08-26 08:30',
+  }];
+  const mockData = { success: true };
+  const mockCamelCasedData = { success: true };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockGetSiteConfig as jest.Mock).mockReturnValue({ lmsBaseUrl: mockBaseUrl });
+    mockGetAuthenticatedHttpClient.mockReturnValue(mockHttpClient as any);
+    mockCamelCaseObject.mockReturnValue(mockCamelCasedData as any);
+    mockHttpClient.post.mockResolvedValue({ data: mockData });
+  });
+
+  it('should POST the edited schedule payload and return camelCased data', async () => {
+    const result = await saveCcxSchedule(courseId, editedSchedule);
+
+    expect(mockHttpClient.post).toHaveBeenCalledWith(
+      `${mockBaseUrl}/courses/${courseId}/save_ccx`,
+      editedSchedule,
+    );
+    expect(mockCamelCaseObject).toHaveBeenCalledWith(mockData);
+    expect(result).toEqual(mockCamelCasedData);
+  });
+
+  it('should propagate errors from the HTTP client', async () => {
+    const mockError = new Error('Save schedule error');
+    mockHttpClient.post.mockRejectedValueOnce(mockError);
+
+    await expect(saveCcxSchedule(courseId, editedSchedule)).rejects.toThrow('Save schedule error');
   });
 });
