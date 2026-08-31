@@ -2,6 +2,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { Button, Card } from '@openedx/paragon';
 import { Add, Delete } from '@openedx/paragon/icons';
 import WillBeRemovedButton from '@src/ccxCoach/pages/schedule/components/WillBeRemovedButton';
+import { useScheduleEdit } from '@src/ccxCoach/pages/schedule/components/ScheduleEditContext';
 import messages from '../messages';
 import { EditableBlockAttributes } from '../types';
 
@@ -9,14 +10,14 @@ const UnitRow = ({
   category,
   displayName,
   hidden,
-  initiallyHiddenLocations,
   isEditing,
   location,
   onAdd,
   onRemove
 }: EditableBlockAttributes) => {
   const intl = useIntl();
-  const wasInitiallyHidden = initiallyHiddenLocations.has(location);
+  const { initiallyHidden } = useScheduleEdit();
+  const wasInitiallyHidden = initiallyHidden.has(location);
 
   const handleAdd = () => {
     onAdd(location, category);

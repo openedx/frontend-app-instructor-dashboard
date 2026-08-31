@@ -3,6 +3,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, useToggle } from '@openedx/paragon';
 import RemoveModal from '@src/ccxCoach/pages/schedule/components/RemoveModal';
 import ScheduleModal from '@src/ccxCoach/pages/schedule/components/ScheduleModal';
+import { ScheduleEditProvider } from '@src/ccxCoach/pages/schedule/components/ScheduleEditContext';
 import SectionCard from '@src/ccxCoach/pages/schedule/components/SectionCard';
 import messages from '../messages';
 import { BlockAttributes, CategoryType } from '../types';
@@ -152,14 +153,13 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
   };
 
   return (
-    <>
+    <ScheduleEditProvider initiallyHidden={initiallyHiddenLocations}>
       {
         editedScheduleData.length > 0 && (editedScheduleData.map((section) => (
           <SectionCard
             key={section.location}
             {...section}
             isEditing={isEditing}
-            initiallyHiddenLocations={initiallyHiddenLocations}
             onAdd={handleAdd}
             onRemove={handleRemove}
           />
@@ -193,7 +193,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
           />
         </>
       )}
-    </>
+    </ScheduleEditProvider>
   );
 };
 

@@ -4,13 +4,15 @@ import { Button, Card, Collapsible, Icon } from '@openedx/paragon';
 import { AccessTime, Add, ArrowDropDown, ArrowDropUp, Delete } from '@openedx/paragon/icons';
 import SubsectionCard from '@src/ccxCoach/pages/schedule/components/SubsectionCard';
 import WillBeRemovedButton from '@src/ccxCoach/pages/schedule/components/WillBeRemovedButton';
+import { useScheduleEdit } from '@src/ccxCoach/pages/schedule/components/ScheduleEditContext';
 import messages from '../messages';
 import { EditableBlockAttributes } from '../types';
 
-const SectionCard = ({ displayName, children, isEditing, hidden, initiallyHiddenLocations, onAdd, onRemove, location, category, start }: EditableBlockAttributes) => {
+const SectionCard = ({ displayName, children, isEditing, hidden, onAdd, onRemove, location, category, start }: EditableBlockAttributes) => {
   const intl = useIntl();
+  const { initiallyHidden } = useScheduleEdit();
   const [isOpen, setIsOpen] = useState(true);
-  const wasInitiallyHidden = initiallyHiddenLocations.has(location);
+  const wasInitiallyHidden = initiallyHidden.has(location);
 
   const handleAdd = () => {
     onAdd(location, category);
@@ -66,7 +68,7 @@ const SectionCard = ({ displayName, children, isEditing, hidden, initiallyHidden
           {isOpen && (
             <Card.Body>
               {children && children.length > 0 && children.map((child) => (
-                <SubsectionCard key={child.location} {...child} isEditing={isEditing} initiallyHiddenLocations={initiallyHiddenLocations} onAdd={onAdd} onRemove={onRemove} />
+                <SubsectionCard key={child.location} {...child} isEditing={isEditing} onAdd={onAdd} onRemove={onRemove} />
               ))}
             </Card.Body>
           )}
