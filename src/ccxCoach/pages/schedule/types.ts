@@ -12,6 +12,7 @@ export interface BlockAttributes {
 
 export interface EditableBlockAttributes extends BlockAttributes {
   isEditing: boolean,
+  initiallyHiddenLocations: Set<string>,
   onAdd: (location: string, category: CategoryType) => void,
   onRemove: (location: string, category: CategoryType) => void,
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, Form, FormControl, FormGroup, FormLabel, ModalDialog, Stack } from '@openedx/paragon';
 import messages from '../messages';
@@ -14,22 +14,48 @@ interface ScheduleFormState {
 interface ScheduleModalProps {
   isOpen: boolean;
   category: CategoryType;
+  start?: string;
+  due?: string;
   onClose: () => void;
   onSave: (startDate: string, endDate?: string) => void;
 }
 
-const ScheduleModal = ({ isOpen, category, onClose, onSave }: ScheduleModalProps): JSX.Element => {
+// Accepts both ISO 8601 (2026-08-26T08:30:00Z) and legacy space-separated formats.
+const parseDateTime = (value?: string): { date: string, time: string } => {
+  if (!value) {
+    return { date: '', time: '' };
+  }
+  const [datePart = '', timePart = ''] = value.split(/[T\s]/);
+  return { date: datePart, time: timePart.slice(0, 5) };
+};
+
+const buildFormState = (start?: string, due?: string): ScheduleFormState => {
+  const { date: startDate, time: startTime } = parseDateTime(start);
+  const { date: endDate, time: endTime } = parseDateTime(due);
+  return { startDate, startTime, endDate, endTime };
+};
+
+const ScheduleModal = ({ isOpen, category, start, due, onClose, onSave }: ScheduleModalProps): JSX.Element => {
   const intl = useIntl();
-  const [form, setForm] = useState<ScheduleFormState>({
-    startDate: '',
-    startTime: '',
-    endDate: '',
-    endTime: '',
-  });
+  const [form, setForm] = useState<ScheduleFormState>(() => buildFormState(start, due));
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm(buildFormState(start, due));
+    }
+  }, [isOpen, start, due]);
+
+  const toBackendFormat = (date: string, time: string): string | undefined => (
+    date && time ? `${date} ${time}` : undefined
+  );
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    onSave(`${form.startDate} ${form.startTime}`, `${form.endDate} ${form.endTime}`);
+    const startValue = toBackendFormat(form.startDate, form.startTime);
+    if (!startValue) {
+      return;
+    }
+    onSave(startValue, toBackendFormat(form.endDate, form.endTime));
   };
 
   return (

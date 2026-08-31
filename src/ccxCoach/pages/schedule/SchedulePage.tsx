@@ -52,7 +52,7 @@ const SchedulePage = () => {
             </OverlayTrigger>
           ) : editButton}
         </div>
-        <Schedule scheduleData={scheduleData} isEditing={isEditing} onSave={handleSaveSchedule} onCancel={cancelEditing} />
+        <Schedule scheduleData={scheduleData} isEditing={isEditing} onSave={handleSaveSchedule} onCancel={cancelEditing} startEditing={startEditing} />
       </>
     )
   );

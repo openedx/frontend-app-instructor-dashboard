@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, useToggle } from '@openedx/paragon';
 import RemoveModal from '@src/ccxCoach/pages/schedule/components/RemoveModal';
@@ -12,6 +12,7 @@ interface EditScheduleProps {
   isEditing: boolean,
   onSave: (editedScheduleData: BlockAttributes[]) => void,
   onCancel: () => void,
+  startEditing: () => void,
 }
 
 const updateBlockAttributes = (
@@ -53,10 +54,11 @@ const updateBlockAttributes = (
       hasSelectedVerticalChild = hasSelectedVerticalChild || hasSelectedVertical;
       return updatedChild;
     });
+    const shouldUpdateParentHidden = hasSelectedVerticalChild && (block.category === 'chapter' || block.category === 'sequential');
 
     return [{
       ...block,
-      hidden: hasSelectedVerticalChild && (block.category === 'chapter' || block.category === 'sequential') ? hidden : block.hidden,
+      hidden: shouldUpdateParentHidden ? (hidden ? children.every((child) => child.hidden) : false) : block.hidden,
       children,
     }, hasSelectedVerticalChild && block.category !== 'chapter'];
   };
@@ -64,13 +66,49 @@ const updateBlockAttributes = (
   return blocks.map((block) => updateBlock(block)[0]);
 };
 
-const Schedule = ({ scheduleData, isEditing, onSave, onCancel }: EditScheduleProps) => {
+const findBlockByLocation = (blocks: BlockAttributes[], location: string): BlockAttributes | undefined => {
+  for (const block of blocks) {
+    if (block.location === location) {
+      return block;
+    }
+    if (block.children) {
+      const found = findBlockByLocation(block.children, location);
+      if (found) {
+        return found;
+      }
+    }
+  }
+  return undefined;
+};
+
+const collectHiddenLocations = (blocks: BlockAttributes[]): Set<string> => {
+  const hidden = new Set<string>();
+  const walk = (currentBlocks: BlockAttributes[]) => {
+    for (const block of currentBlocks) {
+      if (block.hidden) {
+        hidden.add(block.location);
+      }
+      if (block.children) {
+        walk(block.children);
+      }
+    }
+  };
+  walk(blocks);
+  return hidden;
+};
+
+const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: EditScheduleProps) => {
   const intl = useIntl();
   const [editedScheduleData, setEditedScheduleData] = useState<BlockAttributes[]>(scheduleData);
   const [isOpenScheduleModal, openScheduleModal, closeScheduleModal] = useToggle(false);
   const [isOpenRemoveModal, openRemoveModal, closeRemoveModal] = useToggle(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const selectedBlock = useMemo(
+    () => (selectedLocation ? findBlockByLocation(editedScheduleData, selectedLocation) : undefined),
+    [editedScheduleData, selectedLocation],
+  );
+  const initiallyHiddenLocations = useMemo(() => collectHiddenLocations(scheduleData), [scheduleData]);
 
   const handleAdd = (location: string, category: CategoryType) => {
     if (category !== 'vertical') {
@@ -92,6 +130,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel }: EditSchedulePro
     ));
     setSelectedLocation('');
     setSelectedCategory(null);
+    if (!isEditing) startEditing();
     closeScheduleModal();
   };
 
@@ -120,6 +159,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel }: EditSchedulePro
             key={section.location}
             {...section}
             isEditing={isEditing}
+            initiallyHiddenLocations={initiallyHiddenLocations}
             onAdd={handleAdd}
             onRemove={handleRemove}
           />
@@ -140,6 +180,8 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel }: EditSchedulePro
           <ScheduleModal
             isOpen={isOpenScheduleModal}
             category={selectedCategory}
+            start={selectedBlock?.start}
+            due={selectedBlock?.due}
             onClose={closeScheduleModal}
             onSave={handleConfirmSave}
           />

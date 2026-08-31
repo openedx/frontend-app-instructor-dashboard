@@ -80,4 +80,25 @@ describe('ScheduleModal', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith(`${startDate} ${startTime}`, `${endDate} ${endTime}`);
   });
+
+  it('prefills date and time inputs from existing start and due values', () => {
+    renderWithIntl(
+      <ScheduleModal
+        isOpen
+        category="sequential"
+        start="2026-08-26T08:30:00Z"
+        due="2026-08-27 09:45"
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />
+    );
+
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    const timeInputs = document.querySelectorAll('input[type="time"]');
+
+    expect(dateInputs[0]).toHaveValue('2026-08-26');
+    expect(timeInputs[0]).toHaveValue('08:30');
+    expect(dateInputs[1]).toHaveValue('2026-08-27');
+    expect(timeInputs[1]).toHaveValue('09:45');
+  });
 });

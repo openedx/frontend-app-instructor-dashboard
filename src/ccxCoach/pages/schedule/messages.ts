@@ -101,6 +101,16 @@ const messages = defineMessages({
     defaultMessage: 'Start:',
     description: 'Label for the start date in the schedule',
   },
+  due: {
+    id: 'schedule.due',
+    defaultMessage: 'Due:',
+    description: 'Label for the due date in the schedule',
+  },
+  clickToSet: {
+    id: 'schedule.clickToSet',
+    defaultMessage: 'Click to set',
+    description: 'Label indicating that the user can click to set a date or time',
+  },
   addSection: {
     id: 'schedule.addSection',
     defaultMessage: 'Add Section',
@@ -115,6 +125,16 @@ const messages = defineMessages({
     id: 'schedule.addUnit',
     defaultMessage: 'Add Unit',
     description: 'Label for the button to add a new unit in the schedule',
+  },
+  willBeRemoved: {
+    id: 'schedule.willBeRemoved',
+    defaultMessage: '{blockType} will be removed',
+    description: 'Label shown on the remove-toggle button after clicking Remove in edit mode',
+  },
+  undoKeep: {
+    id: 'schedule.undoKeep',
+    defaultMessage: 'Undo: Keep {blockType}',
+    description: 'Hover label on the remove-toggle button to undo the removal',
   },
 });
 

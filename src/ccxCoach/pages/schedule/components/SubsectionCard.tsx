@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { Button, Card, Collapsible, Icon } from '@openedx/paragon';
-import { Add, ArrowDropDown, ArrowDropUp, Delete } from '@openedx/paragon/icons';
+import { AccessTime, Add, ArrowDropDown, ArrowDropUp, Delete } from '@openedx/paragon/icons';
 import UnitRow from '@src/ccxCoach/pages/schedule/components/UnitRow';
+import WillBeRemovedButton from '@src/ccxCoach/pages/schedule/components/WillBeRemovedButton';
 import { EditableBlockAttributes } from '../types';
 import messages from '../messages';
 
@@ -11,13 +12,17 @@ const SubsectionCard = ({
   children,
   displayName,
   hidden,
+  initiallyHiddenLocations,
   isEditing,
   location,
+  start,
+  due,
   onAdd,
   onRemove,
 }: EditableBlockAttributes) => {
   const intl = useIntl();
   const [isOpen, setIsOpen] = useState(true);
+  const wasInitiallyHidden = initiallyHiddenLocations.has(location);
 
   const handleAdd = () => {
     onAdd(location, category);
@@ -46,13 +51,33 @@ const SubsectionCard = ({
             </Collapsible.Visible>
             <h4 className="text-primary-700 mb-0">{displayName}</h4>
           </Collapsible.Trigger>
-          {isEditing && hidden && (
+          {isEditing && hidden && wasInitiallyHidden && (
             <Button iconBefore={Add} variant="outline-primary" onClick={handleAdd}>{intl.formatMessage(messages.addSubsection)}</Button>
+          )}
+          {isEditing && hidden && !wasInitiallyHidden && (
+            <WillBeRemovedButton
+              blockType={intl.formatMessage(messages.blockTypeSubsection)}
+              onUndo={handleAdd}
+            />
           )}
           {isEditing && !hidden && (
             <Button iconBefore={Delete} variant="tertiary" onClick={handleRemove}>
               {intl.formatMessage(messages.removeButton, { blockType: intl.formatMessage(messages.blockTypeSubsection) })}
             </Button>
+          )}
+        </Card.Section>
+        <Card.Section className="p-0 ml-4 mt-2">
+          {start && (
+            <>
+              <Button className="text-primary-500 text-decoration-none x-small" iconBefore={AccessTime} variant="link" size="sm" onClick={handleAdd}>
+                {intl.formatMessage(messages.start)}
+                <span className="text-info-500 ml-1">{start}</span>
+              </Button>
+              <Button className="text-primary-500 text-decoration-none x-small" variant="link" size="sm" onClick={handleAdd}>
+                {intl.formatMessage(messages.due)}
+                <span className="text-info-500 ml-1">{due ? due : intl.formatMessage(messages.clickToSet)}</span>
+              </Button>
+            </>
           )}
         </Card.Section>
         <Collapsible.Body>
@@ -61,7 +86,7 @@ const SubsectionCard = ({
               {children && children.length > 0 && (
                 <>
                   {children.map((child) => (
-                    <UnitRow key={child.location} {...child} isEditing={isEditing} onAdd={onAdd} onRemove={onRemove} />
+                    <UnitRow key={child.location} {...child} isEditing={isEditing} initiallyHiddenLocations={initiallyHiddenLocations} onAdd={onAdd} onRemove={onRemove} />
                   ))}
                 </>
               )}
