@@ -1,14 +1,14 @@
 import { createContext, useContext, useMemo, ReactNode } from 'react';
 
 interface ScheduleEditContextValue {
-  initiallyHidden: Set<string>,
+  initiallyHidden: Set<string>;
 }
 
 const ScheduleEditContext = createContext<ScheduleEditContextValue | undefined>(undefined);
 
 interface ScheduleEditProviderProps {
-  initiallyHidden: Set<string>,
-  children: ReactNode,
+  initiallyHidden: Set<string>;
+  children: ReactNode;
 }
 
 export const ScheduleEditProvider = ({ initiallyHidden, children }: ScheduleEditProviderProps) => {

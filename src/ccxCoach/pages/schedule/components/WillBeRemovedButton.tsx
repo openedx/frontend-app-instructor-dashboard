@@ -5,8 +5,8 @@ import { Delete } from '@openedx/paragon/icons';
 import messages from '../messages';
 
 interface WillBeRemovedButtonProps {
-  blockType: string,
-  onUndo: () => void,
+  blockType: string;
+  onUndo: () => void;
 }
 
 const WillBeRemovedButton = ({ blockType, onUndo }: WillBeRemovedButtonProps) => {

@@ -4,7 +4,7 @@ import { Event } from '@openedx/paragon/icons';
 import messages from '../messages';
 
 interface EmptyScheduleProps {
-  onScheduleCCX: () => void,
+  onScheduleCCX: () => void;
 }
 
 const EmptySchedule = ({ onScheduleCCX }: EmptyScheduleProps) => {

@@ -19,12 +19,12 @@ const blockTypeMessageByCategory = {
 };
 
 interface BlockActionsProps {
-  category: CategoryType,
-  location: string,
-  hidden: boolean,
-  isEditing: boolean,
-  onAdd: (location: string, category: CategoryType) => void,
-  onRemove: (location: string, category: CategoryType) => void,
+  category: CategoryType;
+  location: string;
+  hidden: boolean;
+  isEditing: boolean;
+  onAdd: (location: string, category: CategoryType) => void;
+  onRemove: (location: string, category: CategoryType) => void;
 }
 
 const BlockActions = ({ category, location, hidden, isEditing, onAdd, onRemove }: BlockActionsProps) => {

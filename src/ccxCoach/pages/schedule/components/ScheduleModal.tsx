@@ -21,7 +21,7 @@ interface ScheduleModalProps {
 }
 
 // Accepts both ISO 8601 (2026-08-26T08:30:00Z) and legacy space-separated formats.
-const parseDateTime = (value?: string): { date: string, time: string } => {
+const parseDateTime = (value?: string): { date: string; time: string } => {
   if (!value) {
     return { date: '', time: '' };
   }

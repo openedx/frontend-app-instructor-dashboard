@@ -9,11 +9,11 @@ import messages from '../messages';
 import { BlockAttributes, CategoryType } from '../types';
 
 interface EditScheduleProps {
-  scheduleData: BlockAttributes[],
-  isEditing: boolean,
-  onSave: (editedScheduleData: BlockAttributes[]) => void,
-  onCancel: () => void,
-  startEditing: () => void,
+  scheduleData: BlockAttributes[];
+  isEditing: boolean;
+  onSave: (editedScheduleData: BlockAttributes[]) => void;
+  onCancel: () => void;
+  startEditing: () => void;
 }
 
 const updateBlockAttributes = (

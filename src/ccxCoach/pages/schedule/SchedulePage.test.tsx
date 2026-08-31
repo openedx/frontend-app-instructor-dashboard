@@ -19,7 +19,7 @@ jest.mock('@src/ccxCoach/pages/schedule/components/EmptySchedule', () => functio
   return <div>EmptySchedule</div>;
 });
 
-jest.mock('@src/ccxCoach/pages/schedule/components/Schedule', () => function MockSchedule({ isEditing, onSave }: { isEditing: boolean, onSave: (data: any[]) => void }) {
+jest.mock('@src/ccxCoach/pages/schedule/components/Schedule', () => function MockSchedule({ isEditing, onSave }: { isEditing: boolean; onSave: (data: any[]) => void }) {
   return (
     <div>
       {isEditing ? 'ScheduleEditing' : 'Schedule'}
