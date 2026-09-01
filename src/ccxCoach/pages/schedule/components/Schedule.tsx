@@ -7,6 +7,7 @@ import { ScheduleEditProvider } from '@src/ccxCoach/pages/schedule/components/Sc
 import SectionCard from '@src/ccxCoach/pages/schedule/components/SectionCard';
 import messages from '../messages';
 import { BlockAttributes, CategoryType } from '../types';
+import { BLOCK_CATEGORIES } from '../constants';
 
 interface EditScheduleProps {
   scheduleData: BlockAttributes[];
@@ -31,18 +32,18 @@ const updateBlockAttributes = (
 
   const setSelectedBlockDates = (block: BlockAttributes): BlockAttributes => ({
     ...block,
-    ...(block.category === 'chapter' && start && { start }),
-    ...(block.category === 'sequential' && start && { start }),
-    ...(block.category === 'sequential' && due && { due }),
+    ...(block.category === BLOCK_CATEGORIES.CHAPTER && start && { start }),
+    ...(block.category === BLOCK_CATEGORIES.SEQUENTIAL && start && { start }),
+    ...(block.category === BLOCK_CATEGORIES.SEQUENTIAL && due && { due }),
   });
 
   const updateBlock = (block: BlockAttributes): [BlockAttributes, boolean] => {
     if (block.location === selectedLocation) {
-      if (block.category === 'chapter' || block.category === 'sequential') {
+      if (block.category === BLOCK_CATEGORIES.CHAPTER || block.category === BLOCK_CATEGORIES.SEQUENTIAL) {
         return [setSelectedBlockDates(setBlockAndChildrenHidden(block)), false];
       }
 
-      return [{ ...block, hidden }, block.category === 'vertical'];
+      return [{ ...block, hidden }, block.category === BLOCK_CATEGORIES.VERTICAL];
     }
 
     if (!block.children) {
@@ -55,13 +56,17 @@ const updateBlockAttributes = (
       hasSelectedVerticalChild = hasSelectedVerticalChild || hasSelectedVertical;
       return updatedChild;
     });
-    const shouldUpdateParentHidden = hasSelectedVerticalChild && (block.category === 'chapter' || block.category === 'sequential');
+    const shouldUpdateParentHidden = hasSelectedVerticalChild && (block.category === BLOCK_CATEGORIES.CHAPTER || block.category === BLOCK_CATEGORIES.SEQUENTIAL);
+
+    const allChildrenHidden = children.every((child) => child.hidden);
+    const propagatedHidden = hidden && allChildrenHidden;
+    const updatedHidden = shouldUpdateParentHidden ? propagatedHidden : block.hidden;
 
     return [{
       ...block,
-      hidden: shouldUpdateParentHidden ? (hidden ? children.every((child) => child.hidden) : false) : block.hidden,
+      hidden: updatedHidden,
       children,
-    }, hasSelectedVerticalChild && block.category !== 'chapter'];
+    }, hasSelectedVerticalChild && block.category !== BLOCK_CATEGORIES.CHAPTER];
   };
 
   return blocks.map((block) => updateBlock(block)[0]);
@@ -112,7 +117,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
   const initiallyHiddenLocations = useMemo(() => collectHiddenLocations(scheduleData), [scheduleData]);
 
   const handleAdd = (location: string, category: CategoryType) => {
-    if (category !== 'vertical') {
+    if (category !== BLOCK_CATEGORIES.VERTICAL) {
       setSelectedCategory(category);
       setSelectedLocation(location);
       openScheduleModal();
@@ -136,7 +141,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
   };
 
   const handleRemove = (location: string, category: CategoryType) => {
-    if (category !== 'vertical') {
+    if (category !== BLOCK_CATEGORIES.VERTICAL) {
       setSelectedCategory(category);
       setSelectedLocation(location);
       openRemoveModal();

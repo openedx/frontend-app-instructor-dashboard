@@ -3,6 +3,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { ActionRow, Button, Form, FormControl, FormGroup, FormLabel, ModalDialog, Stack } from '@openedx/paragon';
 import messages from '../messages';
 import { CategoryType } from '../types';
+import { BLOCK_CATEGORIES } from '../constants';
 
 interface ScheduleFormState {
   startDate: string;
@@ -59,10 +60,10 @@ const ScheduleModal = ({ isOpen, category, start, due, onClose, onSave }: Schedu
   };
 
   return (
-    <ModalDialog isOpen={isOpen} title={category === 'sequential' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)} onClose={onClose} isOverflowVisible={false}>
+    <ModalDialog isOpen={isOpen} title={category === BLOCK_CATEGORIES.SEQUENTIAL ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)} onClose={onClose} isOverflowVisible={false}>
       <ModalDialog.Header className="border-bottom p-3">
         <ModalDialog.Title className="text-primary-500">
-          {category === 'sequential' ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)}
+          {category === BLOCK_CATEGORIES.SEQUENTIAL ? intl.formatMessage(messages.subsectionDialogTitle) : intl.formatMessage(messages.sectionDialogTitle)}
         </ModalDialog.Title>
       </ModalDialog.Header>
       <Form onSubmit={handleSubmit} className="position-relative overflow-auto">
@@ -76,7 +77,7 @@ const ScheduleModal = ({ isOpen, category, start, due, onClose, onSave }: Schedu
               <FormControl type="time" value={form.startTime} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, startTime: e.target.value })} />
             </Stack>
           </FormGroup>
-          {category === 'sequential' && (
+          {category === BLOCK_CATEGORIES.SEQUENTIAL && (
             <FormGroup className="mt-3">
               <FormLabel className="text-primary-500">{intl.formatMessage(messages.endDate)}</FormLabel>
               <Stack direction="horizontal" gap={2}>

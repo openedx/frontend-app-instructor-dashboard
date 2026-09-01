@@ -1,5 +1,6 @@
-export type CategoryType = 'chapter' | 'sequential' | 'vertical';
+import { BLOCK_CATEGORIES } from './constants';
 
+export type CategoryType = typeof BLOCK_CATEGORIES[keyof typeof BLOCK_CATEGORIES];
 export interface BlockAttributes {
   category: CategoryType;
   displayName: string;

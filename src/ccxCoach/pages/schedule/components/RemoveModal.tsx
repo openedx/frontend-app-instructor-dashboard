@@ -2,6 +2,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { ModalDialog, ActionRow, Button } from '@openedx/paragon';
 import messages from '../messages';
 import { CategoryType } from '../types';
+import { BLOCK_CATEGORIES } from '../constants';
 
 interface RemoveModalProps {
   onClose: () => void;
@@ -13,9 +14,9 @@ interface RemoveModalProps {
 const RemoveModal = ({ isOpen, onClose, onRemove, category }: RemoveModalProps): JSX.Element => {
   const intl = useIntl();
   const localizedBlockType = intl.formatMessage(
-    category === 'chapter'
+    category === BLOCK_CATEGORIES.CHAPTER
       ? messages.blockTypeSection
-      : category === 'sequential'
+      : category === BLOCK_CATEGORIES.SEQUENTIAL
         ? messages.blockTypeSubsection
         : messages.blockTypeUnit
   );

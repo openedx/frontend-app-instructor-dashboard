@@ -17,6 +17,7 @@ import {
   useSaveGradingPolicy,
 } from './apiHook';
 import { ccxCoachInfoQueryKeys } from './queryKeys';
+import { BLOCK_CATEGORIES } from '../pages/schedule/constants';
 
 jest.mock('./api', () => ({
   getCcxCoachInfo: jest.fn(),
@@ -353,7 +354,7 @@ describe('useSaveGradingPolicy', () => {
 describe('useSaveCcxSchedule', () => {
   const courseId = 'course-v1:edX+DemoX+Demo_Course';
   const editedSchedule = [{
-    category: 'chapter' as const,
+    category: BLOCK_CATEGORIES.CHAPTER,
     displayName: 'Section',
     hidden: false,
     location: 'block-v1:edX+DemoX+type@chapter+block@1',

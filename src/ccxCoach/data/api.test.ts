@@ -7,6 +7,7 @@ import {
   saveCcxCoachGradingPolicy,
   saveCcxSchedule,
 } from './api';
+import { BLOCK_CATEGORIES } from '../pages/schedule/constants';
 
 jest.mock('@openedx/frontend-base');
 
@@ -194,7 +195,7 @@ describe('saveCcxCoachGradingPolicy', () => {
 describe('saveCcxSchedule', () => {
   const courseId = 'course-v1:edX+DemoX+Demo_Course';
   const editedSchedule = [{
-    category: 'chapter' as const,
+    category: BLOCK_CATEGORIES.CHAPTER,
     displayName: 'Section',
     hidden: false,
     location: 'block-v1:edX+DemoX+type@chapter+block@1',

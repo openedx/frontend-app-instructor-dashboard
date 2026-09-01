@@ -38,7 +38,7 @@ const messages = defineMessages({
   },
   UTCDescription: {
     id: 'schedule.UTCDescription',
-    defaultMessage: 'In UTC; please specify MM/DD/YYYY HH:MM.',
+    defaultMessage: 'In UTC.',
     description: 'Description indicating that all dates and times are in UTC',
   },
   startDate: {

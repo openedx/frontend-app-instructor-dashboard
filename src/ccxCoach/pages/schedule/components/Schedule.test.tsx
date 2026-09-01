@@ -5,6 +5,7 @@ import { renderWithIntl } from '@src/testUtils';
 import Schedule from '@src/ccxCoach/pages/schedule/components/Schedule';
 import { BlockAttributes } from '@src/ccxCoach/pages/schedule/types';
 import messages from '../messages';
+import { BLOCK_CATEGORIES } from '../constants';
 
 const mockScheduleModal = jest.fn<JSX.Element, [Record<string, unknown>]>(() => <div>Schedule Modal</div>);
 const mockRemoveModal = jest.fn<JSX.Element, [Record<string, unknown>]>((props) => (
@@ -27,20 +28,20 @@ jest.mock('@src/ccxCoach/pages/schedule/components/RemoveModal', () => function 
 const mockScheduleData = [{
   location: 'section-location',
   displayName: 'Section One',
-  category: 'chapter' as const,
+  category: BLOCK_CATEGORIES.CHAPTER,
   start: '2026-01-01 00:00',
   hidden: false,
   children: [{
     location: 'subsection-location',
     displayName: 'Subsection One',
-    category: 'sequential' as const,
+    category: BLOCK_CATEGORIES.SEQUENTIAL,
     start: '2026-01-01 00:00',
     due: '2026-05-20 00:00',
     hidden: false,
     children: [{
       location: 'unit-location',
       displayName: 'Unit One',
-      category: 'vertical' as const,
+      category: BLOCK_CATEGORIES.VERTICAL,
       start: '2026-01-01 00:00',
       due: '2026-05-20 00:00',
       hidden: true,
@@ -100,7 +101,7 @@ describe('Schedule', () => {
     expect(mockScheduleModal).toHaveBeenCalled();
     expect(mockScheduleModal).toHaveBeenLastCalledWith(expect.objectContaining({
       isOpen: false,
-      category: 'sequential',
+      category: BLOCK_CATEGORIES.SEQUENTIAL,
       onClose: expect.any(Function),
       onSave: expect.any(Function),
     }));
@@ -108,7 +109,7 @@ describe('Schedule', () => {
     expect(mockRemoveModal).toHaveBeenCalled();
     expect(mockRemoveModal).toHaveBeenLastCalledWith(expect.objectContaining({
       isOpen: true,
-      category: 'sequential',
+      category: BLOCK_CATEGORIES.SEQUENTIAL,
       onClose: expect.any(Function),
       onRemove: expect.any(Function),
     }));
