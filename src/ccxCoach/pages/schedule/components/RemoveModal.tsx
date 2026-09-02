@@ -11,15 +11,15 @@ interface RemoveModalProps {
   category: CategoryType;
 }
 
+const blockTypeMessageByCategory = {
+  [BLOCK_CATEGORIES.CHAPTER]: messages.blockTypeSection,
+  [BLOCK_CATEGORIES.SEQUENTIAL]: messages.blockTypeSubsection,
+  [BLOCK_CATEGORIES.VERTICAL]: messages.blockTypeUnit,
+};
+
 const RemoveModal = ({ isOpen, onClose, onRemove, category }: RemoveModalProps): JSX.Element => {
   const intl = useIntl();
-  const localizedBlockType = intl.formatMessage(
-    category === BLOCK_CATEGORIES.CHAPTER
-      ? messages.blockTypeSection
-      : category === BLOCK_CATEGORIES.SEQUENTIAL
-        ? messages.blockTypeSubsection
-        : messages.blockTypeUnit
-  );
+  const localizedBlockType = intl.formatMessage(blockTypeMessageByCategory[category]);
   const removeDialogTitle = intl.formatMessage(messages.removeDialogTitle, { blockType: localizedBlockType });
 
   return (
