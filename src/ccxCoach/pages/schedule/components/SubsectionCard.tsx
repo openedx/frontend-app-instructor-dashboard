@@ -74,7 +74,13 @@ const SubsectionCard = ({
               {children && children.length > 0 && (
                 <>
                   {children.map((child) => (
-                    <UnitRow key={child.location} {...child} isEditing={isEditing} onAdd={onAdd} onRemove={onRemove} />
+                    <UnitRow
+                      key={child.location}
+                      {...child}
+                      isEditing={isEditing}
+                      onAdd={onAdd}
+                      onRemove={onRemove}
+                    />
                   ))}
                 </>
               )}

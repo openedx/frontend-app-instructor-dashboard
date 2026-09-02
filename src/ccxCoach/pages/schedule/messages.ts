@@ -136,6 +136,11 @@ const messages = defineMessages({
     defaultMessage: 'Undo: Keep {blockType}',
     description: 'Hover label on the remove-toggle button to undo the removal',
   },
+  parentWillBeRemoved: {
+    id: 'schedule.parentWillBeRemoved',
+    defaultMessage: '{parentType} will be removed. To add {blockType} undo removal',
+    description: 'Tooltip shown when a child block Add button is disabled because an ancestor is set to be removed',
+  },
 });
 
 export default messages;

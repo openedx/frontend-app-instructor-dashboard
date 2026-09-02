@@ -9,7 +9,7 @@ const UnitRow = ({
   isEditing,
   location,
   onAdd,
-  onRemove
+  onRemove,
 }: EditableBlockAttributes) => {
   if (hidden && !isEditing) {
     return null;

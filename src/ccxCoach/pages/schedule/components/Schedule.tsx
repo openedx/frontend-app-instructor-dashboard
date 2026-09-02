@@ -103,6 +103,28 @@ const collectHiddenLocations = (blocks: BlockAttributes[]): Set<string> => {
   return hidden;
 };
 
+// For every block, records the category of the closest ancestor being removed this session, if any.
+const collectBlockedByAncestorCategory = (
+  blocks: BlockAttributes[],
+  initiallyHidden: Set<string>,
+): Map<string, CategoryType> => {
+  const map = new Map<string, CategoryType>();
+  const walk = (currentBlocks: BlockAttributes[], removingAncestorCategory: CategoryType | undefined) => {
+    for (const block of currentBlocks) {
+      if (removingAncestorCategory) {
+        map.set(block.location, removingAncestorCategory);
+      }
+      const isBeingRemoved = block.hidden && !initiallyHidden.has(block.location);
+      const nextCategory = isBeingRemoved ? block.category : removingAncestorCategory;
+      if (block.children) {
+        walk(block.children, nextCategory);
+      }
+    }
+  };
+  walk(blocks, undefined);
+  return map;
+};
+
 const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: EditScheduleProps) => {
   const intl = useIntl();
   const [editedScheduleData, setEditedScheduleData] = useState<BlockAttributes[]>(scheduleData);
@@ -115,6 +137,10 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
     [editedScheduleData, selectedLocation],
   );
   const initiallyHiddenLocations = useMemo(() => collectHiddenLocations(scheduleData), [scheduleData]);
+  const blockedByAncestorCategory = useMemo(
+    () => collectBlockedByAncestorCategory(editedScheduleData, initiallyHiddenLocations),
+    [editedScheduleData, initiallyHiddenLocations],
+  );
 
   const handleAdd = (location: string, category: CategoryType) => {
     if (category !== BLOCK_CATEGORIES.VERTICAL) {
@@ -165,7 +191,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
   };
 
   return (
-    <ScheduleEditProvider initiallyHidden={initiallyHiddenLocations}>
+    <ScheduleEditProvider initiallyHidden={initiallyHiddenLocations} blockedByAncestorCategory={blockedByAncestorCategory}>
       {
         editedScheduleData.length > 0 && (editedScheduleData.map((section) => (
           <SectionCard

@@ -55,7 +55,13 @@ const SectionCard = ({ displayName, children, isEditing, hidden, onAdd, onRemove
           {isOpen && (
             <Card.Body>
               {children && children.length > 0 && children.map((child) => (
-                <SubsectionCard key={child.location} {...child} isEditing={isEditing} onAdd={onAdd} onRemove={onRemove} />
+                <SubsectionCard
+                  key={child.location}
+                  {...child}
+                  isEditing={isEditing}
+                  onAdd={onAdd}
+                  onRemove={onRemove}
+                />
               ))}
             </Card.Body>
           )}

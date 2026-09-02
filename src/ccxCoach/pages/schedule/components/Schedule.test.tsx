@@ -189,6 +189,25 @@ describe('Schedule', () => {
     expect(screen.getByRole('button', { name: messages.addUnit.defaultMessage })).toBeInTheDocument();
   });
 
+  it('disables the child Add button and shows a tooltip when an ancestor is being removed', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing onSave={jest.fn()} onCancel={jest.fn()} startEditing={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: messages.addUnit.defaultMessage })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: 'Remove Subsection' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Remove' }));
+
+    const disabledAddUnit = screen.getByRole('button', { name: messages.addUnit.defaultMessage });
+    expect(disabledAddUnit).toBeDisabled();
+
+    await user.hover(disabledAddUnit.parentElement as HTMLElement);
+
+    await waitFor(() => {
+      expect(screen.getByText('Subsection will be removed. To add Unit undo removal')).toBeInTheDocument();
+    });
+  });
+
   it('reverts the edited tree to the initial schedule when the user cancels', async () => {
     const user = userEvent.setup();
     const scheduleData = [{
