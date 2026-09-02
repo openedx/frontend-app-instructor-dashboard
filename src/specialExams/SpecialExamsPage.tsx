@@ -22,8 +22,14 @@ const SpecialExamsPage = () => {
   const { data: proctoringSettings } = useProctoringSettings(courseId);
   const [selectedTab, setSelectedTab] = useState<(typeof SPECIAL_EXAMS_TAB)[keyof typeof SPECIAL_EXAMS_TAB]>(SPECIAL_EXAMS_TAB.ATTEMPTS);
 
-  const showOnboarding = !!proctoringSettings?.supportsOnboarding;
-  const showReviewDashboard = !!proctoringSettings?.reviewDashboardAvailable;
+  // Onboarding and the review dashboard are proctoring-only features, so only surface them
+  // when proctored exams are actually enabled on the course. Without this, a course that has
+  // a proctoring provider set but proctoring disabled (e.g. a timed-exam-only course) would
+  // still show these tabs, because supportsOnboarding/reviewDashboardAvailable reflect the
+  // provider's capabilities and existing exam records rather than the course-level toggle.
+  const proctoringEnabled = !!proctoringSettings?.enableProctoredExams;
+  const showOnboarding = proctoringEnabled && !!proctoringSettings?.supportsOnboarding;
+  const showReviewDashboard = proctoringEnabled && !!proctoringSettings?.reviewDashboardAvailable;
 
   const renderTabContent = () => {
     switch (selectedTab) {

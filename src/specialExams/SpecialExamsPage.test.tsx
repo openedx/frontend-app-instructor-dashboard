@@ -97,7 +97,7 @@ describe('SpecialExamsPage', () => {
 
   it('shows and switches to the onboarding tab when supported', async () => {
     mockUseProctoringSettings.mockReturnValue({
-      data: { supportsOnboarding: true, reviewDashboardAvailable: false },
+      data: { enableProctoredExams: true, supportsOnboarding: true, reviewDashboardAvailable: false },
     });
     renderWithIntl(<SpecialExamsPage />);
     const onboardingButton = screen.getByText('Onboarding');
@@ -110,7 +110,7 @@ describe('SpecialExamsPage', () => {
 
   it('shows and switches to the review dashboard tab when supported', async () => {
     mockUseProctoringSettings.mockReturnValue({
-      data: { supportsOnboarding: false, reviewDashboardAvailable: true },
+      data: { enableProctoredExams: true, supportsOnboarding: false, reviewDashboardAvailable: true },
     });
     renderWithIntl(<SpecialExamsPage />);
     const reviewButton = screen.getByText('Review Dashboard');
@@ -119,5 +119,14 @@ describe('SpecialExamsPage', () => {
     const user = userEvent.setup();
     await user.click(reviewButton);
     expect(screen.getByText('Review Dashboard Component')).toBeInTheDocument();
+  });
+
+  it('hides onboarding and review dashboard tabs when proctored exams are disabled, even if the provider supports them', () => {
+    mockUseProctoringSettings.mockReturnValue({
+      data: { enableProctoredExams: false, supportsOnboarding: true, reviewDashboardAvailable: true },
+    });
+    renderWithIntl(<SpecialExamsPage />);
+    expect(screen.queryByText('Onboarding')).not.toBeInTheDocument();
+    expect(screen.queryByText('Review Dashboard')).not.toBeInTheDocument();
   });
 });
