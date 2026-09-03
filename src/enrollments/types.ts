@@ -28,11 +28,25 @@ export interface UpdateBetaTestersParams {
   emailStudents?: boolean,
 }
 
+export interface EnrollmentState {
+  user: boolean,
+  enrollment: boolean,
+  allowed: boolean,
+  autoEnroll: boolean,
+}
+
+export interface UpdateEnrollmentsResult {
+  identifier: string,
+  invalidIdentifier?: boolean,
+  error?: boolean,
+  before?: EnrollmentState,
+  after?: EnrollmentState,
+}
+
 export interface UpdateEnrollmentsResponse {
-  results: {
-    identifier: string,
-    invalidIdentifier: boolean,
-  }[],
+  action?: 'enroll' | 'unenroll',
+  autoEnroll?: boolean,
+  results: UpdateEnrollmentsResult[],
 }
 
 export interface UpdateBetaTestersResponse {

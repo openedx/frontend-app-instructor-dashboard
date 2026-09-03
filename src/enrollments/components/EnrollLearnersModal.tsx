@@ -24,19 +24,79 @@ const EnrollLearnersModal = ({
   const { mutate: enrollLearners } = useUpdateEnrollments(courseId);
   const { showModal, addAlert } = useAlert();
 
+  const renderLearners = (learners: string[], format: (learner: string) => string) => (
+    learners.map((learner: string) => (
+      <p key={learner} className="mb-0">• {format(learner)}</p>
+    ))
+  );
+
   const handleSave = () => {
     const identifier = emails.split(/[\n,]+/).map(email => email.trim()).filter(Boolean);
     enrollLearners({ identifier, action: 'enroll', autoEnroll, emailStudents }, {
       onSuccess: (data) => {
-        const failedUsernames = data.results?.filter(user => user.invalidIdentifier).map(user => user.identifier) || [];
+        const results = data.results || [];
+        const failedUsernames = results.filter(user => user.invalidIdentifier).map(user => user.identifier);
+        const erroredUsernames = results.filter(user => !user.invalidIdentifier && user.error).map(user => user.identifier);
+        // Identifiers that do not belong to a registered user yet are recorded as an invitation
+        // instead of an enrollment, so they never show up in the enrollments list.
+        const pendingLearners = results.filter(user => (
+          !user.invalidIdentifier && !user.error && !user.after?.enrollment && user.after?.allowed
+        ));
+        const pendingAutoEnroll = pendingLearners.filter(user => user.after?.autoEnroll).map(user => user.identifier);
+        const pendingAllowed = pendingLearners.filter(user => !user.after?.autoEnroll).map(user => user.identifier);
+        // Catch-all: the server reported success but left the learner neither enrolled nor invited
+        // (a retired email address, for example). Without this the result would fall through silently.
+        const notEnrolled = results.filter(user => (
+          !user.invalidIdentifier && !user.error && !user.after?.enrollment && !user.after?.allowed
+        )).map(user => user.identifier);
+
         if (failedUsernames.length > 0) {
           addAlert({
             type: 'danger',
             message: intl.formatMessage(messages.failedEnrollLearners),
-            extraContent: (
-              failedUsernames.map((learner: string) => (
-                <p key={learner} className="mb-0">• {intl.formatMessage(messages.unknownLearner, { learner })}</p>
-              ))
+            extraContent: renderLearners(
+              failedUsernames,
+              (learner: string) => intl.formatMessage(messages.unknownLearner, { learner })
+            )
+          });
+        }
+        if (erroredUsernames.length > 0) {
+          addAlert({
+            type: 'danger',
+            message: intl.formatMessage(messages.erroredEnrollLearners),
+            extraContent: renderLearners(erroredUsernames, (learner: string) => learner)
+          });
+        }
+        if (notEnrolled.length > 0) {
+          addAlert({
+            type: 'danger',
+            message: intl.formatMessage(
+              emailStudents ? messages.notEnrolledLearnersWithEmail : messages.notEnrolledLearners
+            ),
+            extraContent: renderLearners(notEnrolled, (learner: string) => learner)
+          });
+        }
+        if (pendingAutoEnroll.length > 0) {
+          addAlert({
+            type: 'info',
+            message: intl.formatMessage(
+              emailStudents ? messages.pendingAutoEnrollLearnersWithEmail : messages.pendingAutoEnrollLearners
+            ),
+            extraContent: renderLearners(
+              pendingAutoEnroll,
+              (learner: string) => intl.formatMessage(messages.pendingLearner, { learner })
+            )
+          });
+        }
+        if (pendingAllowed.length > 0) {
+          addAlert({
+            type: 'info',
+            message: intl.formatMessage(
+              emailStudents ? messages.pendingAllowedLearnersWithEmail : messages.pendingAllowedLearners
+            ),
+            extraContent: renderLearners(
+              pendingAllowed,
+              (learner: string) => intl.formatMessage(messages.pendingLearner, { learner })
             )
           });
         }
