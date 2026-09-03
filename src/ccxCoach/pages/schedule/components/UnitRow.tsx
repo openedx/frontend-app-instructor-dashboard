@@ -25,7 +25,6 @@ const UnitRow = ({
           category={category}
           location={location}
           hidden={hidden}
-          isEditing={isEditing}
           onAdd={onAdd}
           onRemove={onRemove}
         />

@@ -22,7 +22,6 @@ interface BlockActionsProps {
   category: CategoryType;
   location: string;
   hidden: boolean;
-  isEditing: boolean;
   onAdd: (location: string, category: CategoryType) => void;
   onRemove: (location: string, category: CategoryType) => void;
 }
@@ -31,16 +30,11 @@ const BlockActions = ({
   category,
   location,
   hidden,
-  isEditing,
   onAdd,
   onRemove,
 }: BlockActionsProps) => {
   const intl = useIntl();
   const { initiallyHidden, blockedByAncestorCategory } = useScheduleEdit();
-
-  if (!isEditing) {
-    return null;
-  }
 
   const blockType = intl.formatMessage(blockTypeMessageByCategory[category]);
   const wasInitiallyHidden = initiallyHidden.has(location);

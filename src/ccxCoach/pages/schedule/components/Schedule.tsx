@@ -180,6 +180,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
     setEditedScheduleData((currentScheduleData) => updateBlockAttributes(currentScheduleData, selectedLocation, true));
     setSelectedLocation('');
     setSelectedCategory(null);
+    if (!isEditing) startEditing();
     closeRemoveModal();
   };
 

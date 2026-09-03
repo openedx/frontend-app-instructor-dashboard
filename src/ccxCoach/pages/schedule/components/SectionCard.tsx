@@ -38,7 +38,6 @@ const SectionCard = ({ displayName, children, isEditing, hidden, onAdd, onRemove
             category={category}
             location={location}
             hidden={hidden}
-            isEditing={isEditing}
             onAdd={onAdd}
             onRemove={onRemove}
           />

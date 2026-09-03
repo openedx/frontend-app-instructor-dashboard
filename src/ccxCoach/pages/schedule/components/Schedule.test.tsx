@@ -322,4 +322,35 @@ describe('Schedule', () => {
       })],
     })]);
   });
+
+  it('shows the Remove button when not editing', () => {
+    const scheduleData = [{
+      ...mockScheduleData[0],
+      children: [{
+        ...mockScheduleData[0].children[0],
+        children: [
+          {
+            ...mockScheduleData[0].children[0].children[0],
+            hidden: false,
+          },
+        ]
+      }]
+    }];
+    renderWithIntl(<Schedule scheduleData={scheduleData} isEditing={false} onSave={jest.fn()} onCancel={jest.fn()} startEditing={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Remove Section' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Subsection' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Unit' })).toBeInTheDocument();
+  });
+
+  it('enters editing mode when confirming a remove while not editing', async () => {
+    const startEditing = jest.fn();
+    const user = userEvent.setup();
+    renderWithIntl(<Schedule scheduleData={mockScheduleData} isEditing={false} onSave={jest.fn()} onCancel={jest.fn()} startEditing={startEditing} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Subsection' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm Remove' }));
+
+    expect(startEditing).toHaveBeenCalledTimes(1);
+  });
 });
