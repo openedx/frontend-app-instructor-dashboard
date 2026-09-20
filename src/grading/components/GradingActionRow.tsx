@@ -1,10 +1,12 @@
-import { useParams } from 'react-router-dom';
-import { useIntl } from '@openedx/frontend-base';
+import { Link, useParams } from 'react-router-dom';
+import { getUrlByRouteRole, useIntl } from '@openedx/frontend-base';
 import { useToggle, ActionRow, Button, IconButton, Dropdown } from '@openedx/paragon';
 import { TrendingUp, MoreVert, OpenInNew } from '@openedx/paragon/icons';
 import { useCourseInfo } from '@src/data/apiHook';
 import GradingConfigurationModal from '@src/grading/components/GradingConfigurationModal';
 import messages from '@src/grading/messages';
+
+const gradebookRole = 'org.openedx.frontend.role.gradebook';
 
 const GradingActionRow = () => {
   const { courseId = '' } = useParams<{ courseId: string }>();
@@ -16,10 +18,20 @@ const GradingActionRow = () => {
     openConfigModal();
   };
 
+  // Prefer the gradebook route if the running site provides one, so navigation
+  // stays within the SPA; otherwise fall back to a full page load of the URL
+  // the LMS reports.
+  const gradebookRoute = getUrlByRouteRole(gradebookRole)?.replace(':courseId', courseId);
+  const isInternalRoute = !!gradebookRoute && !/^[a-z][a-z0-9+.-]*:/i.test(gradebookRoute);
+
   return (
     <>
       <ActionRow>
-        <Button as="a" href={data.gradebookUrl} iconBefore={TrendingUp} variant="outline-primary">{intl.formatMessage(messages.viewGradebook)}</Button>
+        {isInternalRoute ? (
+          <Button as={Link} to={gradebookRoute} iconBefore={TrendingUp} variant="outline-primary">{intl.formatMessage(messages.viewGradebook)}</Button>
+        ) : (
+          <Button as="a" href={gradebookRoute ?? data.gradebookUrl} iconBefore={TrendingUp} variant="outline-primary">{intl.formatMessage(messages.viewGradebook)}</Button>
+        )}
         <Dropdown>
           <Dropdown.Toggle
             as={IconButton}
