@@ -89,8 +89,8 @@ describe('GradingPolicyPage', () => {
   });
 
   it('enables action buttons after editing the grading policy', async () => {
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -103,8 +103,8 @@ describe('GradingPolicyPage', () => {
   });
 
   it('restores original policy value when Discard Changes is clicked', async () => {
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -118,8 +118,8 @@ describe('GradingPolicyPage', () => {
   });
 
   it('opens the confirmation modal when Save Grading Policy is clicked', async () => {
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -136,8 +136,8 @@ describe('GradingPolicyPage', () => {
   });
 
   it('closes the confirmation modal on Cancel and does not call save mutation', async () => {
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -159,8 +159,8 @@ describe('GradingPolicyPage', () => {
       onError();
     });
 
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -185,8 +185,8 @@ describe('GradingPolicyPage', () => {
       onError();
     });
 
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -218,8 +218,8 @@ describe('GradingPolicyPage', () => {
       onError(apiError);
     });
 
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
@@ -239,8 +239,8 @@ describe('GradingPolicyPage', () => {
   });
 
   it('shows the invalid JSON error and does not call save mutation when the policy is not valid JSON', async () => {
-    renderWithIntl(<GradingPolicyPage />);
     const user = userEvent.setup();
+    renderWithIntl(<GradingPolicyPage />);
 
     const input = screen.getByRole('textbox');
     await user.clear(input);
