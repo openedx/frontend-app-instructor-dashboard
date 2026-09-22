@@ -21,14 +21,13 @@ export const createCcxCoachCourse = async (courseId: string, ccxCourseName: stri
 
 export const getCcxSchedule = async (courseId: string) => {
   const { data } = await getAuthenticatedHttpClient()
-    .get(`${getApiBaseUrl()}/courses/${courseId}/ccx_schedule`);
+    .get(`${getApiBaseUrl()}/api/ccx_coach/v2/courses/${courseId}/schedule`);
   return camelCaseObject(data);
 };
 
-// TODO: change it to a put/patch in backend
 export const saveCcxSchedule = async (courseId: string, editedSchedule: BlockAttributes[]) => {
   const { data } = await getAuthenticatedHttpClient()
-    .post(`${getApiBaseUrl()}/courses/${courseId}/save_ccx`, editedSchedule);
+    .put(`${getApiBaseUrl()}/api/ccx_coach/v2/courses/${courseId}/schedule`, editedSchedule);
   return camelCaseObject(data);
 };
 

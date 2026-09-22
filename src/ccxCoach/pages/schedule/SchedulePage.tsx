@@ -13,8 +13,8 @@ import { isAxiosError } from 'axios';
 const SchedulePage = () => {
   const { courseId = '' } = useParams<{ courseId: string }>();
   const intl = useIntl();
-  const { data: scheduleData = [], isLoading } = useCcxSchedule(courseId);
-  const { mutate: saveCcxSchedule } = useSaveCcxSchedule(courseId);
+  const { data: scheduleData = [], isLoading, isFetching } = useCcxSchedule(courseId);
+  const { mutate: saveCcxSchedule, isPending: isSaving } = useSaveCcxSchedule(courseId);
   const isEmptySchedule = scheduleData.filter((chapter: BlockAttributes) => !chapter.hidden).length === 0;
   const [isEditing, startEditing, cancelEditing] = useToggle(false);
   const { showModal, showToast } = useAlert();
@@ -42,7 +42,7 @@ const SchedulePage = () => {
     </Button>
   );
 
-  if (isLoading) {
+  if (isLoading || isSaving || isFetching) {
     return <Skeleton count={3} />;
   }
 

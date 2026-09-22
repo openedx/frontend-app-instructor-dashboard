@@ -173,6 +173,7 @@ const Schedule = ({ scheduleData, isEditing, onSave, onCancel, startEditing }: E
       openRemoveModal();
     } else {
       setEditedScheduleData((currentScheduleData) => updateBlockAttributes(currentScheduleData, location, true));
+      if (!isEditing) startEditing();
     }
   };
 

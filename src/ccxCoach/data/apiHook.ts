@@ -32,6 +32,8 @@ export const useCcxSchedule = (courseId: string) => (
     queryKey: ccxCoachInfoQueryKeys.schedule(courseId),
     queryFn: () => getCcxSchedule(courseId),
     enabled: !!courseId,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 );
 

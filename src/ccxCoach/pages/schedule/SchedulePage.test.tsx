@@ -46,6 +46,7 @@ describe('SchedulePage', () => {
     jest.clearAllMocks();
     (useSaveCcxSchedule as jest.Mock).mockReturnValue({
       mutate: mockMutate,
+      isPending: false,
     } as any);
     (useAlert as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
@@ -60,6 +61,36 @@ describe('SchedulePage', () => {
 
     const skeletons = container.querySelectorAll('.react-loading-skeleton');
     expect(skeletons.length).toBeGreaterThan(0);
+  });
+
+  it('renders loading skeleton while the save mutation is in flight', () => {
+    mockUseCcxSchedule.mockReturnValue({ isLoading: false, data: [{ id: 'block-1' }] } as any);
+    (useSaveCcxSchedule as jest.Mock).mockReturnValue({
+      mutate: mockMutate,
+      isPending: true,
+    } as any);
+
+    const { container } = renderWithAlertAndIntl(<SchedulePage />);
+
+    const skeletons = container.querySelectorAll('.react-loading-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(screen.queryByText('Schedule')).not.toBeInTheDocument();
+    expect(screen.queryByText('EmptySchedule')).not.toBeInTheDocument();
+  });
+
+  it('renders loading skeleton during the post-save refetch (isFetching) even with cached data', () => {
+    mockUseCcxSchedule.mockReturnValue({
+      isLoading: false,
+      isFetching: true,
+      data: [{ id: 'block-1' }],
+    } as any);
+
+    const { container } = renderWithAlertAndIntl(<SchedulePage />);
+
+    const skeletons = container.querySelectorAll('.react-loading-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
+    expect(screen.queryByText('Schedule')).not.toBeInTheDocument();
+    expect(screen.queryByText('EmptySchedule')).not.toBeInTheDocument();
   });
 
   it('renders empty schedule state and does not use flex wrapper', () => {
