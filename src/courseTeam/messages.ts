@@ -216,6 +216,21 @@ const messages = defineMessages({
     defaultMessage: 'Unknown learner: {learner}',
     description: 'Displayed when a learner does not have a full name or username available',
   },
+  inactiveTeamMembers: {
+    id: 'instruct.courseTeam.inactiveTeamMembers',
+    defaultMessage: 'The following accounts are inactive and were not given the role. They must activate their accounts first.',
+    description: 'Error message displayed when team members could not be added because their accounts are inactive',
+  },
+  inactiveLearner: {
+    id: 'instruct.courseTeam.inactiveLearner',
+    defaultMessage: 'Inactive learner: {learner}',
+    description: 'Displayed when a learner is inactive',
+  },
+  erroredTeamMembers: {
+    id: 'instruct.courseTeam.erroredTeamMembers',
+    defaultMessage: 'An error occurred while giving the role to the following users. Please try again.',
+    description: 'Message displaying the users that could not be given a role because of an unexpected error',
+  },
   editTeamTitle: {
     id: 'instruct.courseTeam.editTeamTitle',
     defaultMessage: 'Edit {username} Roles',

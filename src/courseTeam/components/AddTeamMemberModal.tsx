@@ -41,20 +41,53 @@ const AddTeamMemberModal = ({
     setSelectedRole(e.target.value);
   };
 
+  const renderLearners = (learners: string[], format: (learner: string) => string) => (
+    learners.map((learner: string) => (
+      <p key={learner} className="mb-0">• {format(learner)}</p>
+    ))
+  );
+
   const handleSave = () => {
     const identifiers = inputValue.split(',').map(user => user.trim()).filter(user => user);
     addTeamMember({ identifiers, role: selectedRole, action: TEAM_MEMBER_ACTION.ALLOW }, {
       onSuccess: (data) => {
-        const failedUsernames = data.results?.filter(user => user.userDoesNotExist).map(user => user.identifier) || [];
+        const results = data.results || [];
+        const failedUsernames = results.filter(user => user.userDoesNotExist).map(user => user.identifier);
+        // The endpoint refuses the grant for an inactive account, so the role was not given.
+        const inactiveUsernames = results.filter(user => (
+          !user.userDoesNotExist && user.error && user.isActive === false
+        )).map(user => user.identifier);
+        // Catch-all: the handler reported a failure with no reason attached. Without this the
+        // result would fall through silently, the way inactive accounts used to.
+        const erroredUsernames = results.filter(user => (
+          !user.userDoesNotExist && user.error && user.isActive !== false
+        )).map(user => user.identifier);
+
         if (failedUsernames.length > 0) {
           addAlert({
             type: 'danger',
             message: intl.formatMessage(messages.failedToAddTeamMembers),
-            extraContent: (
-              failedUsernames.map((learner: string) => (
-                <p key={learner} className="mb-0">• {intl.formatMessage(messages.unknownLearner, { learner })}</p>
-              ))
+            extraContent: renderLearners(
+              failedUsernames,
+              (learner: string) => intl.formatMessage(messages.unknownLearner, { learner })
             )
+          });
+        }
+        if (inactiveUsernames.length > 0) {
+          addAlert({
+            type: 'danger',
+            message: intl.formatMessage(messages.inactiveTeamMembers),
+            extraContent: renderLearners(
+              inactiveUsernames,
+              (learner: string) => intl.formatMessage(messages.inactiveLearner, { learner })
+            )
+          });
+        }
+        if (erroredUsernames.length > 0) {
+          addAlert({
+            type: 'danger',
+            message: intl.formatMessage(messages.erroredTeamMembers),
+            extraContent: renderLearners(erroredUsernames, (learner: string) => learner)
           });
         }
         setUsers('');

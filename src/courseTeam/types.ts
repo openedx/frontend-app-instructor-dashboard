@@ -22,7 +22,9 @@ export interface Role {
 export interface TeamMembersResponse {
   results: {
     identifier: string,
+    error: boolean,
     userDoesNotExist: boolean,
+    isActive: boolean | null,
   }[],
 }
 
