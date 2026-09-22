@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useIntl } from '@openedx/frontend-base';
+import { resolveRouteByRole, useIntl } from '@openedx/frontend-base';
 import { Button, Tab, Tabs, useToggle } from '@openedx/paragon';
 import { Plus, TrendingUp } from '@openedx/paragon/icons';
 import AddTeamMemberModal from '@src/courseTeam/components/AddTeamMemberModal';
@@ -11,7 +11,6 @@ import { AlertOutlet } from '@src/providers/AlertProvider';
 import { CourseTeamMember } from '@src/courseTeam/types';
 import { Link, useParams } from 'react-router-dom';
 import { useCourseInfo } from '@src/data/apiHook';
-import { resolveRouteByRole } from '@src/utils/routeByRole';
 
 const adminConsoleRole = 'org.openedx.frontend.role.adminConsole';
 

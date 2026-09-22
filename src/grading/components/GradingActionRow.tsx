@@ -1,11 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
-import { useIntl } from '@openedx/frontend-base';
+import { resolveRouteByRole, useIntl } from '@openedx/frontend-base';
 import { useToggle, ActionRow, Button, IconButton, Dropdown } from '@openedx/paragon';
 import { TrendingUp, MoreVert, OpenInNew } from '@openedx/paragon/icons';
 import { useCourseInfo } from '@src/data/apiHook';
 import GradingConfigurationModal from '@src/grading/components/GradingConfigurationModal';
 import messages from '@src/grading/messages';
-import { resolveRouteByRole } from '@src/utils/routeByRole';
 
 const gradebookRole = 'org.openedx.frontend.role.gradebook';
 

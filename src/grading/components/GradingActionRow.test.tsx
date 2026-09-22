@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { getUrlByRouteRole } from '@openedx/frontend-base';
+import { resolveRouteByRole } from '@openedx/frontend-base';
 import { useCourseInfo } from '@src/data/apiHook';
 import GradingActionRow from '@src/grading/components/GradingActionRow';
 import { useGradingConfiguration } from '@src/grading/data/apiHook';
@@ -17,7 +17,7 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
-  getUrlByRouteRole: jest.fn(),
+  resolveRouteByRole: jest.fn(),
 }));
 
 jest.mock('@src/data/apiHook', () => ({
@@ -31,7 +31,7 @@ jest.mock('@src/grading/data/apiHook', () => ({
 describe('GradingActionRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (getUrlByRouteRole as jest.Mock).mockReturnValue(null);
+    (resolveRouteByRole as jest.Mock).mockReturnValue(null);
     (useCourseInfo as jest.Mock).mockReturnValue({ data: { gradebookUrl: 'https://example.com/gradebook', studioGradingUrl: 'https://example.com/studio' } });
     // TODO: Update this mock to use similar structure when API is ready, currently just returning random text to ensure component renders without error
     (useGradingConfiguration as jest.Mock).mockReturnValue({ data: 'Some random text' });
@@ -45,14 +45,15 @@ describe('GradingActionRow', () => {
   });
 
   it('renders an SPA link when the site provides a gradebook route', () => {
-    (getUrlByRouteRole as jest.Mock).mockReturnValue('/gradebook/:courseId');
+    (resolveRouteByRole as jest.Mock).mockReturnValue({ url: '/gradebook/course-v1:edX+DemoX+Demo_Course', isInternal: true });
     renderWithIntl(<MemoryRouter><GradingActionRow /></MemoryRouter>);
+    expect(resolveRouteByRole).toHaveBeenCalledWith('org.openedx.frontend.role.gradebook', { courseId: 'course-v1:edX+DemoX+Demo_Course' });
     const gradebookLink = screen.getByRole('link', { name: messages.viewGradebook.defaultMessage });
     expect(gradebookLink).toHaveAttribute('href', '/gradebook/course-v1:edX+DemoX+Demo_Course');
   });
 
   it('renders a plain anchor when the gradebook route is external', () => {
-    (getUrlByRouteRole as jest.Mock).mockReturnValue('https://other.example.com/gradebook');
+    (resolveRouteByRole as jest.Mock).mockReturnValue({ url: 'https://other.example.com/gradebook', isInternal: false });
     renderWithIntl(<GradingActionRow />);
     const gradebookLink = screen.getByRole('link', { name: messages.viewGradebook.defaultMessage });
     expect(gradebookLink).toHaveAttribute('href', 'https://other.example.com/gradebook');

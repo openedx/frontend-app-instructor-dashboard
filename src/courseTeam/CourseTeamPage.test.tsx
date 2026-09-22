@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { getUrlByRouteRole } from '@openedx/frontend-base';
+import { resolveRouteByRole } from '@openedx/frontend-base';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import CourseTeamPage from '@src/courseTeam/CourseTeamPage';
 
@@ -12,7 +12,7 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('@openedx/frontend-base', () => ({
   ...jest.requireActual('@openedx/frontend-base'),
-  getUrlByRouteRole: jest.fn(() => null),
+  resolveRouteByRole: jest.fn(() => null),
 }));
 
 jest.mock('@src/courseTeam/data/apiHook', () => ({
@@ -195,14 +195,14 @@ describe('CourseTeamPage', () => {
   });
 
   it('renders an SPA link when the site provides an admin console route', () => {
-    (getUrlByRouteRole as jest.Mock).mockReturnValueOnce('/admin-console/authz/*');
+    (resolveRouteByRole as jest.Mock).mockReturnValueOnce({ url: '/admin-console/authz', isInternal: true });
     renderWithAlertAndIntl(<MemoryRouter><CourseTeamPage /></MemoryRouter>);
     const viewRolesButton = screen.getByRole('link', { name: /view studio roles/i });
     expect(viewRolesButton).toHaveAttribute('href', '/admin-console/authz');
   });
 
   it('renders a plain anchor when the admin console route is external', () => {
-    (getUrlByRouteRole as jest.Mock).mockReturnValueOnce('https://other.example.com/admin-console/authz');
+    (resolveRouteByRole as jest.Mock).mockReturnValueOnce({ url: 'https://other.example.com/admin-console/authz', isInternal: false });
     renderWithAlertAndIntl(<CourseTeamPage />);
     const viewRolesButton = screen.getByRole('link', { name: /view studio roles/i });
     expect(viewRolesButton).toHaveAttribute('href', 'https://other.example.com/admin-console/authz');
