@@ -3,6 +3,7 @@ import {
   createCcxCoachCourse,
   getCcxCoachGradingPolicy,
   getCcxCoachInfo,
+  getCcxGradesCsvUrl,
   getCcxSchedule,
   saveCcxCoachGradingPolicy,
   saveCcxSchedule,
@@ -228,5 +229,30 @@ describe('saveCcxSchedule', () => {
     mockHttpClient.put.mockRejectedValueOnce(mockError);
 
     await expect(saveCcxSchedule(courseId, editedSchedule)).rejects.toThrow('Save schedule error');
+  });
+});
+
+describe('getCcxGradesCsvUrl', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (mockGetSiteConfig as jest.Mock).mockReturnValue({ lmsBaseUrl: mockBaseUrl });
+  });
+
+  it('should build the legacy LMS grades CSV url for a plain course id', () => {
+    const courseId = 'ccx-v1:edX+DemoX+Demo_Course+ccx@1';
+
+    const url = getCcxGradesCsvUrl(courseId);
+
+    expect(url).toBe(`${mockBaseUrl}/courses/${encodeURIComponent(courseId)}/ccx_grades.csv`);
+  });
+
+  it('should URL-encode special characters in the course id', () => {
+    const courseId = 'ccx-v1:edX/DemoX Course+ccx@1';
+
+    const url = getCcxGradesCsvUrl(courseId);
+
+    expect(url).toBe(`${mockBaseUrl}/courses/${encodeURIComponent(courseId)}/ccx_grades.csv`);
+    expect(url).toContain('%2F');
+    expect(url).toContain('%20');
   });
 });

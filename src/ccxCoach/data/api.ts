@@ -46,3 +46,16 @@ export const saveCcxCoachGradingPolicy = async (courseId: string, gradingPolicy:
   );
   return data;
 };
+
+/**
+ * URL of the legacy LMS endpoint that streams the CCX student grades CSV.
+ *
+ * Not an HTTP call — this endpoint requires session auth (not JWT) and
+ * responds with `Content-Disposition: attachment`, so consumers should
+ * render it as an `<a href={...}>` and let the browser handle the download
+ * instead of fetching it with `getAuthenticatedHttpClient`.
+ */
+export const getCcxGradesCsvUrl = (courseId: string): string => {
+  const encodedCourseId = encodeURIComponent(courseId);
+  return `${getApiBaseUrl()}/courses/${encodedCourseId}/ccx_grades.csv`;
+};

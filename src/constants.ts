@@ -7,6 +7,9 @@ export const instructorDashboardRole = 'org.openedx.frontend.role.instructorDash
 export const enrollmentActionsSlotId = 'org.openedx.frontend.slot.instructorDashboard.enrollmentActions.v1';
 export const enrollmentActionsWidgetId = 'org.openedx.frontend.widget.instructorDashboard.enrollmentActions.default';
 
+// Slot rendered in place of gradebook on the student grades tab content in the CCX Coach dashboard.
+export const studentGradesSlotId = 'org.openedx.frontend.slot.ccxCoach.studentGrades.v1';
+
 // Slot Ids for the instructor dashboard and CCX coach dashboard routes and nav tabs.
 // These slots are used to allow operators to add additional routes or tabs to the dashboards.
 export const instructorDashboardRoutesSlotId = 'org.openedx.frontend.slot.instructorDashboard.routes.v1';

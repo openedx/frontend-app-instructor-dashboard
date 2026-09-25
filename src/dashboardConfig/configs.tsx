@@ -16,6 +16,7 @@ import { useCcxCoachInfo } from '@src/ccxCoach/data/apiHook';
 import { DashboardConfig } from './DashboardConfigContext';
 import { instructorDashboardRoutesSlotId, instructorDashboardTabsSlotId, ccxCoachRoutesSlotId, ccxCoachTabsSlotId } from '@src/constants';
 import SchedulePage from '@src/ccxCoach/pages/schedule/SchedulePage';
+import StudentGradesPage from '@src/ccxCoach/pages/studentGrades/StudentGradesPage';
 
 export const instructorDashboardConfig: DashboardConfig = {
   variantId: 'instructorDashboard',
@@ -45,6 +46,7 @@ export const ccxCoachConfig: DashboardConfig = {
     { tabId: 'new', content: <NewCCXCoachCourse /> },
     { tabId: 'enrollments', content: <EnrollmentsPage hideBetaTesters hideEnrollmentStatus /> },
     { tabId: 'schedule', content: <SchedulePage /> },
+    { tabId: 'student_grades', content: <StudentGradesPage /> },
     { tabId: 'grading_policy', content: <GradingPolicyPage /> },
   ],
   routesSlotId: ccxCoachRoutesSlotId,
