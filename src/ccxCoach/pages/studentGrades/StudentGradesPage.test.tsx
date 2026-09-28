@@ -3,17 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '@src/testUtils';
 import StudentGradesPage from './StudentGradesPage';
 import messages from './messages';
-import { getCcxGradesCsvUrl } from '../../data/api';
 
-const MOCK_CSV_URL = 'https://lms.example.com/courses/test-course-id/ccx_grades.csv';
+const MOCK_BASE_URL = 'https://lms.example.com';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({ courseId: 'test-course-id' }),
 }));
 
-jest.mock('../../data/api', () => ({
-  getCcxGradesCsvUrl: jest.fn(() => MOCK_CSV_URL),
+jest.mock('@src/data/api', () => ({
+  getApiBaseUrl: () => MOCK_BASE_URL,
 }));
 
 // Stub GradebookSlot so the page's onBack wiring is exercised without pulling
@@ -28,14 +27,7 @@ jest.mock('@src/slots/GradebookSlot/GradebookSlot', () => {
   return MockGradebookSlot;
 });
 
-const mockedGetCcxGradesCsvUrl = getCcxGradesCsvUrl as jest.MockedFunction<typeof getCcxGradesCsvUrl>;
-
 describe('StudentGradesPage', () => {
-  beforeEach(() => {
-    mockedGetCcxGradesCsvUrl.mockClear();
-    mockedGetCcxGradesCsvUrl.mockReturnValue(MOCK_CSV_URL);
-  });
-
   it('renders the summary view with title, view gradebook and download link', () => {
     renderWithIntl(<StudentGradesPage />);
 
@@ -73,8 +65,10 @@ describe('StudentGradesPage', () => {
 
     const downloadLink = screen.getByRole('link', { name: messages.downloadStudentGradesButton.defaultMessage });
 
-    expect(mockedGetCcxGradesCsvUrl).toHaveBeenCalledWith('test-course-id');
-    expect(downloadLink).toHaveAttribute('href', MOCK_CSV_URL);
+    expect(downloadLink).toHaveAttribute(
+      'href',
+      `${MOCK_BASE_URL}/courses/${encodeURIComponent('test-course-id')}/ccx_grades.csv`,
+    );
     expect(downloadLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });

@@ -4,7 +4,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { Button } from '@openedx/paragon';
 import { TrendingUp } from '@openedx/paragon/icons';
 import GradebookSlot from '@src/slots/GradebookSlot/GradebookSlot';
-import { getCcxGradesCsvUrl } from '../../data/api';
+import { getApiBaseUrl } from '@src/data/api';
 import messages from './messages';
 
 const StudentGradesPage = () => {
@@ -16,12 +16,15 @@ const StudentGradesPage = () => {
     return <GradebookSlot courseId={courseId} onBack={() => setShowGradebook(false)} />;
   }
 
+  // Legacy LMS endpoint that streams the CCX grades CSV via session auth.
+  const gradesCsvUrl = `${getApiBaseUrl()}/courses/${encodeURIComponent(courseId)}/ccx_grades.csv`;
+
   return (
     <>
       <div className="d-flex justify-content-between align-items-start mb-3">
-        <h4 className="text-primary-700 mb-0">
+        <h3 className="text-primary-700 mb-0">
           {intl.formatMessage(messages.studentGradesPageTitle)}
-        </h4>
+        </h3>
         <Button
           variant="outline-primary"
           iconBefore={TrendingUp}
@@ -40,7 +43,7 @@ const StudentGradesPage = () => {
         <Button
           as="a"
           variant="primary"
-          href={getCcxGradesCsvUrl(courseId)}
+          href={gradesCsvUrl}
           disabled={!courseId}
           rel="noopener noreferrer"
         >
