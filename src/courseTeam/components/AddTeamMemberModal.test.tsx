@@ -39,13 +39,14 @@ describe('AddTeamMemberModal', () => {
   };
   const mutateMock = jest.fn();
   const showModalMock = jest.fn();
+  const addAlertMock = jest.fn();
   const handleChangeMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useRoles as jest.Mock).mockReturnValue({ data: { results: [{ role: 'admin', displayName: 'Admin' }] } });
     (useAddTeamMember as jest.Mock).mockReturnValue({ mutate: mutateMock });
-    (useAlert as jest.Mock).mockReturnValue({ showModal: showModalMock });
+    (useAlert as jest.Mock).mockReturnValue({ showModal: showModalMock, addAlert: addAlertMock });
     (useDebouncedFilter as jest.Mock).mockReturnValue({
       inputValue: '',
       handleChange: handleChangeMock
@@ -167,6 +168,67 @@ describe('AddTeamMemberModal', () => {
     options.onSuccess({ results: [] });
 
     expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('alerts separately for missing, inactive, and errored identifiers', async () => {
+    (useDebouncedFilter as jest.Mock).mockReturnValue({
+      inputValue: 'valid, missing, inactive, broken',
+      handleChange: handleChangeMock
+    });
+
+    renderWithAlertAndIntl(<AddTeamMemberModal {...defaultProps} />);
+    const user = userEvent.setup();
+
+    await user.selectOptions(screen.getByLabelText(messages.roleLabel.defaultMessage), 'admin');
+    await user.click(screen.getByText(messages.saveButton.defaultMessage));
+
+    const options = mutateMock.mock.calls[0][1];
+    options.onSuccess({
+      results: [
+        { identifier: 'valid', error: false, userDoesNotExist: false, isActive: true },
+        { identifier: 'missing', error: true, userDoesNotExist: true, isActive: null },
+        { identifier: 'inactive', error: true, userDoesNotExist: false, isActive: false },
+        { identifier: 'broken', error: true, userDoesNotExist: false, isActive: true },
+      ]
+    });
+
+    expect(addAlertMock).toHaveBeenCalledWith({
+      type: 'danger',
+      message: messages.failedToAddTeamMembers.defaultMessage,
+      extraContent: expect.any(Array),
+    });
+    expect(addAlertMock).toHaveBeenCalledWith({
+      type: 'danger',
+      message: messages.inactiveTeamMembers.defaultMessage,
+      extraContent: expect.any(Array),
+    });
+    expect(addAlertMock).toHaveBeenCalledWith({
+      type: 'danger',
+      message: messages.erroredTeamMembers.defaultMessage,
+      extraContent: expect.any(Array),
+    });
+    expect(addAlertMock).toHaveBeenCalledTimes(3);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('does not alert when every identifier succeeds', async () => {
+    (useDebouncedFilter as jest.Mock).mockReturnValue({
+      inputValue: 'user1',
+      handleChange: handleChangeMock
+    });
+
+    renderWithAlertAndIntl(<AddTeamMemberModal {...defaultProps} />);
+    const user = userEvent.setup();
+
+    await user.selectOptions(screen.getByLabelText(messages.roleLabel.defaultMessage), 'admin');
+    await user.click(screen.getByText(messages.saveButton.defaultMessage));
+
+    const options = mutateMock.mock.calls[0][1];
+    options.onSuccess({
+      results: [{ identifier: 'user1', error: false, userDoesNotExist: false, isActive: true }]
+    });
+
+    expect(addAlertMock).not.toHaveBeenCalled();
   });
 
   it('shows error modal on save failure', async () => {
