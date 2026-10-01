@@ -83,24 +83,25 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="text-primary-700">{intl.formatMessage(messages.enrollmentsPageTitle)}</h3>
         <ActionRow>
-          {!hideEnrollmentStatus && (
-            <Dropdown>
-              <Dropdown.Toggle
-                as={IconButton}
-                src={MoreVert}
-                alt={intl.formatMessage(messages.checkEnrollmentStatus)}
-                id="check-enrollment-status-menu"
-              />
-              <Dropdown.Menu>
+          <Dropdown>
+            <Dropdown.Toggle
+              as={IconButton}
+              src={MoreVert}
+              alt={intl.formatMessage(messages.checkEnrollmentStatus)}
+              id="check-enrollment-status-menu"
+            />
+            <Dropdown.Menu>
+              {!hideEnrollmentStatus && (
                 <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
                   {intl.formatMessage(messages.checkEnrollmentStatus)}
                 </Dropdown.Item>
-                <Dropdown.Item onClick={() => handleBulkLearners(BULK_LEARNERS_ACTION.UNENROLL)}>
-                  {intl.formatMessage(messages.unenrollLearners)}
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
+
+              )}
+              <Dropdown.Item onClick={() => handleBulkLearners(BULK_LEARNERS_ACTION.UNENROLL)}>
+                {intl.formatMessage(messages.unenrollLearners)}
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
           <Slot
             id={enrollmentActionsSlotId}
             hideBetaTesters={hideBetaTesters}

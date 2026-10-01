@@ -38,6 +38,12 @@ jest.mock('./components/AddBetaTestersModal', () => {
   );
   return MockAddBetaTestersModal;
 });
+jest.mock('./components/UpdateBetaTesterModal', () => {
+  const MockUpdateBetaTesterModal = ({ isOpen, onClose, learner }: { isOpen: boolean; onClose: () => void; learner: { fullName: string } }) => (
+    isOpen ? <div role="dialog"><span>update-beta-tester:{learner.fullName}</span><button type="button" onClick={onClose}>close-update-beta-tester</button></div> : null
+  );
+  return MockUpdateBetaTesterModal;
+});
 
 jest.mock('./data/apiHook', () => ({
   useEnrollments: jest.fn(),
@@ -51,18 +57,21 @@ jest.mock('@src/data/apiHook', () => ({
 }));
 
 jest.mock('./components/EnrollmentsList', () => {
-  return function MockEnrollmentsList({ onUnenroll, hideBetaTesters }: { onUnenroll: (learner: EnrolledLearner) => void; hideBetaTesters?: boolean }) {
+  return function MockEnrollmentsList({ onUnenroll, onBetaTesterChange, hideBetaTesters }: { onUnenroll: (learner: EnrolledLearner) => void; onBetaTesterChange: (learner: EnrolledLearner) => void; hideBetaTesters?: boolean }) {
+    const learner: EnrolledLearner = {
+      fullName: 'Tester',
+      email: 'test@example.com',
+      username: '',
+      mode: '',
+      isBetaTester: false,
+    };
     return (
       <div role="table" data-hide-beta-testers={String(!!hideBetaTesters)}>
-        <button onClick={() => onUnenroll({
-          fullName: 'Tester',
-          email: 'test@example.com',
-          username: '',
-          mode: '',
-          isBetaTester: false
-        })}
-        >
+        <button onClick={() => onUnenroll(learner)}>
           Unenroll Test Learner
+        </button>
+        <button onClick={() => onBetaTesterChange(learner)}>
+          Change Beta Tester
         </button>
       </div>
     );
@@ -224,10 +233,50 @@ describe('EnrollmentsPage', () => {
   });
 
   describe('when hideEnrollmentStatus is true', () => {
-    it('does not render the check enrollment status action', () => {
+    it('does not render the check enrollment status menu item', async () => {
       renderWithAlertAndIntl(<EnrollmentsPage hideEnrollmentStatus />);
+      const user = userEvent.setup();
 
-      expect(screen.queryByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage })).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage }));
+
+      // The dropdown toggle still exists (used for Unenroll Learners), but the menu item is hidden.
+      expect(screen.queryByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage, hidden: false })).toBeInTheDocument();
+      expect(screen.getByText(messages.unenrollLearners.defaultMessage)).toBeInTheDocument();
+      expect(screen.queryByText(messages.checkEnrollmentStatus.defaultMessage)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('unenroll learners dropdown item', () => {
+    it('opens the BulkLearnersModal when selected from the menu', async () => {
+      renderWithAlertAndIntl(<EnrollmentsPage />);
+      const user = userEvent.setup();
+
+      await user.click(screen.getByRole('button', { name: messages.checkEnrollmentStatus.defaultMessage }));
+      await user.click(screen.getByText(messages.unenrollLearners.defaultMessage));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+  });
+
+  describe('beta tester change flow', () => {
+    it('opens the UpdateBetaTesterModal with the selected learner', async () => {
+      renderWithAlertAndIntl(<EnrollmentsPage />);
+      const user = userEvent.setup();
+
+      await user.click(screen.getByText('Change Beta Tester'));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('update-beta-tester:Tester')).toBeInTheDocument();
+    });
+
+    it('closes the UpdateBetaTesterModal and clears the selected learner', async () => {
+      renderWithAlertAndIntl(<EnrollmentsPage />);
+      const user = userEvent.setup();
+
+      await user.click(screen.getByText('Change Beta Tester'));
+      await user.click(screen.getByText('close-update-beta-tester'));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 });
