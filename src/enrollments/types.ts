@@ -1,4 +1,8 @@
 import { Learner, PaginationParams } from '@src/types';
+import { BULK_LEARNERS_ACTION } from './constants';
+
+export type LearnersAction = typeof BULK_LEARNERS_ACTION[keyof typeof BULK_LEARNERS_ACTION];
+type BetaTestersAction = 'add' | 'remove';
 
 export interface EnrollmentStatusResponse {
   enrollmentStatus: string;
@@ -16,14 +20,14 @@ export interface EnrollmentsParams extends PaginationParams {
 
 export interface UpdateEnrollmentsParams {
   identifier: string[];
-  action: 'enroll' | 'unenroll';
+  action: LearnersAction;
   autoEnroll?: boolean;
   emailStudents?: boolean;
 }
 
 export interface UpdateBetaTestersParams {
   identifier: string[];
-  action: 'add' | 'remove';
+  action: BetaTestersAction;
   autoEnroll?: boolean;
   emailStudents?: boolean;
 }
@@ -44,7 +48,7 @@ export interface UpdateEnrollmentsResult {
 }
 
 export interface UpdateEnrollmentsResponse {
-  action?: 'enroll' | 'unenroll';
+  action?: LearnersAction;
   autoEnroll?: boolean;
   results: UpdateEnrollmentsResult[];
 }

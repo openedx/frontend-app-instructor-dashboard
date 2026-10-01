@@ -141,6 +141,11 @@ const messages = defineMessages({
     defaultMessage: 'Unenroll Learners',
     description: 'Title for unenroll learners modal',
   },
+  unenrollLearnersMessage: {
+    id: 'instruct.enrollments.modals.unenrollLearnersMessage',
+    defaultMessage: 'Enter email addresses and/or usernames separated by new lines or commas. You will not get notification for emails that bounce, so please double-check spelling.',
+    description: 'Instructions for unenrolling learners from the course',
+  },
   unenrollLearnersConfirmation: {
     id: 'instruct.enrollments.modals.unenrollLearnersConfirmation',
     defaultMessage: 'Unenroll {name} from course?',
@@ -226,10 +231,30 @@ const messages = defineMessages({
     defaultMessage: 'The following users are no longer enrolled in the course:',
     description: 'Message displaying the learners that the server left unchanged, neither enrolled nor invited',
   },
+  enrolledLearners: {
+    id: 'instruct.enrollments.modals.enrollLearners.enrolledLearners',
+    defaultMessage: 'Successfully enrolled the following users:',
+    description: 'Message displaying the learners that have been successfully enrolled',
+  },
+  enrolledLearnersWithEmail: {
+    id: 'instruct.enrollments.modals.enrollLearners.enrolledLearnersWithEmail',
+    defaultMessage: 'Successfully enrolled and sent email to the following users:',
+    description: 'Message displaying the learners that have been successfully enrolled, when notifying users by email',
+  },
   erroredEnrollLearners: {
     id: 'instruct.enrollments.modals.enrollLearners.erroredEnrollLearners',
     defaultMessage: 'There was an error enrolling:',
     description: 'Message displaying the learners that could not be enrolled because of an unexpected error',
+  },
+  erroredUnenrollLearners: {
+    id: 'instruct.enrollments.modals.enrollLearners.erroredUnenrollLearners',
+    defaultMessage: 'There was an error unenrolling:',
+    description: 'Message displaying the learners that could not be unenrolled because of an unexpected error',
+  },
+  notUnenrolledAndNotEnrolled: {
+    id: 'instruct.enrollments.modals.enrollLearners.notUnenrolledAndNotEnrolled',
+    defaultMessage: 'These users were not affiliated with the course so could not be unenrolled:',
+    description: 'Message displaying the learners that could not be unenrolled because were not enrolled in the course',
   },
   pendingLearner: {
     id: 'instruct.enrollments.pendingLearner',

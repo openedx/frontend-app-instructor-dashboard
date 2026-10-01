@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Slot, useIntl } from '@openedx/frontend-base';
-import { ActionRow, Dropdown, IconButton } from '@openedx/paragon';
+import { ActionRow, Dropdown, IconButton, useToggle } from '@openedx/paragon';
 import { MoreVert } from '@openedx/paragon/icons';
 import messages from '@src/enrollments/messages';
 import AddBetaTestersModal from '@src/enrollments/components/AddBetaTestersModal';
-import EnrollLearnersModal from '@src/enrollments/components/EnrollLearnersModal';
+import BulkLearnersModal from '@src/enrollments/components/BulkLearnersModal';
 import EnrollmentsList from '@src/enrollments/components/EnrollmentsList';
 import EnrollmentStatusModal from '@src/enrollments/components/EnrollmentStatusModal';
 import UnenrollModal from '@src/enrollments/components/UnenrollModal';
-import { EnrolledLearner } from '@src/enrollments/types';
+import { EnrolledLearner, LearnersAction } from '@src/enrollments/types';
 import { AlertOutlet, useAlert } from '@src/providers/AlertProvider';
 import { useCourseInfo } from '@src/data/apiHook';
 import { enrollmentActionsSlotId } from '@src/constants';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
+import { BULK_LEARNERS_ACTION } from '@src/enrollments/constants';
 
 interface EnrollmentsPageProps {
   hideBetaTesters?: boolean;
@@ -26,7 +27,8 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
   const { data: courseInfo } = useCourseInfo(courseId);
   const { clearAlerts } = useAlert();
   const [isEnrollmentStatusModalOpen, setIsEnrollmentStatusModalOpen] = useState(false);
-  const [isEnrollLearnersModalOpen, setIsEnrollLearnersModalOpen] = useState(false);
+  const [isBulkLearnersModalOpen, openBulkLearnersModal, closeBulkLearnersModal] = useToggle(false);
+  const [bulkLearnersAction, setBulkLearnersAction] = useState<LearnersAction | null>(null);
   const [isAddBetaTestersModalOpen, setIsAddBetaTestersModalOpen] = useState(false);
   const [isUnenrollModalOpen, setIsUnenrollModalOpen] = useState(false);
   const [isUpdateBetaTesterModalOpen, setIsUpdateBetaTesterModalOpen] = useState(false);
@@ -50,13 +52,15 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
     setIsEnrollmentStatusModalOpen(false);
   };
 
-  const handleEnrollLearners = () => {
-    setIsEnrollLearnersModalOpen(true);
+  const handleBulkLearners = (action: LearnersAction) => {
+    setBulkLearnersAction(action);
+    openBulkLearnersModal();
     clearAlerts();
   };
 
   const handleCloseEnrollLearnersModal = () => {
-    setIsEnrollLearnersModalOpen(false);
+    closeBulkLearnersModal();
+    setBulkLearnersAction(null);
   };
 
   const handleAddBetaTesters = () => {
@@ -91,6 +95,9 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
                 <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
                   {intl.formatMessage(messages.checkEnrollmentStatus)}
                 </Dropdown.Item>
+                <Dropdown.Item onClick={() => handleBulkLearners(BULK_LEARNERS_ACTION.UNENROLL)}>
+                  {intl.formatMessage(messages.unenrollLearners)}
+                </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           )}
@@ -98,7 +105,7 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
             id={enrollmentActionsSlotId}
             hideBetaTesters={hideBetaTesters}
             permissions={courseInfo?.permissions}
-            onEnrollLearners={handleEnrollLearners}
+            onEnrollLearners={() => handleBulkLearners(BULK_LEARNERS_ACTION.ENROLL)}
             onAddBetaTesters={handleAddBetaTesters}
           />
         </ActionRow>
@@ -107,7 +114,7 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
       <EnrollmentsList onUnenroll={handleUnenroll} onBetaTesterChange={handleBetaTesterChange} hideBetaTesters={hideBetaTesters} />
       <EnrollmentStatusModal isOpen={isEnrollmentStatusModalOpen} onClose={handleCloseEnrollmentStatusModal} />
       {selectedLearner && <UnenrollModal isOpen={isUnenrollModalOpen} learner={selectedLearner} onClose={handleUnenrollModalClose} />}
-      <EnrollLearnersModal isOpen={isEnrollLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} />
+      {bulkLearnersAction && <BulkLearnersModal isOpen={isBulkLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} action={bulkLearnersAction} /> }
       <AddBetaTestersModal isOpen={isAddBetaTestersModalOpen} onClose={() => setIsAddBetaTestersModalOpen(false)} />
       {selectedLearner && <UpdateBetaTesterModal isOpen={isUpdateBetaTesterModalOpen} learner={selectedLearner} onClose={handleCloseUpdateBetaTesterModal} />}
     </>

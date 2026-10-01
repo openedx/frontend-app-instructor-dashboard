@@ -1,13 +1,14 @@
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import EnrollLearnersModal, { EnrollLearnersModalProps } from '@src/enrollments/components/EnrollLearnersModal';
+import BulkLearnersModal, { BulkLearnersModalProps } from '@src/enrollments/components/BulkLearnersModal';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
 import { renderWithAlertAndIntl, renderWithIntl } from '@src/testUtils';
 
-const defaultProps: EnrollLearnersModalProps = {
+const defaultProps: BulkLearnersModalProps = {
   isOpen: true,
   onClose: jest.fn(),
+  action: 'enroll',
 };
 
 const mockShowModal = jest.fn();
@@ -31,9 +32,9 @@ jest.mock('@src/providers/AlertProvider', () => ({
 }));
 
 const renderComponent = (props = {}) =>
-  renderWithAlertAndIntl(<EnrollLearnersModal {...defaultProps} {...props} />);
+  renderWithAlertAndIntl(<BulkLearnersModal {...defaultProps} {...props} />);
 
-describe('EnrollLearnersModal', () => {
+describe('BulkLearnersModal', () => {
   const mutateMock = jest.fn();
 
   beforeEach(() => {
@@ -356,7 +357,7 @@ describe('EnrollLearnersModal', () => {
       }));
     });
 
-    it('does not show a pending alert when the learner was enrolled', async () => {
+    it('shows a success alert when the learner was enrolled', async () => {
       mockEnrollResponse([{
         identifier: 'enrolled@example.com',
         before: enrollmentState({ user: true }),
@@ -365,7 +366,10 @@ describe('EnrollLearnersModal', () => {
 
       await saveEmail('enrolled@example.com');
 
-      expect(mockAddAlert).not.toHaveBeenCalled();
+      expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'success',
+        message: messages.enrolledLearnersWithEmail.defaultMessage,
+      }));
     });
 
     it('shows an error alert for identifiers the server failed to enroll', async () => {
@@ -391,7 +395,7 @@ describe('EnrollLearnersModal', () => {
 
       expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
         type: 'danger',
-        message: messages.notEnrolledLearnersWithEmail.defaultMessage,
+        message: messages.notUnenrolledAndNotEnrolled.defaultMessage,
       }));
     });
 
@@ -414,6 +418,109 @@ describe('EnrollLearnersModal', () => {
       expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
         type: 'info',
         message: messages.pendingAutoEnrollLearnersWithEmail.defaultMessage,
+      }));
+    });
+
+    it('shows the enrolled learners alert without email when notifying users is disabled', async () => {
+      mockEnrollResponse([{
+        identifier: 'enrolled@example.com',
+        before: enrollmentState({ user: true }),
+        after: enrollmentState({ user: true, enrollment: true }),
+      }]);
+
+      await saveEmail('enrolled@example.com', messages.notifyUsersCheckbox.defaultMessage);
+
+      expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'success',
+        message: messages.enrolledLearners.defaultMessage,
+      }));
+    });
+  });
+
+  describe('unenroll action', () => {
+    const enrollmentState = (state = {}) => ({
+      user: false, enrollment: false, allowed: false, autoEnroll: false, ...state,
+    });
+
+    const mockUnenrollResponse = (results: any[]) => {
+      mutateMock.mockImplementation((_users: string[], callbacks: any) => {
+        callbacks.onSuccess({ action: 'unenroll', results });
+      });
+    };
+
+    it('renders the unenroll title, message and save button label', () => {
+      renderComponent({ action: 'unenroll' });
+      expect(
+        screen.getByRole('heading', { name: messages.unenrollLearners.defaultMessage })
+      ).toBeInTheDocument();
+      expect(screen.getByText(messages.unenrollLearnersMessage.defaultMessage)).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: messages.unenrollLearners.defaultMessage })
+      ).toBeInTheDocument();
+    });
+
+    it('does not render the auto enroll checkbox', () => {
+      renderComponent({ action: 'unenroll' });
+      expect(
+        screen.queryByLabelText(messages.autoEnrollCheckbox.defaultMessage)
+      ).not.toBeInTheDocument();
+    });
+
+    it('calls mutate with action unenroll and autoEnroll false', async () => {
+      renderComponent({ action: 'unenroll' });
+      const user = userEvent.setup();
+      await user.type(
+        screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage),
+        'alice@example.com'
+      );
+      await user.click(screen.getByRole('button', { name: messages.unenrollLearners.defaultMessage }));
+
+      expect(mutateMock).toHaveBeenCalledWith({
+        identifier: ['alice@example.com'],
+        action: 'unenroll',
+        autoEnroll: false,
+        emailStudents: true,
+      }, {
+        onSuccess: expect.any(Function),
+        onError: expect.any(Function),
+      });
+    });
+
+    it('shows a success alert when the learner was unenrolled', async () => {
+      mockUnenrollResponse([{
+        identifier: 'enrolled@example.com',
+        before: enrollmentState({ user: true, enrollment: true }),
+        after: enrollmentState({ user: true }),
+      }]);
+
+      renderComponent({ action: 'unenroll' });
+      const user = userEvent.setup();
+      await user.type(
+        screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage),
+        'enrolled@example.com'
+      );
+      await user.click(screen.getByRole('button', { name: messages.unenrollLearners.defaultMessage }));
+
+      expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'success',
+        message: messages.notEnrolledLearnersWithEmail.defaultMessage,
+      }));
+    });
+
+    it('shows the unenroll-specific error alert for identifiers the server failed to unenroll', async () => {
+      mockUnenrollResponse([{ identifier: 'broken@example.com', error: true }]);
+
+      renderComponent({ action: 'unenroll' });
+      const user = userEvent.setup();
+      await user.type(
+        screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage),
+        'broken@example.com'
+      );
+      await user.click(screen.getByRole('button', { name: messages.unenrollLearners.defaultMessage }));
+
+      expect(mockAddAlert).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'danger',
+        message: messages.erroredUnenrollLearners.defaultMessage,
       }));
     });
   });

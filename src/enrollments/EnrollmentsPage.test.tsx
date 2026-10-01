@@ -26,11 +26,11 @@ jest.mock('@openedx/frontend-base', () => ({
 
 // Stub the action modals; their internals are covered by their own test files. Each stub exposes a
 // close control so the page's onClose handlers are exercised.
-jest.mock('./components/EnrollLearnersModal', () => {
-  const MockEnrollLearnersModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
+jest.mock('./components/BulkLearnersModal', () => {
+  const MockBulkLearnersModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
     isOpen ? <div role="dialog"><button type="button" onClick={onClose}>close-enroll-learners</button></div> : null
   );
-  return MockEnrollLearnersModal;
+  return MockBulkLearnersModal;
 });
 jest.mock('./components/AddBetaTestersModal', () => {
   const MockAddBetaTestersModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (

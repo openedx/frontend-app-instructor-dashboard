@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { useIntl } from '@openedx/frontend-base';
@@ -6,23 +6,45 @@ import { Button, FormControl, ModalDialog, Form } from '@openedx/paragon';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
 import { useAlert } from '@src/providers/AlertProvider';
+import { LearnersAction } from '@src/enrollments/types';
+import { BULK_LEARNERS_ACTION } from '../constants';
 
-export interface EnrollLearnersModalProps {
+export interface BulkLearnersModalProps {
   isOpen: boolean;
   onClose: () => void;
+  action: LearnersAction;
 }
 
-const EnrollLearnersModal = ({
+const unenrollInfo = {
+  title: messages.unenrollLearners,
+  message: messages.unenrollLearnersMessage,
+  buttonLabel: messages.unenrollLearners,
+  errorMessage: messages.erroredUnenrollLearners,
+};
+
+const enrollInfo = {
+  title: messages.enrollLearners,
+  message: messages.addLearnerInstructions,
+  buttonLabel: messages.saveButton,
+  errorMessage: messages.erroredEnrollLearners,
+};
+
+const BulkLearnersModal = ({
   isOpen,
-  onClose
-}: EnrollLearnersModalProps) => {
+  onClose,
+  action
+}: BulkLearnersModalProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const [emails, setEmails] = useState('');
-  const [autoEnroll, setAutoEnroll] = useState(true);
+  const [autoEnroll, setAutoEnroll] = useState(action === BULK_LEARNERS_ACTION.ENROLL);
   const [emailStudents, setEmailStudents] = useState(true);
   const { mutate: enrollLearners } = useUpdateEnrollments(courseId);
   const { showModal, addAlert } = useAlert();
+  const info = useMemo(
+    () => (action === BULK_LEARNERS_ACTION.UNENROLL ? unenrollInfo : enrollInfo),
+    [action],
+  );
 
   const renderLearners = (learners: string[], format: (learner: string) => string) => (
     learners.map((learner: string) => (
@@ -32,7 +54,7 @@ const EnrollLearnersModal = ({
 
   const handleSave = () => {
     const identifier = emails.split(/[\n,]+/).map(email => email.trim()).filter(Boolean);
-    enrollLearners({ identifier, action: 'enroll', autoEnroll, emailStudents }, {
+    enrollLearners({ identifier, action, autoEnroll, emailStudents }, {
       onSuccess: (data) => {
         const results = data.results || [];
         const failedUsernames = results.filter(user => user.invalidIdentifier).map(user => user.identifier);
@@ -44,10 +66,17 @@ const EnrollLearnersModal = ({
         ));
         const pendingAutoEnroll = pendingLearners.filter(user => user.after?.autoEnroll).map(user => user.identifier);
         const pendingAllowed = pendingLearners.filter(user => !user.after?.autoEnroll).map(user => user.identifier);
-        // Catch-all: the server reported success but left the learner neither enrolled nor invited
-        // (a retired email address, for example). Without this the result would fall through silently.
-        const notEnrolled = results.filter(user => (
-          !user.invalidIdentifier && !user.error && !user.after?.enrollment && !user.after?.allowed
+
+        const successEnroll = results.filter(user => (
+          !user.invalidIdentifier && !user.error && !user.before?.enrollment && user.after?.enrollment && action === BULK_LEARNERS_ACTION.ENROLL
+        )).map(user => user.identifier);
+
+        const successUnenroll = results.filter(user => (
+          !user.invalidIdentifier && !user.error && user.before?.enrollment && !user.after?.enrollment && !user.after?.allowed && action === BULK_LEARNERS_ACTION.UNENROLL
+        )).map(user => user.identifier);
+
+        const notUnenrolledAndNotEnrolled = results.filter(user => (
+          !user.invalidIdentifier && !user.error && !user.before?.enrollment && !user.after?.enrollment && !user.after?.allowed
         )).map(user => user.identifier);
 
         if (failedUsernames.length > 0) {
@@ -63,17 +92,17 @@ const EnrollLearnersModal = ({
         if (erroredUsernames.length > 0) {
           addAlert({
             type: 'danger',
-            message: intl.formatMessage(messages.erroredEnrollLearners),
+            message: intl.formatMessage(info.errorMessage),
             extraContent: renderLearners(erroredUsernames, (learner: string) => learner)
           });
         }
-        if (notEnrolled.length > 0) {
+        if (successEnroll.length > 0) {
           addAlert({
-            type: 'danger',
+            type: 'success',
             message: intl.formatMessage(
-              emailStudents ? messages.notEnrolledLearnersWithEmail : messages.notEnrolledLearners
+              emailStudents ? messages.enrolledLearnersWithEmail : messages.enrolledLearners
             ),
-            extraContent: renderLearners(notEnrolled, (learner: string) => learner)
+            extraContent: renderLearners(successEnroll, (learner: string) => learner)
           });
         }
         if (pendingAutoEnroll.length > 0) {
@@ -100,6 +129,22 @@ const EnrollLearnersModal = ({
             )
           });
         }
+        if (successUnenroll.length > 0) {
+          addAlert({
+            type: 'success',
+            message: intl.formatMessage(
+              emailStudents ? messages.notEnrolledLearnersWithEmail : messages.notEnrolledLearners
+            ),
+            extraContent: renderLearners(successUnenroll, (learner: string) => learner)
+          });
+        }
+        if (notUnenrolledAndNotEnrolled.length > 0) {
+          addAlert({
+            type: 'danger',
+            message: intl.formatMessage(messages.notUnenrolledAndNotEnrolled),
+            extraContent: renderLearners(notUnenrolledAndNotEnrolled, (learner: string) => learner)
+          });
+        }
         setEmails('');
         setAutoEnroll(true);
         setEmailStudents(true);
@@ -120,13 +165,13 @@ const EnrollLearnersModal = ({
   };
 
   return (
-    <ModalDialog isOpen={isOpen} onClose={onClose} isOverflowVisible={false} title={intl.formatMessage(messages.enrollLearners)}>
+    <ModalDialog isOpen={isOpen} onClose={onClose} isOverflowVisible={false} title={intl.formatMessage(info.title)}>
       <ModalDialog.Header className="border-light-700 border-bottom">
-        <h3 className="text-primary-500">{intl.formatMessage(messages.enrollLearners)}</h3>
+        <h3 className="text-primary-500">{intl.formatMessage(info.title)}</h3>
       </ModalDialog.Header>
       <div className="position-relative overflow-auto">
         <ModalDialog.Body className="py-4">
-          <p className="text-gray-700 x-small mb-2">{intl.formatMessage(messages.addLearnerInstructions)}</p>
+          <p className="text-gray-700 x-small mb-2">{intl.formatMessage(info.message)}</p>
           <FormControl
             name="identifier"
             as="textarea"
@@ -135,12 +180,14 @@ const EnrollLearnersModal = ({
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEmails(e.target.value)}
           />
           <div className="d-flex mt-3 text-primary-500">
-            <Form.Checkbox
-              controlClassName="border-primary-500"
-              checked={autoEnroll}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoEnroll(e.target.checked)}
-            >{intl.formatMessage(messages.autoEnrollCheckbox)}
-            </Form.Checkbox>
+            {action === BULK_LEARNERS_ACTION.ENROLL && (
+              <Form.Checkbox
+                controlClassName="border-primary-500"
+                checked={autoEnroll}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoEnroll(e.target.checked)}
+              >{intl.formatMessage(messages.autoEnrollCheckbox)}
+              </Form.Checkbox>
+            )}
             <Form.Checkbox
               controlClassName="border-primary-500"
               className="ml-4"
@@ -156,11 +203,11 @@ const EnrollLearnersModal = ({
           {intl.formatMessage(messages.cancelButton)}
         </Button>
         <Button className="ml-2" variant="primary" onClick={handleSave} disabled={emails.trim().length === 0}>
-          {intl.formatMessage(messages.saveButton)}
+          {intl.formatMessage(info.buttonLabel)}
         </Button>
       </ModalDialog.Footer>
     </ModalDialog>
   );
 };
 
-export default EnrollLearnersModal;
+export default BulkLearnersModal;
