@@ -554,7 +554,7 @@ describe('specialExams api hooks', () => {
 
   describe('useOnboardingStatuses', () => {
     const courseId = 'course-v1:edX+Test+2023';
-    const params: OnboardingParams = { page: 0, emailOrUsername: '' };
+    const params: OnboardingParams = { page: 0, emailOrUsername: '', statuses: [] };
     const mockOnboardingData = {
       count: 1,
       numPages: 1,
@@ -575,6 +575,35 @@ describe('specialExams api hooks', () => {
       });
 
       expect(mockGetOnboardingStatuses).toHaveBeenCalledWith(courseId, params);
+      expect(result.current.data).toBe(mockOnboardingData);
+    });
+
+    it('fetches page 2 instead of reusing page 1 from the cache', async () => {
+      mockGetOnboardingStatuses.mockResolvedValue(mockOnboardingData);
+
+      const { result, rerender } = renderHook(({ p }) => useOnboardingStatuses(courseId, p), {
+        wrapper: createWrapper(),
+        initialProps: { p: params },
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      rerender({ p: { ...params, page: 1 } });
+
+      await waitFor(() => expect(mockGetOnboardingStatuses).toHaveBeenCalledWith(courseId, { ...params, page: 1 }));
+    });
+
+    it('keeps the previous result as placeholder data while a new filter loads', async () => {
+      mockGetOnboardingStatuses.mockResolvedValueOnce(mockOnboardingData).mockReturnValueOnce(new Promise(() => {}));
+
+      const { result, rerender } = renderHook(({ p }) => useOnboardingStatuses(courseId, p), {
+        wrapper: createWrapper(),
+        initialProps: { p: params },
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      rerender({ p: { ...params, statuses: ['rejected'] } });
+
+      await waitFor(() => expect(result.current.isPlaceholderData).toBe(true));
       expect(result.current.data).toBe(mockOnboardingData);
     });
 

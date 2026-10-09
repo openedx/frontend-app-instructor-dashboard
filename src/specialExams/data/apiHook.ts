@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { addAllowance, deleteAllowance, getAllowances, getAttempts, getOnboardingStatuses, getProctoringSettings, getSpecialExams, resetAttempt, resumeAttempt } from '@src/specialExams/data/api';
 import { specialExamsQueryKeys } from '@src/specialExams/data/queryKeys';
 import { AddAllowanceParams, AttemptsParams, DeleteAllowanceParams, OnboardingParams, ResetAttemptParams, ResumeAttemptParams } from '@src/specialExams/types';
@@ -61,6 +61,9 @@ export const useOnboardingStatuses = (courseId: string, params: OnboardingParams
     queryKey: specialExamsQueryKeys.onboarding(courseId, params),
     queryFn: () => getOnboardingStatuses(courseId, params),
     enabled: !!courseId && enabled,
+    // Keep the previous result while a new page or filter loads, so the status
+    // options (which depend on useOnboardingProfileApi) don't flip mid-fetch.
+    placeholderData: keepPreviousData,
   })
 );
 

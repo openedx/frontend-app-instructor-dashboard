@@ -20,3 +20,24 @@ export const allowanceTypesOptions = [
   { value: 'review_policy_exception', label: messages.reviewPolicy },
   { value: 'time_multiplier', label: messages.timeMultiplier },
 ];
+
+export const onboardingStatusLabel = {
+  not_started: messages.onboardingStatusNotStarted,
+  setup_started: messages.onboardingStatusSetupStarted,
+  onboarding_started: messages.onboardingStatusOnboardingStarted,
+  other_course_approved: messages.onboardingStatusOtherCourseApproved,
+  submitted: messages.onboardingStatusSubmitted,
+  verified: messages.onboardingStatusVerified,
+  rejected: messages.onboardingStatusRejected,
+  error: messages.onboardingStatusError,
+  expired: messages.onboardingStatusExpired,
+};
+
+// Statuses edx-proctoring can filter by, which differ depending on whether the
+// proctoring provider's onboarding profile API is in use (mirrors the legacy dashboard).
+export const ONBOARDING_ATTEMPT_STATUSES = [
+  'not_started', 'setup_started', 'onboarding_started', 'other_course_approved', 'submitted', 'verified', 'rejected', 'error',
+] as const;
+export const ONBOARDING_PROFILE_API_STATUSES = [
+  'not_started', 'other_course_approved', 'submitted', 'verified', 'rejected', 'expired',
+] as const;
