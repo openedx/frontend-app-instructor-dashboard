@@ -5,7 +5,7 @@ const courseId = 'course-v1:edX+Test+2023';
 const keyFns = {
   attempts: (page: number) => specialExamsQueryKeys.attempts(courseId, { page, pageSize: 25, emailOrUsername: 'a', ordering: 'b' }),
   allowances: (page: number) => specialExamsQueryKeys.allowances(courseId, { page, pageSize: 25, emailOrUsername: 'a', ordering: 'b' }),
-  onboarding: (page: number) => specialExamsQueryKeys.onboarding(courseId, { page, emailOrUsername: 'a' }),
+  onboarding: (page: number) => specialExamsQueryKeys.onboarding(courseId, { page, emailOrUsername: 'a', statuses: [] }),
 };
 
 describe('specialExamsQueryKeys', () => {
