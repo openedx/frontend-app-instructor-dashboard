@@ -186,6 +186,7 @@ const DataDownloadsPage = () => {
         isGenerating={isGenerating}
         problemResponsesError={problemResponsesError}
         certificatesEnabled={courseInfo?.certificatesEnabled}
+        proctoredExamsEnabled={courseInfo?.proctoredExamsEnabled}
       />
       <PendingTasks />
     </>

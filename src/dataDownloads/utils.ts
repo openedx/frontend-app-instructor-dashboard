@@ -16,6 +16,7 @@ export enum ReportType {
   ORA2_DATA = 'ora2_data',
   ORA2_SUBMISSION_FILES = 'ora2_submission_files',
   ISSUED_CERTIFICATES = 'issued_certificates',
+  PROCTORED_EXAM_RESULTS = 'proctored_exam_results',
   UNKNOWN = 'unknown',
 }
 
@@ -39,6 +40,7 @@ export const getReportTypeDisplayName = (reportType: string, intl: IntlShape): s
     [ReportType.ORA2_DATA]: messages.ora2DataReportTitle,
     [ReportType.ORA2_SUBMISSION_FILES]: messages.submissionFilesArchiveTitle,
     [ReportType.ISSUED_CERTIFICATES]: messages.issuedCertificatesTitle,
+    [ReportType.PROCTORED_EXAM_RESULTS]: messages.proctoredExamResultsReportTitle,
   };
 
   const messageDescriptor = reportTypeMap[reportType];

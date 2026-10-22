@@ -71,6 +71,11 @@ const messages = defineMessages({
     defaultMessage: 'Certificate Reports',
     description: 'Tab title for certificate reports',
   },
+  proctoredExamReportsTabTitle: {
+    id: 'instruct.dataDownloads.tabs.proctoredExamReports',
+    defaultMessage: 'Proctored Exam Reports',
+    description: 'Tab title for proctored exam reports',
+  },
   enrolledStudentsReportTitle: {
     id: 'instruct.dataDownloads.reports.enrolledStudents.title',
     defaultMessage: 'Enrolled Students Report',
@@ -260,6 +265,21 @@ const messages = defineMessages({
     id: 'instruct.dataDownloads.reports.issuedCertificates.generate',
     defaultMessage: 'Generate Certificates Report',
     description: 'Button text to generate issued certificates report',
+  },
+  proctoredExamResultsReportTitle: {
+    id: 'instruct.dataDownloads.reports.proctoredExamResults.title',
+    defaultMessage: 'Proctored Exam Results Report',
+    description: 'Title for proctored exam results report',
+  },
+  proctoredExamResultsReportDescription: {
+    id: 'instruct.dataDownloads.reports.proctoredExamResults.description',
+    defaultMessage: 'Report of all proctored exam results in this course.',
+    description: 'Description for proctored exam results report',
+  },
+  generateProctoredExamResultsReport: {
+    id: 'instruct.dataDownloads.reports.proctoredExamResults.generate',
+    defaultMessage: 'Generate Proctored Exam Results Report',
+    description: 'Button text to generate proctored exam results report',
   },
   // Report type display names for the data downloads table
   reportTypeEnrolledStudents: {
