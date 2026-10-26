@@ -497,7 +497,7 @@ describe('specialExams api', () => {
   });
 
   describe('getOnboardingStatuses', () => {
-    const params = { page: 0, emailOrUsername: '' };
+    const params = { page: 0, emailOrUsername: '', statuses: [] };
 
     it('makes correct API call and returns camelCase data', async () => {
       const courseId = 'course-v1:edX+Test+2023';
@@ -524,13 +524,24 @@ describe('specialExams api', () => {
 
     it('passes the search term as text_search and increments the page', async () => {
       const courseId = 'course-v1:edX+Test+2023';
-      const paramsWithSearch = { page: 2, emailOrUsername: 'student@example.com' };
+      const paramsWithSearch = { page: 2, emailOrUsername: 'student@example.com', statuses: [] };
       mockHttpClient.get.mockResolvedValue({ data: { count: 0, num_pages: 0, results: [] } });
 
       await getOnboardingStatuses(courseId, paramsWithSearch);
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         'https://test-lms.com/api/edx_proctoring/v1/user_onboarding/status/course_id/course-v1:edX+Test+2023?page=3&text_search=student%40example.com'
+      );
+    });
+
+    it('passes the status filters as comma-separated statuses', async () => {
+      const courseId = 'course-v1:edX+Test+2023';
+      mockHttpClient.get.mockResolvedValue({ data: { count: 0, num_pages: 0, results: [] } });
+
+      await getOnboardingStatuses(courseId, { page: 0, emailOrUsername: '', statuses: ['rejected', 'error'] });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        'https://test-lms.com/api/edx_proctoring/v1/user_onboarding/status/course_id/course-v1:edX+Test+2023?page=1&statuses=rejected%2Cerror'
       );
     });
 

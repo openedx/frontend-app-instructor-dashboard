@@ -1,4 +1,4 @@
-import { PaginationParams } from '@src/types';
+import { DataList, PaginationParams } from '@src/types';
 
 export interface Attempt {
   id: number;
@@ -95,6 +95,11 @@ export interface OnboardingStatus {
 export interface OnboardingParams {
   page: number;
   emailOrUsername: string;
+  statuses: string[];
+}
+
+export interface OnboardingStatusList extends DataList<OnboardingStatus> {
+  useOnboardingProfileApi?: boolean;
 }
 
 export interface ProctoringSettings {
