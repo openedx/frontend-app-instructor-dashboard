@@ -64,6 +64,11 @@ describe('utils', () => {
       expect(displayName).toBe(messages.issuedCertificatesTitle.defaultMessage);
     });
 
+    it('should return display name for proctored_exam_results report type', () => {
+      const displayName = getReportTypeDisplayName(ReportType.PROCTORED_EXAM_RESULTS, intl);
+      expect(displayName).toBe(messages.proctoredExamResultsReportTitle.defaultMessage);
+    });
+
     it('should return formatted string for unknown report type', () => {
       const displayName = getReportTypeDisplayName('some_unknown_type', intl);
       expect(displayName).toBe('Some Unknown Type');
@@ -93,6 +98,7 @@ describe('utils', () => {
       expect(ReportType.ORA2_DATA).toBe('ora2_data');
       expect(ReportType.ORA2_SUBMISSION_FILES).toBe('ora2_submission_files');
       expect(ReportType.ISSUED_CERTIFICATES).toBe('issued_certificates');
+      expect(ReportType.PROCTORED_EXAM_RESULTS).toBe('proctored_exam_results');
       expect(ReportType.UNKNOWN).toBe('unknown');
     });
   });
