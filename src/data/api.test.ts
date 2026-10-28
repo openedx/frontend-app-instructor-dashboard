@@ -49,6 +49,46 @@ describe('base api', () => {
       mockHttpClient.get.mockRejectedValue(error);
       await expect(getCourseInfo('test-course')).rejects.toThrow('Network error');
     });
+
+    describe('authz_permissions normalization', () => {
+      beforeEach(() => {
+        // Use the real camelCaseObject to prove dotted keys survive the round-trip.
+        mockCamelCaseObject.mockImplementation(
+          jest.requireActual('@openedx/frontend-base').camelCaseObject,
+        );
+      });
+
+      it('preserves dotted authz permission keys', async () => {
+        mockHttpClient.get.mockResolvedValue({
+          data: {
+            course_id: 'test-course-123',
+            authz_permissions: {
+              'courses.enroll_learners': true,
+              'courses.view_enrollments': false,
+            },
+          },
+        });
+
+        const result = await getCourseInfo('test-course-123');
+
+        expect(result.authzPermissions).toEqual({
+          'courses.enroll_learners': true,
+          'courses.view_enrollments': false,
+        });
+        // The top-level body is still camelCased as usual.
+        expect(result.courseId).toBe('test-course-123');
+      });
+
+      it('leaves authzPermissions undefined when the field is absent', async () => {
+        mockHttpClient.get.mockResolvedValue({
+          data: { course_id: 'test-course-123' },
+        });
+
+        const result = await getCourseInfo('test-course-123');
+
+        expect(result.authzPermissions).toBeUndefined();
+      });
+    });
   });
 
   describe('fetchPendingTasks', () => {

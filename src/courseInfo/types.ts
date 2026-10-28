@@ -26,6 +26,13 @@ export interface CourseInfoResponse {
     dataResearcher: boolean;
     [key: string]: boolean;
   };
+  /**
+   * Effective AuthZ permissions keyed by dotted identifier
+   * (e.g. `courses.enroll_learners`). Added by the openedx-authz work; absent
+   * when the backend AuthZ flag is off. Keys are preserved raw (not camelCased)
+   * by `getCourseInfo`. See `@src/permissions`.
+   */
+  authzPermissions?: Record<string, boolean>;
   gradebookUrl: string;
   studioGradingUrl?: string;
   certificatesEnabled?: boolean;

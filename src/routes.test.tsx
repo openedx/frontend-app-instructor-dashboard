@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Navigate, useParams } from 'react-router-dom';
 import { authenticatedLoader } from '@openedx/frontend-base';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import routes from './routes';
 import { DashboardConfigProvider } from './dashboardConfig/DashboardConfigContext';
 import { useWidgetProps } from './slots/SlotUtils';
@@ -119,7 +120,12 @@ describe('routes', () => {
 
       expect(Component.displayName).toBe(`DashboardRoot(${variantId})`);
 
-      renderWithIntl(<Component />);
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      renderWithIntl(
+        <QueryClientProvider client={queryClient}>
+          <Component />
+        </QueryClientProvider>,
+      );
       expect(screen.getByRole('main')).toBeInTheDocument();
       expect(screen.getByRole('heading', { level: 2, name: headerText })).toBeInTheDocument();
       expect(screen.getByTestId('instructor-nav')).toBeInTheDocument();
