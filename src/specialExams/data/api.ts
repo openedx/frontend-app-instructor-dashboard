@@ -2,7 +2,7 @@ import { getAuthenticatedHttpClient, camelCaseObject, snakeCaseObject } from '@o
 import { snakeCase } from 'lodash';
 import { getApiBaseUrl } from '@src/data/api';
 import { DataList } from '@src/types';
-import { AddAllowanceParams, Allowance, Attempt, AttemptsParams, DeleteAllowanceParams, OnboardingParams, OnboardingStatus, ProctoringSettings, ResetAttemptParams, ResumeAttemptParams, SpecialExam } from '@src/specialExams/types';
+import { AddAllowanceParams, Allowance, Attempt, AttemptsParams, DeleteAllowanceParams, OnboardingParams, OnboardingStatusList, ProctoringSettings, ResetAttemptParams, ResumeAttemptParams, SpecialExam } from '@src/specialExams/types';
 
 const getQueryParams = (params: AttemptsParams) => {
   const queryParams = new URLSearchParams({
@@ -104,11 +104,15 @@ export const getProctoringSettings = async (courseId: string): Promise<Proctorin
  * intentionally do not send one. The client-side ONBOARDING_PAGE_SIZE must stay in
  * sync with that server constant for the table's page-count math to line up.
  */
-export const getOnboardingStatuses = async (courseId: string, params: OnboardingParams): Promise<DataList<OnboardingStatus>> => {
+export const getOnboardingStatuses = async (courseId: string, params: OnboardingParams): Promise<OnboardingStatusList> => {
   const queryParams = new URLSearchParams({ page: (params.page + 1).toString() });
 
   if (params.emailOrUsername) {
     queryParams.append('text_search', params.emailOrUsername);
+  }
+
+  if (params.statuses.length) {
+    queryParams.append('statuses', params.statuses.join(','));
   }
 
   const { data } = await getAuthenticatedHttpClient().get(

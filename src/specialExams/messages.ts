@@ -311,6 +311,51 @@ const messages = defineMessages({
     defaultMessage: 'Last Updated',
     description: 'Column header for the last modified date in the onboarding status list'
   },
+  onboardingStatusNotStarted: {
+    id: 'instruct.specialExams.onboardingStatus.notStarted',
+    defaultMessage: 'Not Started',
+    description: 'Onboarding status label for learners who have not started onboarding'
+  },
+  onboardingStatusSetupStarted: {
+    id: 'instruct.specialExams.onboardingStatus.setupStarted',
+    defaultMessage: 'Setup Started',
+    description: 'Onboarding status label for learners who have started proctoring setup'
+  },
+  onboardingStatusOnboardingStarted: {
+    id: 'instruct.specialExams.onboardingStatus.onboardingStarted',
+    defaultMessage: 'Onboarding Started',
+    description: 'Onboarding status label for learners who have started the onboarding exam'
+  },
+  onboardingStatusOtherCourseApproved: {
+    id: 'instruct.specialExams.onboardingStatus.otherCourseApproved',
+    defaultMessage: 'Approved in Another Course',
+    description: 'Onboarding status label for learners whose onboarding was approved in a different course'
+  },
+  onboardingStatusSubmitted: {
+    id: 'instruct.specialExams.onboardingStatus.submitted',
+    defaultMessage: 'Submitted',
+    description: 'Onboarding status label for learners who have submitted the onboarding exam'
+  },
+  onboardingStatusVerified: {
+    id: 'instruct.specialExams.onboardingStatus.verified',
+    defaultMessage: 'Verified',
+    description: 'Onboarding status label for learners whose onboarding was verified'
+  },
+  onboardingStatusRejected: {
+    id: 'instruct.specialExams.onboardingStatus.rejected',
+    defaultMessage: 'Rejected',
+    description: 'Onboarding status label for learners whose onboarding was rejected'
+  },
+  onboardingStatusError: {
+    id: 'instruct.specialExams.onboardingStatus.error',
+    defaultMessage: 'Error',
+    description: 'Onboarding status label for learners whose onboarding attempt errored'
+  },
+  onboardingStatusExpired: {
+    id: 'instruct.specialExams.onboardingStatus.expired',
+    defaultMessage: 'Expired',
+    description: 'Onboarding status label for learners whose onboarding approval has expired'
+  },
   noOnboardingStatuses: {
     id: 'instruct.specialExams.noOnboardingStatuses',
     defaultMessage: 'No onboarding statuses found',
