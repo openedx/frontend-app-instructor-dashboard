@@ -11,6 +11,7 @@ const renderComponent = (
   isGenerating = false,
   problemResponsesError?: string,
   certificatesEnabled = false,
+  proctoredExamsEnabled = false,
 ) => renderWithIntl(
   <GenerateReports
     onGenerateReport={mockOnGenerateReport}
@@ -18,6 +19,7 @@ const renderComponent = (
     isGenerating={isGenerating}
     problemResponsesError={problemResponsesError}
     certificatesEnabled={certificatesEnabled}
+    proctoredExamsEnabled={proctoredExamsEnabled}
   />
 );
 
@@ -255,6 +257,35 @@ describe('GenerateReports', () => {
       await user.click(button);
 
       expect(mockOnGenerateReport).toHaveBeenCalledWith('issued_certificates');
+    });
+  });
+
+  describe('Proctored Exam Reports Tab', () => {
+    it('should not render the Proctored Exam Reports tab when proctored exams are disabled for the course', () => {
+      renderComponent();
+
+      expect(screen.queryByRole('tab', { name: messages.proctoredExamReportsTabTitle.defaultMessage })).not.toBeInTheDocument();
+    });
+
+    it('should call onGenerateReport with proctored_exam_results when button is clicked', async () => {
+      const user = userEvent.setup();
+      renderComponent(false, undefined, false, true);
+
+      const tab = screen.getByRole('tab', { name: messages.proctoredExamReportsTabTitle.defaultMessage });
+      await user.click(tab);
+
+      expect(screen.getByText(messages.proctoredExamResultsReportTitle.defaultMessage)).toBeInTheDocument();
+      const button = screen.getByRole('button', { name: messages.generateProctoredExamResultsReport.defaultMessage });
+      await user.click(button);
+
+      expect(mockOnGenerateReport).toHaveBeenCalledWith('proctored_exam_results');
+    });
+
+    it('should keep the Proctored Exam Reports tab visible when the Certificate Reports tab is hidden', () => {
+      renderComponent(false, undefined, false, true);
+
+      const tab = screen.getByRole('tab', { name: messages.proctoredExamReportsTabTitle.defaultMessage });
+      expect(tab).not.toHaveClass('pgn__tab_invisible');
     });
   });
 

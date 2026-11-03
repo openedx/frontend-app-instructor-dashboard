@@ -29,6 +29,7 @@ export interface CourseInfoResponse {
   gradebookUrl: string;
   studioGradingUrl?: string;
   certificatesEnabled?: boolean;
+  proctoredExamsEnabled?: boolean;
   adminConsoleUrl: string | null;
   username: string;
 }

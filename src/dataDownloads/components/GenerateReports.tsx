@@ -10,6 +10,7 @@ interface GenerateReportsProps {
   isGenerating: boolean;
   problemResponsesError?: string;
   certificatesEnabled?: boolean;
+  proctoredExamsEnabled?: boolean;
 }
 
 interface ReportSectionProps {
@@ -57,6 +58,7 @@ const GenerateReports = ({
   isGenerating,
   problemResponsesError,
   certificatesEnabled = false,
+  proctoredExamsEnabled = false,
 }: GenerateReportsProps) => {
   const intl = useIntl();
   const [problemLocation, setProblemLocation] = useState('');
@@ -205,21 +207,39 @@ const GenerateReports = ({
             </div>
           </Tab>
 
-          {certificatesEnabled && (
-            <Tab eventKey="certificates" title={intl.formatMessage(messages.certificateReportsTabTitle)}>
-              <div className="d-flex flex-column px-3.5">
-                <ReportSection
-                  titleMessage={messages.issuedCertificatesTitle}
-                  descriptionMessage={messages.issuedCertificatesDescription}
-                  buttonMessage={messages.generateCertificatesReport}
-                  onGenerate={() => onGenerateReport('issued_certificates')}
-                  isFirst
-                  isLast
-                  isGenerating={isGenerating}
-                />
-              </div>
-            </Tab>
-          )}
+          {/* Paragon Tabs indexes falsy children too, which hides later tabs, so filter them out */}
+          {[
+            certificatesEnabled && (
+              <Tab key="certificates" eventKey="certificates" title={intl.formatMessage(messages.certificateReportsTabTitle)}>
+                <div className="d-flex flex-column px-3.5">
+                  <ReportSection
+                    titleMessage={messages.issuedCertificatesTitle}
+                    descriptionMessage={messages.issuedCertificatesDescription}
+                    buttonMessage={messages.generateCertificatesReport}
+                    onGenerate={() => onGenerateReport('issued_certificates')}
+                    isFirst
+                    isLast
+                    isGenerating={isGenerating}
+                  />
+                </div>
+              </Tab>
+            ),
+            proctoredExamsEnabled && (
+              <Tab key="proctoredExams" eventKey="proctoredExams" title={intl.formatMessage(messages.proctoredExamReportsTabTitle)}>
+                <div className="d-flex flex-column px-3.5">
+                  <ReportSection
+                    titleMessage={messages.proctoredExamResultsReportTitle}
+                    descriptionMessage={messages.proctoredExamResultsReportDescription}
+                    buttonMessage={messages.generateProctoredExamResultsReport}
+                    onGenerate={() => onGenerateReport('proctored_exam_results')}
+                    isFirst
+                    isLast
+                    isGenerating={isGenerating}
+                  />
+                </div>
+              </Tab>
+            ),
+          ].filter(Boolean)}
         </Tabs>
       </Card>
     </>
