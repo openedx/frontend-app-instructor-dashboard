@@ -8,7 +8,7 @@ import messages from './messages';
  * Returns a handler that surfaces a toast when an action fails with a backend
  * `403`.
  *
- * `authzPermissions` is advisory; the backend still enforces. When the frontend
+ * Frontend permission checks are advisory; the backend still enforces. When the frontend
  * optimistically allowed an action the backend rejects, this gives consistent
  * feedback. Use as the default `onError` for action mutations:
  *

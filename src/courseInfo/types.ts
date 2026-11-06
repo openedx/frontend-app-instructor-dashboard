@@ -27,12 +27,12 @@ export interface CourseInfoResponse {
     [key: string]: boolean;
   };
   /**
-   * Effective AuthZ permissions keyed by dotted identifier
-   * (e.g. `courses.enroll_learners`). Added by the openedx-authz work; absent
-   * when the backend AuthZ flag is off. Keys are preserved raw (not camelCased)
-   * by `getCourseInfo`. See `@src/permissions`.
+   * Whether AuthZ is enabled for the course (`authz.enable_course_authoring`
+   * waffle flag). Passed to frontend-base `usePermissions` as `featureEnabled`
+   * so permissions are only checked through AuthZ when it is on. Optional
+   * because older backends do not send it. See `@src/permissions`.
    */
-  authzPermissions?: Record<string, boolean>;
+  authzEnabled?: boolean;
   gradebookUrl: string;
   studioGradingUrl?: string;
   certificatesEnabled?: boolean;

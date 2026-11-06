@@ -12,14 +12,7 @@ export const getApiBaseUrl = () => getSiteConfig().lmsBaseUrl;
 export const getCourseInfo = async (courseId: string): Promise<CourseInfoResponse> => {
   const { data } = await getAuthenticatedHttpClient()
     .get(`${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}`);
-  const courseInfo = camelCaseObject(data) as CourseInfoResponse;
-  // `authz_permissions` keys are dotted identifiers (e.g. `courses.enroll_learners`).
-  // `camelCaseObject` deep-camelCases every key and would mangle them, so re-attach
-  // the raw map read straight off the untransformed response.
-  if (data.authz_permissions) {
-    courseInfo.authzPermissions = data.authz_permissions;
-  }
-  return courseInfo;
+  return camelCaseObject(data) as CourseInfoResponse;
 };
 
 /**

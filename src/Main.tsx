@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import { Outlet } from 'react-router-dom';
 import { AlertProvider } from './providers/AlertProvider';
 import { AccessErrorProvider } from './providers/AccessErrorProvider';
-import { PermissionProvider } from './permissions';
 import { appId } from './constants';
 import { useDashboardConfig } from './dashboardConfig/DashboardConfigContext';
 import PageWrapper from './pageWrapper/PageWrapper';
@@ -24,13 +23,11 @@ const Main = () => {
       </Helmet>
       <AlertProvider>
         <AccessErrorProvider>
-          <PermissionProvider>
-            <main className="d-flex flex-column flex-grow-1">
-              <PageWrapper>
-                <Outlet />
-              </PageWrapper>
-            </main>
-          </PermissionProvider>
+          <main className="d-flex flex-column flex-grow-1">
+            <PageWrapper>
+              <Outlet />
+            </PageWrapper>
+          </main>
         </AccessErrorProvider>
       </AlertProvider>
     </CurrentAppProvider>

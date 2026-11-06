@@ -1,32 +1,26 @@
-import { usePermissionContext } from './PermissionContext';
-import { UseCoursePermissionResult } from './types';
+import { useCoursePermissions } from './useCoursePermissions';
+import { PermissionId, UseCoursePermissionResult } from './types';
 
 /**
  * Resolve whether the current user holds a single AuthZ permission in the course.
  *
- * Fallback semantics:
- * - While the course info is loading: `allowed` is `false`, `isLoading` is `true`.
- * - When the `authzPermissions` field is entirely absent (backend AuthZ flag
- *   off, pre-rollout): `allowed` is `true` so current behaviour is unchanged.
- * - When the field is present but the specific permission is missing or
- *   `false`: `allowed` is `false`.
+ * All callers share one cached permission check per course (see
+ * `useCoursePermissions`), so calling it from many components sends no extra
+ * requests.
  *
- * Accepts any string so new backend permissions work without a frontend change;
- * use a `PermissionId` literal at the call site for autocomplete.
+ * - While loading: `allowed` is `false`, `isLoading` is `true`.
+ * - AuthZ disabled for the course: `allowed` is `true` (legacy behavior; the
+ *   backend still enforces its legacy checks).
+ * - AuthZ enabled: `allowed` is what openedx-authz returned.
  *
  * @example
- * const { allowed } = useCoursePermission('courses.enroll_learners');
+ * const { allowed } = useCoursePermission(COURSE_PERMISSIONS.ENROLL_LEARNERS);
  */
-export const useCoursePermission = (permission: string): UseCoursePermissionResult => {
-  const { permissions, isLoading } = usePermissionContext();
+export const useCoursePermission = (permission: PermissionId): UseCoursePermissionResult => {
+  const { permissions, isLoading } = useCoursePermissions();
 
   if (isLoading) {
     return { allowed: false, isLoading: true };
-  }
-
-  // Field absent entirely: permissive, so behaviour is unchanged pre-rollout.
-  if (permissions === undefined) {
-    return { allowed: true, isLoading: false };
   }
 
   return { allowed: permissions[permission] === true, isLoading: false };
