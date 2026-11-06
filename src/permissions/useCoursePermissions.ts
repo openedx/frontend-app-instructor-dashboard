@@ -28,7 +28,8 @@ const buildPermissionsQuery = (courseId: string) => Object.fromEntries(
  * info. When it is off, `usePermissions` makes no request and allows
  * everything (legacy behavior). Loading is reported until the course info
  * arrives; otherwise the hook would see `featureEnabled=false` for a moment and
- * briefly allow everything.
+ * briefly allow everything. If the course info request fails, every permission
+ * is denied for the same reason (fail closed).
  *
  * Internal to the permissions feature; not exported from the barrel.
  */
@@ -44,7 +45,9 @@ export const useCoursePermissions = (): CoursePermissionsResult => {
   const permissions: Partial<CoursePermissions> = {};
   if (!isLoading) {
     PERMISSION_IDS.forEach((id) => {
-      permissions[id] = results[id] === true;
+      // Fail closed: without course info we can't tell whether AuthZ is on, and
+      // `usePermissions` would report everything as allowed (feature off).
+      permissions[id] = !courseInfoError && results[id] === true;
     });
   }
 

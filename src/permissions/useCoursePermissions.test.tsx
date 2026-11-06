@@ -151,13 +151,14 @@ describe('useCoursePermissions', () => {
     expect(screen.getByText('enroll:false|team:false|loading:false|authz:true|error:validate failed')).toBeInTheDocument();
   });
 
-  it('returns the course info error first when it fails', () => {
+  it('denies every permission and returns the error when the course info fails', () => {
     mockCourseInfo({ data: undefined, error: new Error('course info failed') });
-    mockUsePermissions.mockReturnValue(permissionsResult({ isAuthzEnabled: false }));
+    // With no course info, featureEnabled is false and usePermissions allows everything.
+    mockUsePermissions.mockImplementation(allAllowed);
 
     renderAt(`/${COURSE_A}`);
 
-    expect(screen.getByText(/error:course info failed/)).toBeInTheDocument();
+    expect(screen.getByText('enroll:false|team:false|loading:false|authz:false|error:course info failed')).toBeInTheDocument();
   });
 
   it('defaults courseId to an empty string when the route has no courseId', () => {

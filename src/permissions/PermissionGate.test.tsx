@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { IntlProvider } from '@openedx/frontend-base';
 import { Button } from '@openedx/paragon';
 import PermissionGate from './PermissionGate';
@@ -84,6 +85,37 @@ describe('PermissionGate', () => {
     );
 
     expect(screen.queryByRole('button', { name: /enroll/i })).not.toBeInTheDocument();
+  });
+
+  it('stays closed when anyOf is empty', () => {
+    mockContext({ [ENROLL_LEARNERS]: true });
+
+    renderGate(
+      <PermissionGate anyOf={[]} fallback={<span>No access</span>}>
+        <Button>Enroll</Button>
+      </PermissionGate>,
+    );
+
+    expect(screen.queryByRole('button', { name: /enroll/i })).not.toBeInTheDocument();
+    expect(screen.getByText('No access')).toBeInTheDocument();
+  });
+
+  it('makes the disabled wrapper focusable so keyboard users can reach the tooltip', async () => {
+    mockContext({ [ENROLL_LEARNERS]: false });
+
+    renderGate(
+      <PermissionGate permission={ENROLL_LEARNERS} mode="disable">
+        <Button>Enroll</Button>
+      </PermissionGate>,
+    );
+
+    const wrapper = screen.getByRole('button', { name: /enroll/i }).parentElement as HTMLElement;
+    expect(wrapper).toHaveAttribute('tabindex', '0');
+
+    await userEvent.tab();
+
+    expect(wrapper).toHaveFocus();
+    expect(await screen.findByRole('tooltip')).toBeInTheDocument();
   });
 
   it('renders loading node while permissions load', () => {
