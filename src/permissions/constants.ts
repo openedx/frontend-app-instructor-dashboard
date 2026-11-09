@@ -4,9 +4,6 @@
  * One place to look up which permissions the dashboard checks, so call sites
  * reference a constant instead of a string literal. `useCoursePermissions`
  * requests all of them from openedx-authz in a single `validate/me` call.
- *
- * Mirrors the backend's `INSTRUCTOR_DASHBOARD_PERMISSIONS`
- * (openedx-platform `lms/djangoapps/instructor/authz/constants.py`).
  */
 export const COURSE_PERMISSIONS = {
   VIEW_COURSE_INFO: 'courses.view_course_info',

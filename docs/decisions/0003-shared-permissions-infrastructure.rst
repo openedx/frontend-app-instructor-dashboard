@@ -131,8 +131,9 @@ after the course info loads. Its result is cached for five minutes
 (``usePermissions`` default); ``permissionsQueryKeys`` from ``frontend-base`` can
 invalidate it if roles change mid-session.
 
-Adding a permission means adding it to ``COURSE_PERMISSIONS``; no
-openedx-platform change is needed as long as openedx-authz defines it.
+To validate a permission that is already defined in ``openedx-authz``, the
+Instructor Dashboard only needs to add it to ``COURSE_PERMISSIONS``; no change
+to ``openedx-platform`` is required.
 
 The MFE requires a ``frontend-base`` version that ships ``usePermissions``.
 
