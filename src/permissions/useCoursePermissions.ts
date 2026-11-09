@@ -35,13 +35,13 @@ const buildPermissionsQuery = (courseId: string) => Object.fromEntries(
  */
 export const useCoursePermissions = (): CoursePermissionsResult => {
   const { courseId = '' } = useParams<{ courseId: string }>();
-  const { data: courseInfo, isLoading: isCourseInfoLoading, error: courseInfoError } = useCourseInfo(courseId);
+  const { data: courseInfo, isPending: isCourseInfoPending, error: courseInfoError } = useCourseInfo(courseId);
 
   const {
     isLoading: isPermissionsLoading, error: permissionsError, isAuthzEnabled, ...results
   } = usePermissions(buildPermissionsQuery(courseId), courseInfo?.authzEnabled ?? false);
 
-  const isLoading = isCourseInfoLoading || isPermissionsLoading;
+  const isLoading = isCourseInfoPending || isPermissionsLoading;
   const permissions: Partial<CoursePermissions> = {};
   if (!isLoading) {
     PERMISSION_IDS.forEach((id) => {

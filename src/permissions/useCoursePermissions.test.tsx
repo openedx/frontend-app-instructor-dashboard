@@ -40,6 +40,7 @@ const allAllowed = (query: Record<string, unknown>) => permissionsResult({
 const mockCourseInfo = (overrides: Record<string, unknown> = {}) => {
   mockUseCourseInfo.mockReturnValue({
     data: { authzEnabled: true },
+    isPending: false,
     isLoading: false,
     error: null,
     ...overrides,
@@ -119,8 +120,18 @@ describe('useCoursePermissions', () => {
   });
 
   it('reports loading with no permissions while the course info loads', () => {
-    mockCourseInfo({ data: undefined, isLoading: true });
+    mockCourseInfo({ data: undefined, isPending: true, isLoading: true });
     // featureEnabled is false until course info arrives, so the hook would allow everything.
+    mockUsePermissions.mockImplementation(allAllowed);
+
+    renderAt(`/${COURSE_A}`);
+
+    expect(screen.getByText('enroll:undefined|team:undefined|loading:true|authz:false|error:none')).toBeInTheDocument();
+  });
+
+  it('keeps permissions unresolved while the course info request is paused (offline)', () => {
+    // React Query reports isLoading=false for a paused query, but isPending stays true.
+    mockCourseInfo({ data: undefined, isPending: true, isLoading: false });
     mockUsePermissions.mockImplementation(allAllowed);
 
     renderAt(`/${COURSE_A}`);
