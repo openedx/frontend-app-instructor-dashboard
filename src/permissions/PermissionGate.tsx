@@ -69,8 +69,8 @@ const PermissionGate: FC<PermissionGateProps> = ({
   const { permissions, isLoading } = useCoursePermissions();
   const toCheck = anyOf ?? (permission ? [permission] : undefined);
 
-// Check the shared permissions map directly, keeping the number of hook calls
-// constant even when `anyOf` changes.
+  // Check the shared permissions map directly, keeping the number of hook calls
+  // constant even when `anyOf` changes.
   // - Neither prop passed: nothing to check, render children.
   // - Otherwise: allowed if any required permission is true. An empty `anyOf`
   //   has no permission to satisfy it, so it denies. When AuthZ is disabled

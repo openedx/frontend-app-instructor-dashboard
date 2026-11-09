@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
-import { IntlProvider } from '@openedx/frontend-base';
-import { AlertProvider, useAlert } from '@src/providers/AlertProvider';
+import { useAlert } from '@src/providers/AlertProvider';
+import { AlertAndIntlWrapper } from '@src/testUtils';
 import { usePermissionDeniedHandler } from './usePermissionDeniedHandler';
 
 const mockShowToast = jest.fn();
@@ -15,12 +15,6 @@ jest.mock('@src/providers/AlertProvider', () => {
 
 const mockUseAlert = useAlert as jest.MockedFunction<typeof useAlert>;
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <IntlProvider locale="en" messages={{}}>
-    <AlertProvider>{children}</AlertProvider>
-  </IntlProvider>
-);
-
 describe('usePermissionDeniedHandler', () => {
   beforeEach(() => {
     mockUseAlert.mockReturnValue({ showToast: mockShowToast } as any);
@@ -31,7 +25,7 @@ describe('usePermissionDeniedHandler', () => {
   });
 
   it('shows a toast and returns true for a 403 response error', () => {
-    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper });
+    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper: AlertAndIntlWrapper });
 
     const handled = result.current({ response: { status: 403 } });
 
@@ -41,7 +35,7 @@ describe('usePermissionDeniedHandler', () => {
   });
 
   it('shows a toast and returns true for a flat 403 status error', () => {
-    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper });
+    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper: AlertAndIntlWrapper });
 
     const handled = result.current({ status: 403 });
 
@@ -50,7 +44,7 @@ describe('usePermissionDeniedHandler', () => {
   });
 
   it('does not toast and returns false for a non-403 error', () => {
-    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper });
+    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper: AlertAndIntlWrapper });
 
     const handled = result.current({ response: { status: 500 } });
 
@@ -59,7 +53,7 @@ describe('usePermissionDeniedHandler', () => {
   });
 
   it('does not toast and returns false for an undefined error', () => {
-    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper });
+    const { result } = renderHook(() => usePermissionDeniedHandler(), { wrapper: AlertAndIntlWrapper });
 
     const handled = result.current(undefined);
 

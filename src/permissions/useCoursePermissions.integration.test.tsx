@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
   configureAuth, getAuthenticatedHttpClient, getSiteConfig, MockAuthService,
 } from '@openedx/frontend-base';
 import { useCourseInfo } from '@src/data/apiHook';
+import { QueryClientWrapper } from '@src/testUtils';
 import { useCoursePermissions } from './useCoursePermissions';
 import { COURSE_PERMISSIONS } from './constants';
 
@@ -19,18 +19,15 @@ const mockUseCourseInfo = useCourseInfo as jest.MockedFunction<typeof useCourseI
 const COURSE_ID = 'course-v1:edX+A+2024';
 const { ENROLL_LEARNERS, MANAGE_COURSE_TEAM } = COURSE_PERMISSIONS;
 
-const wrapper = ({ children }: { children: ReactNode }) => {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[`/${COURSE_ID}`]}>
-        <Routes>
-          <Route path="/:courseId" element={children} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
-};
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <QueryClientWrapper>
+    <MemoryRouter initialEntries={[`/${COURSE_ID}`]}>
+      <Routes>
+        <Route path="/:courseId" element={children} />
+      </Routes>
+    </MemoryRouter>
+  </QueryClientWrapper>
+);
 
 describe('useCoursePermissions with the real usePermissions', () => {
   let post: jest.SpyInstance;

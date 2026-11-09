@@ -1,11 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IntlProvider } from '@openedx/frontend-base';
 import { Button } from '@openedx/paragon';
 import PermissionGate from './PermissionGate';
 import { useCoursePermissions } from './useCoursePermissions';
 import { COURSE_PERMISSIONS } from './constants';
 import { CoursePermissions } from './types';
+import { renderWithIntl } from '@src/testUtils';
 
 jest.mock('./useCoursePermissions');
 
@@ -17,10 +17,6 @@ const mockContext = (permissions: Partial<CoursePermissions>, isLoading = false)
   mockUseCoursePermissions.mockReturnValue({ permissions, isLoading, isAuthzEnabled: true });
 };
 
-const renderGate = (ui: React.ReactElement) => render(
-  <IntlProvider locale="en" messages={{}}>{ui}</IntlProvider>,
-);
-
 describe('PermissionGate', () => {
   afterEach(() => {
     jest.resetAllMocks();
@@ -29,7 +25,7 @@ describe('PermissionGate', () => {
   it('renders children when the permission is granted', () => {
     mockContext({ [ENROLL_LEARNERS]: true });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -41,7 +37,7 @@ describe('PermissionGate', () => {
   it('hides children (renders fallback) when denied in hide mode', () => {
     mockContext({ [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS} fallback={<span>No access</span>}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -54,7 +50,7 @@ describe('PermissionGate', () => {
   it('renders children disabled in disable mode when denied', () => {
     mockContext({ [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS} mode="disable">
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -66,7 +62,7 @@ describe('PermissionGate', () => {
   it('opens when any of the anyOf permissions is granted', () => {
     mockContext({ [VIEW_ENROLLMENTS]: false, [ENROLL_LEARNERS]: true });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate anyOf={[VIEW_ENROLLMENTS, ENROLL_LEARNERS]}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -78,7 +74,7 @@ describe('PermissionGate', () => {
   it('stays closed when none of the anyOf permissions is granted', () => {
     mockContext({ [VIEW_ENROLLMENTS]: false, [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate anyOf={[VIEW_ENROLLMENTS, ENROLL_LEARNERS]}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -90,7 +86,7 @@ describe('PermissionGate', () => {
   it('stays closed when anyOf is empty', () => {
     mockContext({ [ENROLL_LEARNERS]: true });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate anyOf={[]} fallback={<span>No access</span>}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -103,7 +99,7 @@ describe('PermissionGate', () => {
   it('makes the disabled wrapper focusable so keyboard users can reach the tooltip', async () => {
     mockContext({ [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS} mode="disable">
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -121,7 +117,7 @@ describe('PermissionGate', () => {
   it('renders loading node while permissions load', () => {
     mockContext({}, true);
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS} loading={<span>Loading…</span>}>
         <Button>Enroll</Button>
       </PermissionGate>,
@@ -134,7 +130,7 @@ describe('PermissionGate', () => {
   it('renders a non-element child unchanged in disable mode when denied', () => {
     mockContext({ [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate permission={ENROLL_LEARNERS} mode="disable">
         plain text child
       </PermissionGate>,
@@ -146,7 +142,7 @@ describe('PermissionGate', () => {
   it('renders children when neither permission nor anyOf is provided', () => {
     mockContext({ [ENROLL_LEARNERS]: false });
 
-    renderGate(
+    renderWithIntl(
       <PermissionGate>
         <Button>Enroll</Button>
       </PermissionGate>,
