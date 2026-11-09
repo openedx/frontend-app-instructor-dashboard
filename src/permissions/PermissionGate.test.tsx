@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '@openedx/paragon';
 import PermissionGate from './PermissionGate';
@@ -112,6 +112,37 @@ describe('PermissionGate', () => {
 
     expect(wrapper).toHaveFocus();
     expect(await screen.findByRole('tooltip')).toBeInTheDocument();
+  });
+
+  it('gives each disabled gate its own tooltip id when several gates share a view', async () => {
+    mockContext({ [ENROLL_LEARNERS]: false, [VIEW_ENROLLMENTS]: false });
+
+    renderWithIntl(
+      <>
+        <PermissionGate permission={ENROLL_LEARNERS} mode="disable">
+          <Button>Enroll</Button>
+        </PermissionGate>
+        <PermissionGate permission={VIEW_ENROLLMENTS} mode="disable">
+          <Button>View</Button>
+        </PermissionGate>
+      </>,
+    );
+
+    const enrollWrapper = screen.getByRole('button', { name: /enroll/i }).parentElement as HTMLElement;
+    const viewWrapper = screen.getByRole('button', { name: /view/i }).parentElement as HTMLElement;
+
+    // Open both tooltips at once, as when one gate keeps its tooltip while another is hovered.
+    fireEvent.mouseOver(enrollWrapper);
+    fireEvent.mouseOver(viewWrapper);
+
+    const tooltips = await screen.findAllByRole('tooltip');
+    expect(tooltips).toHaveLength(2);
+    const [firstId, secondId] = tooltips.map(tooltip => tooltip.id);
+    expect(firstId).not.toBe(secondId);
+
+    const describedBy = [enrollWrapper, viewWrapper].map(el => el.getAttribute('aria-describedby'));
+    expect(new Set(describedBy).size).toBe(2);
+    expect(describedBy.sort()).toEqual([firstId, secondId].sort());
   });
 
   it('renders loading node while permissions load', () => {

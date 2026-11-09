@@ -1,5 +1,5 @@
 import {
-  Children, cloneElement, isValidElement, ReactElement, ReactNode, FC,
+  Children, cloneElement, isValidElement, useId, ReactElement, ReactNode, FC,
 } from 'react';
 import { OverlayTrigger, Tooltip } from '@openedx/paragon';
 import { useIntl } from '@openedx/frontend-base';
@@ -66,6 +66,9 @@ const PermissionGate: FC<PermissionGateProps> = ({
   children,
 }) => {
   const intl = useIntl();
+  // A view can render several gates. Each tooltip needs its own id so that every
+  // `aria-describedby` points at exactly one element.
+  const tooltipId = useId();
   const { permissions, isLoading } = useCoursePermissions();
   const toCheck = anyOf ?? (permission ? [permission] : undefined);
 
@@ -91,7 +94,7 @@ const PermissionGate: FC<PermissionGateProps> = ({
       <OverlayTrigger
         placement="top"
         overlay={(
-          <Tooltip id="permission-gate-disabled-tooltip">
+          <Tooltip id={tooltipId}>
             {intl.formatMessage(messages.disabledActionTooltip)}
           </Tooltip>
         )}
