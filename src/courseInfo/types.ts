@@ -26,6 +26,13 @@ export interface CourseInfoResponse {
     dataResearcher: boolean;
     [key: string]: boolean;
   };
+  /**
+   * Whether AuthZ is enabled for the course (`authz.enable_course_authoring`
+   * waffle flag). Passed to frontend-base `usePermissions` as `featureEnabled`
+   * so permissions are only checked through AuthZ when it is on. Optional
+   * because older backends do not send it. See `@src/permissions`.
+   */
+  authzEnabled?: boolean;
   gradebookUrl: string;
   studioGradingUrl?: string;
   certificatesEnabled?: boolean;

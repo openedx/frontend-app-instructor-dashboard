@@ -12,7 +12,7 @@ export const getApiBaseUrl = () => getSiteConfig().lmsBaseUrl;
 export const getCourseInfo = async (courseId: string): Promise<CourseInfoResponse> => {
   const { data } = await getAuthenticatedHttpClient()
     .get(`${getApiBaseUrl()}/api/instructor/v2/courses/${courseId}`);
-  return camelCaseObject(data);
+  return camelCaseObject(data) as CourseInfoResponse;
 };
 
 /**
