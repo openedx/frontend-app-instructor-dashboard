@@ -21,6 +21,11 @@ const messages = defineMessages({
     defaultMessage: 'Check Enrollment Status',
     description: 'Check enrollment status modal title and alt for icon button',
   },
+  moreActions: {
+    id: 'instruct.enrollments.moreActions',
+    defaultMessage: 'More actions',
+    description: 'Accessible label for the icon button that opens the menu of extra enrollment actions in the page header',
+  },
   username: {
     id: 'instruct.enrollments.username',
     defaultMessage: 'Username',
@@ -305,7 +310,22 @@ const messages = defineMessages({
     id: 'instruct.enrollments.revoke',
     defaultMessage: 'Revoke',
     description: 'Button label for revoking access',
-  }
+  },
+  viewOnlyAccessAlert: {
+    id: 'instruct.enrollments.access.viewOnly',
+    defaultMessage: 'You have view-only access to enrollments. To make changes, contact your course administrator.',
+    description: 'Alert shown on the enrollments page when the user can view enrollments but cannot enroll or unenroll learners',
+  },
+  enrollOnlyAccessAlert: {
+    id: 'instruct.enrollments.access.enrollOnly',
+    defaultMessage: 'You can enroll learners but cannot unenroll them. Contact your course administrator to request unenroll permissions.',
+    description: 'Alert shown on the enrollments page when the user can enroll learners but not unenroll them',
+  },
+  unenrollOnlyAccessAlert: {
+    id: 'instruct.enrollments.access.unenrollOnly',
+    defaultMessage: 'You have unenroll-only access to this page. Contact your course administrator to request enroll permissions.',
+    description: 'Alert shown on the enrollments page when the user can unenroll learners but not enroll them',
+  },
 });
 
 export default messages;

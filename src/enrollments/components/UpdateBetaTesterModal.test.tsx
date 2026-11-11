@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import UpdateBetaTesterModal from '@src/enrollments/components/UpdateBetaTesterModal';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const learnerBetaTester = {
@@ -28,6 +29,7 @@ const defaultProps = {
 };
 
 const mockShowModal = jest.fn();
+const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -42,6 +44,7 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
+    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -57,6 +60,7 @@ describe('UpdateBetaTesterModal', () => {
       isPending: false,
     });
     mockShowModal.mockClear();
+    mockShowToast.mockClear();
     mockAddAlert.mockClear();
     defaultProps.onClose.mockClear();
   });
@@ -176,6 +180,20 @@ describe('UpdateBetaTesterModal', () => {
       await waitFor(() => {
         expect(defaultProps.onClose).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('when the backend rejects the change with 403', () => {
+    it('shows the permission denied toast instead of the error modal', async () => {
+      mutateMock.mockRejectedValue({ response: { status: 403 } });
+      renderWithAlertAndIntl(
+        <UpdateBetaTesterModal {...defaultProps} />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /revoke/i }));
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
+      });
+      expect(mockShowModal).not.toHaveBeenCalled();
     });
   });
 

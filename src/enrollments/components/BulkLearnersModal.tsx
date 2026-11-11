@@ -5,6 +5,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { Button, FormControl, ModalDialog, Form } from '@openedx/paragon';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import { usePermissionDeniedHandler } from '@src/permissions';
 import { useAlert } from '@src/providers/AlertProvider';
 import { LearnersAction } from '@src/enrollments/types';
 import { BULK_LEARNERS_ACTION } from '../constants';
@@ -41,6 +42,7 @@ const BulkLearnersModal = ({
   const [emailStudents, setEmailStudents] = useState(true);
   const { mutate: enrollLearners } = useUpdateEnrollments(courseId);
   const { showModal, addAlert } = useAlert();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const info = useMemo(
     () => (action === BULK_LEARNERS_ACTION.UNENROLL ? unenrollInfo : enrollInfo),
     [action],
@@ -151,6 +153,9 @@ const BulkLearnersModal = ({
         onClose();
       },
       onError: (error) => {
+        if (onPermissionDenied(error)) {
+          return;
+        }
         const notFound = isAxiosError(error) && error.response?.status === 404;
         const errorMessage = notFound
           ? intl.formatMessage(messages.enrollLearnerNotFoundError)

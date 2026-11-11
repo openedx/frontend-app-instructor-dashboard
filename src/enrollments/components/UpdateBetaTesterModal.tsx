@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useCallback, useEffect, useRef } from 'react';
 import { useIntl } from '@openedx/frontend-base';
 import { Button, ModalDialog } from '@openedx/paragon';
+import { usePermissionDeniedHandler } from '@src/permissions';
 import { useAlert } from '@src/providers/AlertProvider';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
@@ -19,6 +20,7 @@ const UpdateBetaTesterModal = ({ learner, isOpen, onClose }: UpdateBetaTesterMod
   // Using mutateAsync avoids mutate callbacks being discarded on useEffect re-runs
   const { mutateAsync: updateBetaTester, isPending } = useUpdateBetaTesters(courseId);
   const { addAlert, showModal } = useAlert();
+  const onPermissionDenied = usePermissionDeniedHandler();
   // Avoid duplicate calls to mutate
   const hasFired = useRef(false);
 
@@ -53,14 +55,17 @@ const UpdateBetaTesterModal = ({ learner, isOpen, onClose }: UpdateBetaTesterMod
         });
       }
       onClose();
-    } catch {
+    } catch (error) {
+      if (onPermissionDenied(error)) {
+        return;
+      }
       showModal({
         message: learner.isBetaTester ? intl.formatMessage(messages.removeBetaTesterError) : intl.formatMessage(messages.addBetaTesterError),
         variant: 'danger',
         confirmText: intl.formatMessage(messages.closeButton),
       });
     }
-  }, [updateBetaTester, learner, addAlert, intl, showModal, onClose]);
+  }, [updateBetaTester, learner, addAlert, intl, showModal, onClose, onPermissionDenied]);
 
   useEffect(() => {
     if (isOpen && !learner.isBetaTester && !hasFired.current) {

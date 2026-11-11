@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import BulkLearnersModal, { BulkLearnersModalProps } from '@src/enrollments/components/BulkLearnersModal';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl, renderWithIntl } from '@src/testUtils';
 
 const defaultProps: BulkLearnersModalProps = {
@@ -12,6 +13,7 @@ const defaultProps: BulkLearnersModalProps = {
 };
 
 const mockShowModal = jest.fn();
+const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -26,6 +28,7 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
+    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -40,6 +43,7 @@ describe('BulkLearnersModal', () => {
   beforeEach(() => {
     (useUpdateEnrollments as jest.Mock).mockReturnValue({ mutate: mutateMock });
     mockShowModal.mockClear();
+    mockShowToast.mockClear();
     mockAddAlert.mockClear();
   });
 
@@ -237,6 +241,17 @@ describe('BulkLearnersModal', () => {
     });
   });
 
+  it('shows the permission denied toast instead of the error modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_users: string[], callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderComponent();
+    const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
+    expect(mockShowModal).not.toHaveBeenCalled();
+  });
   it('shows default error message when error has no message', async () => {
     const mutateWithError = (_users: string[], callbacks: any) => {
       callbacks.onError({});

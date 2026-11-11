@@ -6,22 +6,37 @@ import { MoreVert } from '@openedx/paragon/icons';
 import messages from '@src/enrollments/messages';
 import AddBetaTestersModal from '@src/enrollments/components/AddBetaTestersModal';
 import BulkLearnersModal from '@src/enrollments/components/BulkLearnersModal';
+import EnrollmentsAccessAlert from '@src/enrollments/components/EnrollmentsAccessAlert';
 import EnrollmentsList from '@src/enrollments/components/EnrollmentsList';
 import EnrollmentStatusModal from '@src/enrollments/components/EnrollmentStatusModal';
 import UnenrollModal from '@src/enrollments/components/UnenrollModal';
-import { EnrolledLearner, LearnersAction } from '@src/enrollments/types';
+import { EnrolledLearner, EnrollmentsAccess, LearnersAction } from '@src/enrollments/types';
 import { AlertOutlet, useAlert } from '@src/providers/AlertProvider';
+import AccessErrorAlert from '@src/providers/AccessErrorAlert';
 import { useCourseInfo } from '@src/data/apiHook';
 import { enrollmentActionsSlotId } from '@src/constants';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
-import { BULK_LEARNERS_ACTION } from '@src/enrollments/constants';
+import { BULK_LEARNERS_ACTION, FULL_ENROLLMENTS_ACCESS } from '@src/enrollments/constants';
 
 interface EnrollmentsPageProps {
   hideBetaTesters?: boolean;
   hideEnrollmentStatus?: boolean;
+  /**
+   * What the user may do on the page. Defaults to everything, which is what the CCX Coach
+   * dashboard uses; the instructor dashboard passes the user's AuthZ permissions
+   * (see `InstructorEnrollmentsPage`).
+   */
+  access?: EnrollmentsAccess;
 }
 
-const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false }: EnrollmentsPageProps) => {
+const EnrollmentsPage = ({
+  hideBetaTesters = false,
+  hideEnrollmentStatus = false,
+  access = FULL_ENROLLMENTS_ACCESS,
+}: EnrollmentsPageProps) => {
+  const {
+    canViewEnrollments, canEnroll, canUnenroll, canManageBetaTesters,
+  } = access;
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { data: courseInfo } = useCourseInfo(courseId);
@@ -78,46 +93,70 @@ const EnrollmentsPage = ({ hideBetaTesters = false, hideEnrollmentStatus = false
     setSelectedLearner(null);
   };
 
+  // Checking a learner's enrollment status is part of `view_enrollments`. The CCX Coach
+  // dashboard opts out through `hideEnrollmentStatus`.
+  const canCheckEnrollmentStatus = canViewEnrollments && !hideEnrollmentStatus;
+  // Without either item the menu would open empty, so leave the whole menu out.
+  const showHeaderMenu = canCheckEnrollmentStatus || canUnenroll;
+  const canBulkLearnersAction = bulkLearnersAction === BULK_LEARNERS_ACTION.ENROLL ? canEnroll : canUnenroll;
+
   return (
     <>
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="text-primary-700">{intl.formatMessage(messages.enrollmentsPageTitle)}</h3>
         <ActionRow>
-          <Dropdown>
-            <Dropdown.Toggle
-              as={IconButton}
-              src={MoreVert}
-              alt={intl.formatMessage(messages.checkEnrollmentStatus)}
-              id="check-enrollment-status-menu"
-            />
-            <Dropdown.Menu>
-              {!hideEnrollmentStatus && (
-                <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
-                  {intl.formatMessage(messages.checkEnrollmentStatus)}
-                </Dropdown.Item>
-
-              )}
-              <Dropdown.Item onClick={() => handleBulkLearners(BULK_LEARNERS_ACTION.UNENROLL)}>
-                {intl.formatMessage(messages.unenrollLearners)}
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
+          {showHeaderMenu && (
+            <Dropdown>
+              <Dropdown.Toggle
+                as={IconButton}
+                src={MoreVert}
+                alt={intl.formatMessage(messages.moreActions)}
+                id="check-enrollment-status-menu"
+              />
+              <Dropdown.Menu>
+                {canCheckEnrollmentStatus && (
+                  <Dropdown.Item onClick={handleOpenEnrollmentStatusModal}>
+                    {intl.formatMessage(messages.checkEnrollmentStatus)}
+                  </Dropdown.Item>
+                )}
+                {canUnenroll && (
+                  <Dropdown.Item onClick={() => handleBulkLearners(BULK_LEARNERS_ACTION.UNENROLL)}>
+                    {intl.formatMessage(messages.unenrollLearners)}
+                  </Dropdown.Item>
+                )}
+              </Dropdown.Menu>
+            </Dropdown>
+          )}
           <Slot
             id={enrollmentActionsSlotId}
-            hideBetaTesters={hideBetaTesters}
+            hideBetaTesters={hideBetaTesters || !canManageBetaTesters}
+            hideEnrollLearners={!canEnroll}
             permissions={courseInfo?.permissions}
             onEnrollLearners={() => handleBulkLearners(BULK_LEARNERS_ACTION.ENROLL)}
             onAddBetaTesters={handleAddBetaTesters}
           />
         </ActionRow>
       </div>
+      <EnrollmentsAccessAlert access={access} />
       <AlertOutlet />
-      <EnrollmentsList onUnenroll={handleUnenroll} onBetaTesterChange={handleBetaTesterChange} hideBetaTesters={hideBetaTesters} />
-      <EnrollmentStatusModal isOpen={isEnrollmentStatusModalOpen} onClose={handleCloseEnrollmentStatusModal} />
-      {selectedLearner && <UnenrollModal isOpen={isUnenrollModalOpen} learner={selectedLearner} onClose={handleUnenrollModalClose} />}
-      {bulkLearnersAction && <BulkLearnersModal isOpen={isBulkLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} action={bulkLearnersAction} /> }
-      <AddBetaTestersModal isOpen={isAddBetaTestersModalOpen} onClose={() => setIsAddBetaTestersModalOpen(false)} />
-      {selectedLearner && <UpdateBetaTesterModal isOpen={isUpdateBetaTesterModalOpen} learner={selectedLearner} onClose={handleCloseUpdateBetaTesterModal} />}
+      {canViewEnrollments ? (
+        <EnrollmentsList
+          onUnenroll={handleUnenroll}
+          onBetaTesterChange={handleBetaTesterChange}
+          hideBetaTesters={hideBetaTesters}
+          canUnenroll={canUnenroll}
+          canManageBetaTesters={canManageBetaTesters}
+        />
+      ) : (
+        <AccessErrorAlert errorType="forbidden" />
+      )}
+      {canCheckEnrollmentStatus && <EnrollmentStatusModal isOpen={isEnrollmentStatusModalOpen} onClose={handleCloseEnrollmentStatusModal} />}
+      {/* The modals are mounted only when the user holds the matching permission, in addition to
+          the buttons that open them being hidden. */}
+      {canUnenroll && selectedLearner && <UnenrollModal isOpen={isUnenrollModalOpen} learner={selectedLearner} onClose={handleUnenrollModalClose} />}
+      {canBulkLearnersAction && bulkLearnersAction && <BulkLearnersModal isOpen={isBulkLearnersModalOpen} onClose={handleCloseEnrollLearnersModal} action={bulkLearnersAction} /> }
+      {canManageBetaTesters && <AddBetaTestersModal isOpen={isAddBetaTestersModalOpen} onClose={() => setIsAddBetaTestersModalOpen(false)} />}
+      {canManageBetaTesters && selectedLearner && <UpdateBetaTesterModal isOpen={isUpdateBetaTesterModalOpen} learner={selectedLearner} onClose={handleCloseUpdateBetaTesterModal} />}
     </>
   );
 };
