@@ -1,10 +1,8 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo, FC } from 'react';
-import { Alert, Skeleton } from '@openedx/paragon';
-import { Error as ErrorIcon } from '@openedx/paragon/icons';
-import { useIntl } from '@openedx/frontend-base';
-import messages from '@src/providers/messages';
+import { Skeleton } from '@openedx/paragon';
+import AccessErrorAlert, { AccessErrorAlertType } from '@src/providers/AccessErrorAlert';
 
-type ErrorType = 'forbidden' | 'unauthorized' | 'generic' | null;
+type ErrorType = AccessErrorAlertType | null;
 
 interface AccessErrorContextType {
   errorType: ErrorType;
@@ -48,7 +46,6 @@ interface AccessErrorGuardProps {
 }
 
 export const AccessErrorGuard: FC<AccessErrorGuardProps> = ({ children }) => {
-  const intl = useIntl();
   const { errorType, isLoading } = useAccessError();
 
   if (isLoading) {
@@ -56,28 +53,7 @@ export const AccessErrorGuard: FC<AccessErrorGuardProps> = ({ children }) => {
   }
 
   if (errorType) {
-    const headingMap = {
-      unauthorized: messages.unauthorizedErrorHeading,
-      forbidden: messages.forbiddenErrorHeading,
-      generic: messages.genericErrorHeading,
-    };
-    const messageMap = {
-      unauthorized: messages.unauthorizedErrorMessage,
-      forbidden: messages.forbiddenErrorMessage,
-      generic: messages.genericErrorMessage,
-    };
-
-    return (
-      <Alert
-        variant="danger"
-        icon={ErrorIcon}
-      >
-        <Alert.Heading>{intl.formatMessage(headingMap[errorType])}</Alert.Heading>
-        <p>
-          {intl.formatMessage(messageMap[errorType])}
-        </p>
-      </Alert>
-    );
+    return <AccessErrorAlert errorType={errorType} />;
   }
 
   return <>{children}</>;
