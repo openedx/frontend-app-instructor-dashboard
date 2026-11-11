@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios';
 import AddBetaTestersModal, { AddBetaTestersModalProps } from '@src/enrollments/components/AddBetaTestersModal';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const defaultProps: AddBetaTestersModalProps = {
@@ -12,6 +13,7 @@ const defaultProps: AddBetaTestersModalProps = {
 };
 
 const mockShowModal = jest.fn();
+const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -26,6 +28,7 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
+    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -44,6 +47,7 @@ describe('AddBetaTestersModal', () => {
   beforeEach(() => {
     (useUpdateBetaTesters as jest.Mock).mockReturnValue({ mutate: mutateMock });
     mockShowModal.mockClear();
+    mockShowToast.mockClear();
     mockAddAlert.mockClear();
     (isAxiosError as unknown as jest.Mock).mockReturnValue(false);
   });
@@ -280,6 +284,18 @@ describe('AddBetaTestersModal', () => {
     });
   });
 
+  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_users: any, callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderComponent();
+    const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
+    expect(mockShowModal).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
   it('shows general error modal when mutation fails with non-404 error', async () => {
     (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
     const mutateWithError = (_users: any, callbacks: any) => {

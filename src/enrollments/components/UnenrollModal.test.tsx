@@ -4,6 +4,7 @@ import UnenrollModal from '@src/enrollments/components/UnenrollModal';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
 import { UpdateEnrollmentsParams } from '@src/enrollments/types';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const learner = {
@@ -21,6 +22,7 @@ const defaultProps = {
 };
 
 const mockShowModal = jest.fn();
+const mockShowToast = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -34,6 +36,7 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
+    showToast: mockShowToast,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -47,6 +50,7 @@ describe('UnenrollModal', () => {
       isPending: false
     });
     mockShowModal.mockClear();
+    mockShowToast.mockClear();
   });
 
   afterEach(() => {
@@ -125,6 +129,18 @@ describe('UnenrollModal', () => {
     });
   });
 
+  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_params: UpdateEnrollmentsParams, callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderWithAlertAndIntl(
+      <UnenrollModal {...defaultProps} />
+    );
+    await userEvent.click(screen.getByRole('button', { name: /^unenroll$/i }));
+    expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
+    expect(mockShowModal).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
   it('shows default error message when error has no message', async () => {
     const mutateWithError = (_params: UpdateEnrollmentsParams, callbacks: any) => {
       callbacks.onError({});

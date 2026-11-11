@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useIntl } from '@openedx/frontend-base';
 import { Button, ModalDialog } from '@openedx/paragon';
+import { usePermissionDeniedHandler } from '@src/permissions';
 import { useAlert } from '@src/providers/AlertProvider';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
@@ -17,6 +18,7 @@ const UnenrollModal = ({ learner, isOpen, onClose }: UnenrollModalProps) => {
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { mutate: unenrollLearners, isPending } = useUpdateEnrollments(courseId);
   const { showModal } = useAlert();
+  const onPermissionDenied = usePermissionDeniedHandler();
 
   const handleUnenroll = () => {
     unenrollLearners({
@@ -27,6 +29,11 @@ const UnenrollModal = ({ learner, isOpen, onClose }: UnenrollModalProps) => {
         onClose();
       },
       onError: (error) => {
+        if (onPermissionDenied(error)) {
+          // Close the modal so the toast isn't left behind the modal overlay, where screen readers can't reach it.
+          onClose();
+          return;
+        }
         showModal({
           message: error.message || intl.formatMessage(messages.unenrollLearnerError),
           variant: 'danger',

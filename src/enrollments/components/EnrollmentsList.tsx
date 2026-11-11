@@ -19,6 +19,10 @@ const betaTesterOptions = [
 
 interface EnrollmentsListProps {
   hideBetaTesters: boolean;
+  /** Show the Unenroll link in each row. */
+  canUnenroll?: boolean;
+  /** Show the beta tester menu in each row. The Beta Tester column stays visible, read-only. */
+  canManageBetaTesters?: boolean;
   onUnenroll: (learner: EnrolledLearner) => void;
   onBetaTesterChange: (learner: EnrolledLearner) => void;
 }
@@ -73,7 +77,9 @@ const BetaTesterFilter = ({ column: { filterValue, setFilter } }: { column: { fi
   );
 };
 
-const EnrollmentsList = ({ hideBetaTesters, onUnenroll, onBetaTesterChange }: EnrollmentsListProps) => {
+const EnrollmentsList = ({
+  hideBetaTesters, canUnenroll = true, canManageBetaTesters = true, onUnenroll, onBetaTesterChange,
+}: EnrollmentsListProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams();
   const [filters, setFilters] = useState({ page: 0, username: '', isBetaTester: '' });
@@ -128,6 +134,10 @@ const EnrollmentsList = ({ hideBetaTesters, onUnenroll, onBetaTesterChange }: En
     ]),
   ];
 
+  const showBetaTesterAction = !hideBetaTesters && canManageBetaTesters;
+  // Without either action the column would be empty, so leave it out (view-only users).
+  const showActionsColumn = canUnenroll || showBetaTesterAction;
+
   const ActionCustomCell = useCallback(({ row: { original } }: TableCellValue<EnrolledLearner>) => {
     const popoverContent = (
       <Popover
@@ -152,10 +162,12 @@ const EnrollmentsList = ({ hideBetaTesters, onUnenroll, onBetaTesterChange }: En
 
     return (
       <ActionRow className="justify-content-start">
-        <Button className="pl-0" onClick={() => onUnenroll(original)} variant="link">
-          {intl.formatMessage(messages.unenrollButton)}
-        </Button>
-        {!hideBetaTesters && (
+        {canUnenroll && (
+          <Button className="pl-0" onClick={() => onUnenroll(original)} variant="link">
+            {intl.formatMessage(messages.unenrollButton)}
+          </Button>
+        )}
+        {showBetaTesterAction && (
           <OverlayTrigger
             trigger="click"
             placement="bottom-end"
@@ -171,19 +183,19 @@ const EnrollmentsList = ({ hideBetaTesters, onUnenroll, onBetaTesterChange }: En
         )}
       </ActionRow>
     );
-  }, [intl, onBetaTesterChange, onUnenroll, hideBetaTesters]);
+  }, [intl, onBetaTesterChange, onUnenroll, canUnenroll, showBetaTesterAction]);
 
   return (
     <DataTable
       className="mt-3"
       columns={tableColumns}
-      additionalColumns={[
+      additionalColumns={showActionsColumn ? [
         {
           id: 'actions',
           Header: intl.formatMessage(messages.actions),
           Cell: ActionCustomCell,
         }
-      ]}
+      ] : []}
       data={data.results}
       fetchData={handleFetchData}
       state={{

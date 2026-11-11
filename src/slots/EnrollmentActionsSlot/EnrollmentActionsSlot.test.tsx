@@ -49,4 +49,30 @@ describe('EnrollmentActionsSlot (default slot widget)', () => {
       expect(screen.getByRole('button', { name: enrollLearnersName })).toBeEnabled();
     });
   });
+
+  describe('when hideEnrollLearners is true', () => {
+    it('does not render the Enroll Learners button', () => {
+      renderWithIntl(
+        <EnrollmentActionsSlot onEnrollLearners={jest.fn()} onAddBetaTesters={jest.fn()} hideEnrollLearners />,
+      );
+      expect(screen.queryByRole('button', { name: enrollLearnersName })).not.toBeInTheDocument();
+    });
+    it('still renders the Add Beta Testers button', () => {
+      renderWithIntl(
+        <EnrollmentActionsSlot onEnrollLearners={jest.fn()} onAddBetaTesters={jest.fn()} hideEnrollLearners />,
+      );
+      expect(screen.getByRole('button', { name: addBetaTestersName })).toBeEnabled();
+    });
+    it('renders no buttons when both actions are hidden', () => {
+      renderWithIntl(
+        <EnrollmentActionsSlot
+          onEnrollLearners={jest.fn()}
+          onAddBetaTesters={jest.fn()}
+          hideEnrollLearners
+          hideBetaTesters
+        />,
+      );
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+  });
 });

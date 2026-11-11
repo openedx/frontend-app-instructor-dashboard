@@ -5,6 +5,7 @@ import { useIntl } from '@openedx/frontend-base';
 import { Button, FormControl, ModalDialog, Form } from '@openedx/paragon';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import { usePermissionDeniedHandler } from '@src/permissions';
 import { useAlert } from '@src/providers/AlertProvider';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 
@@ -24,6 +25,7 @@ const AddBetaTestersModal = ({
   const [emailStudents, setEmailStudents] = useState(true);
   const { mutate: addBetaTesters } = useUpdateBetaTesters(courseId);
   const { showModal, addAlert } = useAlert();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { inputValue, handleChange } = useDebouncedFilter({
     filterValue: emails,
     setFilter: setEmails,
@@ -67,6 +69,11 @@ const AddBetaTestersModal = ({
         onClose();
       },
       onError: (error) => {
+        if (onPermissionDenied(error)) {
+          // Close the modal so the toast isn't left behind the modal overlay, where screen readers can't reach it.
+          onClose();
+          return;
+        }
         const notFound = isAxiosError(error) && error.response?.status === 404;
         const errorMessage = notFound
           ? intl.formatMessage(messages.enrollLearnerNotFoundError)

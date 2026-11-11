@@ -307,4 +307,44 @@ describe('EnrollmentsList', () => {
       expect(unenrollButtons).toHaveLength(2);
     });
   });
+
+  describe('row actions by permission', () => {
+    const renderWithAccess = (access: { canUnenroll?: boolean; canManageBetaTesters?: boolean }) => renderWithIntl(
+      <EnrollmentsList onUnenroll={jest.fn()} onBetaTesterChange={jest.fn()} hideBetaTesters={false} {...access} />
+    );
+    const changeBetaTesterName = messages.changeBetaTesterStatus.defaultMessage;
+    const unenrollName = new RegExp(`^${messages.unenrollButton.defaultMessage}$`);
+
+    test('shows both the Unenroll link and the beta tester menu by default', () => {
+      renderWithAccess({});
+      expect(screen.getAllByRole('button', { name: unenrollName })).toHaveLength(mockLearners.length);
+      expect(screen.getAllByRole('button', { name: changeBetaTesterName })).toHaveLength(mockLearners.length);
+    });
+
+    test('hides the Unenroll link when the user cannot unenroll, keeping the beta tester menu', () => {
+      renderWithAccess({ canUnenroll: false });
+      expect(screen.queryByRole('button', { name: unenrollName })).not.toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: changeBetaTesterName })).toHaveLength(mockLearners.length);
+      expect(screen.getByRole('columnheader', { name: messages.actions.defaultMessage })).toBeInTheDocument();
+    });
+
+    test('hides the beta tester menu when the user cannot manage beta testers, keeping the Unenroll link', () => {
+      renderWithAccess({ canManageBetaTesters: false });
+      expect(screen.getAllByRole('button', { name: unenrollName })).toHaveLength(mockLearners.length);
+      expect(screen.queryByRole('button', { name: changeBetaTesterName })).not.toBeInTheDocument();
+    });
+
+    test('keeps the Beta Tester column and filter visible, read-only, without the beta tester menu', () => {
+      renderWithAccess({ canManageBetaTesters: false });
+      expect(screen.getByRole('columnheader', { name: messages.betaTester.defaultMessage })).toBeInTheDocument();
+      expect(screen.getByDisplayValue(messages.allEnrollees.defaultMessage)).toBeInTheDocument();
+    });
+
+    test('leaves out the Actions column when the user can neither unenroll nor manage beta testers', () => {
+      renderWithAccess({ canUnenroll: false, canManageBetaTesters: false });
+      expect(screen.queryByRole('columnheader', { name: messages.actions.defaultMessage })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: unenrollName })).not.toBeInTheDocument();
+      expect(screen.getByText(mockLearners[0].username)).toBeInTheDocument();
+    });
+  });
 });
