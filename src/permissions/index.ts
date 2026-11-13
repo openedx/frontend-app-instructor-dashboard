@@ -9,6 +9,8 @@ export { useCoursePermission } from './useCoursePermission';
 export { usePermissionDeniedHandler } from './usePermissionDeniedHandler';
 export { default as PermissionGate } from './PermissionGate';
 export type { PermissionGateProps } from './PermissionGate';
+export { default as PermissionAlert } from './PermissionAlert';
+export type { PermissionAlertProps } from './PermissionAlert';
 export type {
   PermissionId,
   CoursePermissions,

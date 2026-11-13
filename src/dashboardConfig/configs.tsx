@@ -5,6 +5,7 @@ import CourseTeamPage from '@src/courseTeam/CourseTeamPage';
 import DataDownloadsPage from '@src/dataDownloads/DataDownloadsPage';
 import DateExtensionsPage from '@src/dateExtensions/DateExtensionsPage';
 import EnrollmentsPage from '@src/enrollments/EnrollmentsPage';
+import InstructorEnrollmentsPage from '@src/enrollments/InstructorEnrollmentsPage';
 import GradingPage from '@src/grading/GradingPage';
 import GradingPolicyPage from '@src/ccxCoach/pages/gradingPolicy/GradingPolicyPage';
 import NewCCXCoachCourse from '@src/ccxCoach/pages/NewCCXCourse/NewCCXCourse';
@@ -22,7 +23,7 @@ export const instructorDashboardConfig: DashboardConfig = {
   variantId: 'instructorDashboard',
   defaultTabs: [
     { tabId: 'course_info', content: <CourseInfoPage /> },
-    { tabId: 'enrollments', content: <EnrollmentsPage /> },
+    { tabId: 'enrollments', content: <InstructorEnrollmentsPage /> },
     { tabId: 'course_team', content: <CourseTeamPage /> },
     { tabId: 'cohorts', content: <CohortsPage /> },
     { tabId: 'date_extensions', content: <DateExtensionsPage /> },
