@@ -323,7 +323,7 @@ const messages = defineMessages({
   },
   unenrollOnlyAccessAlert: {
     id: 'instruct.enrollments.access.unenrollOnly',
-    defaultMessage: 'You have unenroll-only access to this page. Contact your course administrator to request enroll permissions.',
+    defaultMessage: 'You can unenroll learners but cannot enroll them. Contact your course administrator to request enroll permissions.',
     description: 'Alert shown on the enrollments page when the user can unenroll learners but not enroll them',
   },
 });
