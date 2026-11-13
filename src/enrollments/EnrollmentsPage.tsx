@@ -6,7 +6,6 @@ import { MoreVert } from '@openedx/paragon/icons';
 import messages from '@src/enrollments/messages';
 import AddBetaTestersModal from '@src/enrollments/components/AddBetaTestersModal';
 import BulkLearnersModal from '@src/enrollments/components/BulkLearnersModal';
-import EnrollmentsAccessAlert from '@src/enrollments/components/EnrollmentsAccessAlert';
 import EnrollmentsList from '@src/enrollments/components/EnrollmentsList';
 import EnrollmentStatusModal from '@src/enrollments/components/EnrollmentStatusModal';
 import UnenrollModal from '@src/enrollments/components/UnenrollModal';
@@ -15,6 +14,7 @@ import { AlertOutlet, useAlert } from '@src/providers/AlertProvider';
 import AccessErrorAlert from '@src/providers/AccessErrorAlert';
 import { useCourseInfo } from '@src/data/apiHook';
 import { enrollmentActionsSlotId } from '@src/constants';
+import { PermissionAlert } from '@src/permissions';
 import UpdateBetaTesterModal from './components/UpdateBetaTesterModal';
 import { BULK_LEARNERS_ACTION, FULL_ENROLLMENTS_ACCESS } from '@src/enrollments/constants';
 
@@ -100,6 +100,18 @@ const EnrollmentsPage = ({
   const showHeaderMenu = canCheckEnrollmentStatus || canUnenroll;
   const canBulkLearnersAction = bulkLearnersAction === BULK_LEARNERS_ACTION.ENROLL ? canEnroll : canUnenroll;
 
+  // Only the combinations that confuse users get a permission alert: view-only, enroll
+  // without unenroll, and unenroll without enroll. Having both actions, or holding only
+  // the beta tester permission, shows nothing.
+  let accessAlertMessage;
+  if (canEnroll && !canUnenroll) {
+    accessAlertMessage = messages.enrollOnlyAccessAlert;
+  } else if (canUnenroll && !canEnroll) {
+    accessAlertMessage = messages.unenrollOnlyAccessAlert;
+  } else if (!canEnroll && !canUnenroll && !canManageBetaTesters) {
+    accessAlertMessage = messages.viewOnlyAccessAlert;
+  }
+
   return (
     <>
       <div className="d-flex justify-content-between align-items-center">
@@ -137,7 +149,9 @@ const EnrollmentsPage = ({
           />
         </ActionRow>
       </div>
-      <EnrollmentsAccessAlert access={access} />
+      {accessAlertMessage && (
+        <PermissionAlert className="mt-3">{intl.formatMessage(accessAlertMessage)}</PermissionAlert>
+      )}
       <AlertOutlet />
       {canViewEnrollments ? (
         <EnrollmentsList

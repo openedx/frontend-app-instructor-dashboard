@@ -11,6 +11,11 @@ const messages = defineMessages({
     defaultMessage: "You don't have permission to perform this action.",
     description: 'Toast shown when a backend request is rejected with 403 for lack of permission',
   },
+  viewOnlyAlert: {
+    id: 'instruct.permissions.viewOnly.alert',
+    defaultMessage: 'You have view-only access to this page. To make changes, contact your course administrator.',
+    description: 'Alert shown on a dashboard page when the user can view it but cannot perform any of its actions',
+  },
 });
 
 export default messages;

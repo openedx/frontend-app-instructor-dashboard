@@ -364,7 +364,13 @@ describe('EnrollmentsPage', () => {
 
       it('shows the enroll-only alert', () => {
         expect(screen.getByText(messages.enrollOnlyAccessAlert.defaultMessage)).toBeInTheDocument();
+        expect(screen.queryByText(messages.viewOnlyAccessAlert.defaultMessage)).not.toBeInTheDocument();
       });
+    });
+
+    it('still shows the enroll-only alert when the user also manages beta testers', () => {
+      renderWithAlertAndIntl(<EnrollmentsPage access={accessWith({ canEnroll: true, canManageBetaTesters: true })} />);
+      expect(screen.getByText(messages.enrollOnlyAccessAlert.defaultMessage)).toBeInTheDocument();
     });
 
     describe('with unenroll_learners only', () => {
