@@ -129,7 +129,7 @@ describe('UnenrollModal', () => {
     });
   });
 
-  it('shows the permission denied toast instead of the error modal when the backend returns 403', async () => {
+  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
     mutateMock.mockImplementation((_params: UpdateEnrollmentsParams, callbacks: any) => {
       callbacks.onError({ response: { status: 403 } });
     });
@@ -139,6 +139,7 @@ describe('UnenrollModal', () => {
     await userEvent.click(screen.getByRole('button', { name: /^unenroll$/i }));
     expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
     expect(mockShowModal).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
   it('shows default error message when error has no message', async () => {
     const mutateWithError = (_params: UpdateEnrollmentsParams, callbacks: any) => {

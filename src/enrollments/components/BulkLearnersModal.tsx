@@ -154,6 +154,8 @@ const BulkLearnersModal = ({
       },
       onError: (error) => {
         if (onPermissionDenied(error)) {
+          // Close the modal so the toast isn't left behind the modal overlay, where screen readers can't reach it.
+          onClose();
           return;
         }
         const notFound = isAxiosError(error) && error.response?.status === 404;

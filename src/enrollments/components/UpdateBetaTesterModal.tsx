@@ -57,6 +57,8 @@ const UpdateBetaTesterModal = ({ learner, isOpen, onClose }: UpdateBetaTesterMod
       onClose();
     } catch (error) {
       if (onPermissionDenied(error)) {
+        // Close the modal so the toast isn't left behind the modal overlay, where screen readers can't reach it.
+        onClose();
         return;
       }
       showModal({

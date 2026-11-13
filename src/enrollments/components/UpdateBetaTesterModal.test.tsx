@@ -184,7 +184,7 @@ describe('UpdateBetaTesterModal', () => {
   });
 
   describe('when the backend rejects the change with 403', () => {
-    it('shows the permission denied toast instead of the error modal', async () => {
+    it('shows the permission denied toast and closes the modal', async () => {
       mutateMock.mockRejectedValue({ response: { status: 403 } });
       renderWithAlertAndIntl(
         <UpdateBetaTesterModal {...defaultProps} />
@@ -194,6 +194,7 @@ describe('UpdateBetaTesterModal', () => {
         expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
       });
       expect(mockShowModal).not.toHaveBeenCalled();
+      expect(defaultProps.onClose).toHaveBeenCalled();
     });
   });
 

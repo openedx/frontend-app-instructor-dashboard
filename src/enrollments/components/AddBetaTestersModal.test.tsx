@@ -284,7 +284,7 @@ describe('AddBetaTestersModal', () => {
     });
   });
 
-  it('shows the permission denied toast instead of the error modal when the backend returns 403', async () => {
+  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
     mutateMock.mockImplementation((_users: any, callbacks: any) => {
       callbacks.onError({ response: { status: 403 } });
     });
@@ -294,6 +294,7 @@ describe('AddBetaTestersModal', () => {
     await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
     expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
     expect(mockShowModal).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
   it('shows general error modal when mutation fails with non-404 error', async () => {
     (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
