@@ -7,6 +7,11 @@ import { useEnrollmentByUserId, useEnrollments, useUpdateBetaTesters, useUpdateE
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import { EnrollmentsAccess } from '@src/enrollments/types';
 import { FULL_ENROLLMENTS_ACCESS } from '@src/enrollments/constants';
+import { ccxCoachConfig } from '@src/dashboardConfig/configs';
+import { useCoursePermissions } from '@src/permissions/useCoursePermissions';
+
+// The CCX Coach dashboard is not governed by AuthZ: the page must not read permissions there.
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -454,6 +459,61 @@ describe('EnrollmentsPage', () => {
       renderWithAlertAndIntl(<EnrollmentsPage access={accessWith({ canEnroll: true })} />);
       await userEvent.setup().click(screen.getByText('Unenroll Test Learner'));
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+  // The CCX Coach dashboard renders this page without the `access` prop. These tests render the
+  // element exactly as `ccxCoachConfig` declares it, so a change to its props is caught too.
+  describe('CCX Coach dashboard', () => {
+    const ccxEnrollmentsTab = ccxCoachConfig.defaultTabs.find(tab => tab.tabId === 'enrollments')!.content;
+
+    it('does not read AuthZ permissions', () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      expect(useCoursePermissions).not.toHaveBeenCalled();
+    });
+
+    it('shows the Enroll Learners button and no Add Beta Testers button', () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      expect(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: messages.addBetaTesters.defaultMessage })).not.toBeInTheDocument();
+    });
+
+    it('keeps only Unenroll Learners in the header menu, without Check Enrollment Status', async () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      await userEvent.setup().click(screen.getByRole('button', { name: messages.moreActions.defaultMessage }));
+      expect(screen.getByText(messages.unenrollLearners.defaultMessage)).toBeInTheDocument();
+      expect(screen.queryByText(messages.checkEnrollmentStatus.defaultMessage)).not.toBeInTheDocument();
+    });
+
+    it('shows no access alert', () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      expect(screen.queryByText(messages.viewOnlyAccessAlert.defaultMessage)).not.toBeInTheDocument();
+      expect(screen.queryByText(messages.enrollOnlyAccessAlert.defaultMessage)).not.toBeInTheDocument();
+      expect(screen.queryByText(messages.unenrollOnlyAccessAlert.defaultMessage)).not.toBeInTheDocument();
+      expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+    });
+
+    it('renders the list with the beta tester column hidden and unenroll allowed', () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      const table = screen.getByRole('table');
+      expect(table).toHaveAttribute('data-hide-beta-testers', 'true');
+      expect(table).toHaveAttribute('data-can-unenroll', 'true');
+    });
+
+    it('opens the enroll and bulk unenroll modals', async () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: messages.enrollLearners.defaultMessage }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      await user.click(screen.getByText('close-enroll-learners'));
+      await user.click(screen.getByRole('button', { name: messages.moreActions.defaultMessage }));
+      await user.click(screen.getByText(messages.unenrollLearners.defaultMessage));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('opens the unenroll modal from a row', async () => {
+      renderWithAlertAndIntl(ccxEnrollmentsTab);
+      await userEvent.setup().click(screen.getByText('Unenroll Test Learner'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });
 });
