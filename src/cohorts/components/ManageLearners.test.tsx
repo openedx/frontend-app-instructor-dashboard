@@ -54,6 +54,23 @@ describe('ManageLearners', () => {
     useAlertSpy.mockRestore();
   });
 
+  it('shows the permission denied error modal when assignment returns 403', async () => {
+    const showModal = jest.fn();
+    useAlertSpy.mockReturnValue({ ...AlertProvider.useAlert(), showModal });
+    mutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertProvider();
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('textbox'), 'alice');
+    await user.click(screen.getByRole('button', { name: /Add Learners/ }));
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(showModal).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action.",
+      variant: 'danger',
+      confirmText: 'Close',
+    });
+    expect(addAlertMock).not.toHaveBeenCalled();
+  });
+
   it('render all static texts', () => {
     renderWithAlertProvider();
     expect(screen.getByRole('heading', { name: messages.addLearnersTitle.defaultMessage })).toBeInTheDocument();

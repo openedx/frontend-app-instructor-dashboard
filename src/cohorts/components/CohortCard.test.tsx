@@ -1,3 +1,5 @@
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useParams } from 'react-router-dom';
@@ -10,6 +12,8 @@ import { useAddLearnersToCohort, usePatchCohort } from '@src/cohorts/data/apiHoo
 import { assignmentTypes } from '@src/cohorts/constants';
 import { CohortData } from '@src/cohorts/types';
 import messages from '../messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('./CohortContext', () => ({
   useCohortContext: jest.fn(),
@@ -83,8 +87,39 @@ describe('CohortCard', () => {
   const mockClearAlerts = jest.fn();
   const mockAddLearnersMutate = jest.fn();
 
+  it('exposes only disabled settings and documentation to a read-only user', () => {
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true });
+    renderCohortCard();
+    expect(screen.queryByRole('tab', { name: messages.manageLearners.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: messages.settings.defaultMessage })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByPlaceholderText(messages.cohortName.defaultMessage)).toHaveValue(mockCohort.name);
+    expect(screen.getByPlaceholderText(messages.cohortName.defaultMessage)).toBeDisabled();
+    expect(screen.getByLabelText(messages.manual.defaultMessage)).toBeChecked();
+    expect(screen.getByLabelText(messages.manual.defaultMessage)).toBeDisabled();
+    expect(screen.getByRole('link', { name: messages.warningCohortLink.defaultMessage })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: messages.saveLabel.defaultMessage })).not.toBeInTheDocument();
+    expect(mockUseAddLearnersToCohort).not.toHaveBeenCalled();
+  });
+
+  it('shows the permission denied error modal when editing returns 403', async () => {
+    const showModal = jest.fn();
+    mockUseAlert.mockReturnValue({ clearAlerts: mockClearAlerts, showModal });
+    mockMutate.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderCohortCard();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: messages.settings.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: messages.saveLabel.defaultMessage }));
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(showModal).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action.",
+      variant: 'danger',
+      confirmText: 'Close',
+    });
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true, [COURSE_PERMISSIONS.MANAGE_COHORTS]: true });
     mockUseParams.mockReturnValue({ courseId: 'course-123' });
     mockUsePatchCohort.mockReturnValue({ mutate: mockMutate });
     mockUseAlert.mockReturnValue({ clearAlerts: mockClearAlerts });

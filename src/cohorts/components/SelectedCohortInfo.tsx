@@ -7,9 +7,11 @@ import { useAlert } from '@src/providers/AlertProvider';
 import CohortCard from './CohortCard';
 import messages from '../messages';
 import { useAddLearnersToCohortsBulk } from '../data/apiHook';
+import { COURSE_PERMISSIONS, PermissionGate, usePermissionDeniedHandler } from '@src/permissions';
 
 const SelectedCohortInfo = () => {
   const intl = useIntl();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { mutate: addLearnersToCohortsBulk } = useAddLearnersToCohortsBulk(courseId);
   const { showToast } = useAlert();
@@ -28,6 +30,7 @@ const SelectedCohortInfo = () => {
           showToast(intl.formatMessage(messages.uploadSuccessMessage, { fileName: file.name }));
         },
         onError: (error) => {
+          onPermissionDenied(error);
           if (handleError) {
             handleError(error);
           }
@@ -43,9 +46,11 @@ const SelectedCohortInfo = () => {
   return (
     <>
       <CohortCard />
-      <Collapsible className="collapsible-csv mt-3 w-50" styling="basic" title={<p className="text-info-500 mb-0">{intl.formatMessage(messages.downloadCSVCaption)}</p>}>
-        <CSVComponent templateLink={getExternalLinkUrl('https://docs.openedx.org/en/latest/educators/how-tos/advanced_features/manage_cohorts.html#assign-learners-to-cohorts-by-uploading-a-csv-file')} onProcessUpload={handleProcessUpload} />
-      </Collapsible>
+      <PermissionGate permission={COURSE_PERMISSIONS.MANAGE_COHORTS}>
+        <Collapsible className="collapsible-csv mt-3 w-50" styling="basic" title={<p className="text-info-500 mb-0">{intl.formatMessage(messages.downloadCSVCaption)}</p>}>
+          <CSVComponent templateLink={getExternalLinkUrl('https://docs.openedx.org/en/latest/educators/how-tos/advanced_features/manage_cohorts.html#assign-learners-to-cohorts-by-uploading-a-csv-file')} onProcessUpload={handleProcessUpload} />
+        </Collapsible>
+      </PermissionGate>
       <p className="mt-3">
         {intl.formatMessage(messages.cohortDisclaimer)} <Hyperlink className="text-info-500 text-decoration-none" destination={`/instructor/${courseId}/data_downloads`} showLaunchIcon={false}>{intl.formatMessage(dataDownloadsMessages.pageTitle)}</Hyperlink> {intl.formatMessage(messages.page)}
       </p>

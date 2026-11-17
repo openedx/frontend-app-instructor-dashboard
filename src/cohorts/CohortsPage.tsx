@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { useIntl } from '@openedx/frontend-base';
-import { IconButton } from '@openedx/paragon';
+import { IconButton, Skeleton } from '@openedx/paragon';
 import { Settings } from '@openedx/paragon/icons';
 import { CohortProvider, useCohortContext } from '@src/cohorts/components/CohortContext';
 import DisableCohortsModal from '@src/cohorts/components/DisableCohortsModal';
@@ -12,11 +12,16 @@ import { useCohortStatus, useToggleCohorts } from '@src/cohorts/data/apiHook';
 import messages from '@src/cohorts/messages';
 import { useAlert } from '@src/providers/AlertProvider';
 import './CohortsPage.scss';
+import { COURSE_PERMISSIONS, PermissionAlert, PermissionGate, useCoursePermission, usePermissionDeniedHandler } from '@src/permissions';
+import AccessErrorAlert from '@src/providers/AccessErrorAlert';
+import { isForbiddenError } from '@src/data/utils';
 
 const CohortsPageContent = () => {
   const intl = useIntl();
   const { courseId = '' } = useParams();
-  const { data: cohortStatus } = useCohortStatus(courseId);
+  const { data: cohortStatus, isLoading, error } = useCohortStatus(courseId);
+  const { allowed: canManageCohorts } = useCoursePermission(COURSE_PERMISSIONS.MANAGE_COHORTS);
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { mutate: toggleCohortsMutate } = useToggleCohorts(courseId);
   const [isOpenDisableModal, setIsOpenDisableModal] = useState(false);
   const { clearSelectedCohort } = useCohortContext();
@@ -27,6 +32,7 @@ const CohortsPageContent = () => {
     toggleCohortsMutate({ isCohorted: true },
       {
         onError: (error) => {
+          if (onPermissionDenied(error)) return;
           const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.enableCohortError);
           showModal({
             confirmText: intl.formatMessage(messages.closeButton),
@@ -42,6 +48,7 @@ const CohortsPageContent = () => {
       {
         onSuccess: () => clearSelectedCohort(),
         onError: (error) => {
+          if (onPermissionDenied(error)) return;
           const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.disableCohortError);
           showModal({
             confirmText: intl.formatMessage(messages.closeButton),
@@ -53,11 +60,14 @@ const CohortsPageContent = () => {
     setIsOpenDisableModal(false);
   };
 
+  if (isLoading) return <Skeleton className="lead" />;
+  if (error) return <AccessErrorAlert errorType={isForbiddenError(error) ? 'forbidden' : 'generic'} />;
+
   return (
     <>
       <div className="d-inline-flex align-items-center">
         <h3 className="mb-0 text-primary-700">{intl.formatMessage(messages.cohortsTitle)}</h3>
-        {isCohorted && (
+        {isCohorted && canManageCohorts && (
           <div className="small">
             <IconButton
               alt={intl.formatMessage(messages.disableCohorts)}
@@ -70,12 +80,24 @@ const CohortsPageContent = () => {
           </div>
         )}
       </div>
+      {isCohorted && !canManageCohorts && <PermissionAlert className="mt-4.5" />}
       {isCohorted ? (
         <EnabledCohortsView />
       ) : (
-        <DisabledCohortsView onEnableCohorts={handleEnableCohorts} />
+        <PermissionGate
+          permission={COURSE_PERMISSIONS.MANAGE_COHORTS}
+          fallback={(
+            <PermissionAlert className="mt-4.5">
+              {intl.formatMessage(messages.disabledViewOnlyAlert)}
+            </PermissionAlert>
+          )}
+        >
+          <DisabledCohortsView onEnableCohorts={handleEnableCohorts} />
+        </PermissionGate>
       )}
-      <DisableCohortsModal isOpen={isOpenDisableModal} onClose={() => setIsOpenDisableModal(false)} onConfirmDisable={handleDisableCohorts} />
+      <PermissionGate permission={COURSE_PERMISSIONS.MANAGE_COHORTS}>
+        <DisableCohortsModal isOpen={isOpenDisableModal} onClose={() => setIsOpenDisableModal(false)} onConfirmDisable={handleDisableCohorts} />
+      </PermissionGate>
     </>
   );
 };
@@ -83,9 +105,15 @@ const CohortsPageContent = () => {
 // It was necessary to wrap the entire content with CohortProvider here to avoid errors in the use of cohort hooks within a provider
 const CohortsPage = () => {
   return (
-    <CohortProvider>
-      <CohortsPageContent />
-    </CohortProvider>
+    <PermissionGate
+      permission={COURSE_PERMISSIONS.VIEW_COHORTS}
+      loading={<Skeleton className="lead" />}
+      fallback={<AccessErrorAlert errorType="forbidden" />}
+    >
+      <CohortProvider>
+        <CohortsPageContent />
+      </CohortProvider>
+    </PermissionGate>
   );
 };
 
