@@ -12,6 +12,7 @@ import { assignmentTypes } from '@src/cohorts/constants';
 import messages from '@src/cohorts/messages';
 import { CohortData, BasicCohortData } from '@src/cohorts/types';
 import { useAlert } from '@src/providers/AlertProvider';
+import { COURSE_PERMISSIONS, PermissionGate, usePermissionDeniedHandler } from '@src/permissions';
 
 const alertIcons = {
   success: CheckCircle,
@@ -21,6 +22,7 @@ const alertIcons = {
 
 const EnabledCohortsView = () => {
   const intl = useIntl();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { data = [] } = useCohorts(courseId);
   const { mutate: createCohort } = useCreateCohort(courseId);
@@ -90,6 +92,7 @@ const EnabledCohortsView = () => {
         hideAddForm();
       },
       onError: (error) => {
+        if (onPermissionDenied(error)) return;
         const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.enableCohortError);
         showModal({
           confirmText: intl.formatMessage(messages.closeButton),
@@ -123,7 +126,9 @@ const EnabledCohortsView = () => {
             ))
           }
         </FormControl>
-        <Button onClick={handleAddCohort} disabled={displayAddForm}>+ {intl.formatMessage(messages.addCohort)}</Button>
+        <PermissionGate permission={COURSE_PERMISSIONS.MANAGE_COHORTS}>
+          <Button onClick={handleAddCohort} disabled={displayAddForm}>+ {intl.formatMessage(messages.addCohort)}</Button>
+        </PermissionGate>
       </div>
       {alerts.map(alert => (
         <Alert
@@ -139,9 +144,11 @@ const EnabledCohortsView = () => {
         </Alert>
       ))}
       {displayAddForm && (
-        <Card className="mt-3 bg-light-200">
-          <CohortsForm disableManualAssignment={data.length === 0} onCancel={hideAddForm} onSubmit={handleNewCohort} />
-        </Card>
+        <PermissionGate permission={COURSE_PERMISSIONS.MANAGE_COHORTS}>
+          <Card className="mt-3 bg-light-200">
+            <CohortsForm disableManualAssignment={data.length === 0} onCancel={hideAddForm} onSubmit={handleNewCohort} />
+          </Card>
+        </PermissionGate>
       )}
       {selectedCohort && <SelectedCohortInfo />}
     </>
