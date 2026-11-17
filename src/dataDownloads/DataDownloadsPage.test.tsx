@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { getAuthenticatedHttpClient, IntlProvider } from '@openedx/frontend-base';
+import { IntlProvider } from '@openedx/frontend-base';
 import { MemoryRouter } from 'react-router-dom';
 import DataDownloadsPage from './DataDownloadsPage';
 import { useGeneratedReports, useGenerateReportLink } from './data/apiHook';
@@ -13,10 +13,6 @@ jest.mock('@src/components/PageNotFound', () => ({
   __esModule: true,
   default: () => <div>Page Not Found</div>,
 }));
-jest.mock('@openedx/frontend-base', () => ({
-  ...jest.requireActual('@openedx/frontend-base'),
-  getAuthenticatedHttpClient: jest.fn(),
-}));
 jest.mock('@src/data/api', () => ({
   getApiBaseUrl: jest.fn(() => 'http://lms.example.com'),
 }));
@@ -28,7 +24,6 @@ jest.mock('@src/data/apiHook', () => ({
 
 const mockUseGeneratedReports = useGeneratedReports as jest.MockedFunction<typeof useGeneratedReports>;
 const mockUseGenerateReportLink = useGenerateReportLink as jest.MockedFunction<typeof useGenerateReportLink>;
-const mockGetAuthenticatedHttpClient = getAuthenticatedHttpClient as jest.MockedFunction<typeof getAuthenticatedHttpClient>;
 
 const mockReportsData = [
   {
@@ -51,7 +46,6 @@ const renderWithProviders = (component: React.ReactElement, courseId = 'course-1
 
 describe('DataDownloadsPage', () => {
   const mockMutate = jest.fn();
-  const mockHttpGet = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,18 +59,6 @@ describe('DataDownloadsPage', () => {
       mutate: mockMutate,
       isPending: false,
     } as any);
-
-    mockGetAuthenticatedHttpClient.mockReturnValue({
-      get: mockHttpGet,
-    } as any);
-
-    mockHttpGet.mockResolvedValue({
-      data: new Blob(['test'], { type: 'text/csv' }),
-    });
-
-    // Mock DOM APIs
-    global.URL.createObjectURL = jest.fn(() => 'blob:mock');
-    global.URL.revokeObjectURL = jest.fn();
   });
 
   afterEach(() => {
@@ -373,25 +355,6 @@ describe('DataDownloadsPage', () => {
     expect(screen.getByText(messages.downloadLinkLabel.defaultMessage)).toBeInTheDocument();
   });
 
-  it('should handle download error', async () => {
-    const user = userEvent.setup();
-    mockHttpGet.mockRejectedValueOnce(new Error('Download failed'));
-
-    mockUseGeneratedReports.mockReturnValue({
-      data: { downloads: mockReportsData },
-      isLoading: false,
-    } as any);
-
-    renderWithProviders(<DataDownloadsPage />);
-
-    const downloadButton = screen.getByText(messages.downloadLinkLabel.defaultMessage);
-    await user.click(downloadButton);
-
-    await waitFor(() => {
-      expect(screen.getAllByText(messages.downloadReportError.defaultMessage).length).toBeGreaterThan(0);
-    });
-  });
-
   it('should cleanup on unmount', () => {
     jest.useFakeTimers();
 
@@ -513,9 +476,7 @@ describe('DataDownloadsPage', () => {
     jest.useRealTimers();
   });
 
-  it('should trigger download with relative URL prepended with base URL', async () => {
-    const user = userEvent.setup();
-
+  it('should link to relative report URLs prepended with the LMS base URL', () => {
     mockUseGeneratedReports.mockReturnValue({
       data: { downloads: mockReportsData },
       isLoading: false,
@@ -523,26 +484,15 @@ describe('DataDownloadsPage', () => {
 
     renderWithProviders(<DataDownloadsPage />);
 
-    const downloadButton = screen.getByText(messages.downloadLinkLabel.defaultMessage);
-    await user.click(downloadButton);
-
-    await waitFor(() => {
-      expect(mockHttpGet).toHaveBeenCalledWith(
-        'http://lms.example.com/path/to/report-a.csv',
-        { responseType: 'blob' }
-      );
-    });
-
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
-    expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock');
+    const downloadLink = screen.getByRole('link', { name: messages.downloadLinkLabel.defaultMessage });
+    expect(downloadLink).toHaveAttribute('href', 'http://lms.example.com/path/to/report-a.csv');
   });
 
-  it('should trigger download with absolute URL without prepending base URL', async () => {
-    const user = userEvent.setup();
+  it('should link to absolute report URLs as they are', () => {
     const absoluteUrlReport = [
       {
         ...mockReportsData[0],
-        reportUrl: 'http://cdn.example.com/reports/report.csv',
+        reportUrl: 'https://bucket.s3.amazonaws.com/reports/report.csv?X-Amz-Signature=abc',
       },
     ];
 
@@ -553,34 +503,8 @@ describe('DataDownloadsPage', () => {
 
     renderWithProviders(<DataDownloadsPage />);
 
-    const downloadButton = screen.getByText(messages.downloadLinkLabel.defaultMessage);
-    await user.click(downloadButton);
-
-    await waitFor(() => {
-      expect(mockHttpGet).toHaveBeenCalledWith(
-        'http://cdn.example.com/reports/report.csv',
-        { responseType: 'blob' }
-      );
-    });
-  });
-
-  it('should show download error modal when download fails', async () => {
-    const user = userEvent.setup();
-    mockHttpGet.mockRejectedValueOnce(new Error('Network error'));
-
-    mockUseGeneratedReports.mockReturnValue({
-      data: { downloads: mockReportsData },
-      isLoading: false,
-    } as any);
-
-    renderWithProviders(<DataDownloadsPage />);
-
-    const downloadButton = screen.getByText(messages.downloadLinkLabel.defaultMessage);
-    await user.click(downloadButton);
-
-    await waitFor(() => {
-      expect(screen.getAllByText(messages.downloadReportError.defaultMessage).length).toBeGreaterThan(0);
-    });
+    const downloadLink = screen.getByRole('link', { name: messages.downloadLinkLabel.defaultMessage });
+    expect(downloadLink).toHaveAttribute('href', absoluteUrlReport[0].reportUrl);
   });
 
   it('should show error message from API response when generate report fails with response error', async () => {

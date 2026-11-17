@@ -347,11 +347,6 @@ const messages = defineMessages({
     defaultMessage: 'Failed to generate report.',
     description: 'Error message displayed when report generation fails',
   },
-  downloadReportError: {
-    id: 'instruct.dataDownloads.downloadReport.error',
-    defaultMessage: 'Failed to download report.',
-    description: 'Error message displayed when a report download fails',
-  },
   noReportsFoundMessage: {
     id: 'instruct.dataDownloads.noReportsFoundHeader',
     defaultMessage: 'No reports found',

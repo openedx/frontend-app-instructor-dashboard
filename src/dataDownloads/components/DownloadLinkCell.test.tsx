@@ -1,10 +1,7 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { DownloadLinkCell } from './DownloadLinkCell';
 import { renderWithIntl } from '@src/testUtils';
 import messages from '@src/dataDownloads/messages';
-
-const mockOnDownloadClick = jest.fn();
 
 const createMockRow = (downloadLink: string | undefined) => ({
   original: {
@@ -18,45 +15,27 @@ const createMockRow = (downloadLink: string | undefined) => ({
 const renderComponent = (props) => renderWithIntl(<DownloadLinkCell {...props} />);
 
 describe('DownloadLinkCell', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  it('should render a link to the report that opens in a new tab', () => {
+    const downloadLink = 'https://bucket.s3.amazonaws.com/grades/report.csv?X-Amz-Signature=abc';
+    renderComponent({ row: createMockRow(downloadLink) });
+
+    const link = screen.getByRole('link', { name: messages.downloadLinkLabel.defaultMessage });
+    expect(link).toHaveAttribute('href', downloadLink);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('should render download button and handle click with valid download link', async () => {
-    const user = userEvent.setup();
-    const downloadLink = 'https://example.com/report.pdf';
-    const mockRow = createMockRow(downloadLink);
+  it('should render an empty href when downloadLink is undefined', () => {
+    renderComponent({ row: createMockRow(undefined) });
 
-    renderComponent({ row: mockRow, onDownloadClick: mockOnDownloadClick });
-
-    const button = screen.getByRole('button', { name: messages.downloadLinkLabel.defaultMessage });
-    expect(button).toBeInTheDocument();
-
-    await user.click(button);
-    expect(mockOnDownloadClick).toHaveBeenCalledWith(downloadLink, mockRow.original.reportName);
+    const link = screen.getByText(messages.downloadLinkLabel.defaultMessage).closest('a');
+    expect(link).toHaveAttribute('href', '');
   });
 
-  it('should handle click with empty download link when downloadLink is undefined', async () => {
-    const user = userEvent.setup();
-    const mockRow = createMockRow(undefined);
+  it('should render an empty href when original is undefined', () => {
+    renderComponent({ row: { original: undefined } });
 
-    renderComponent({ row: mockRow, onDownloadClick: mockOnDownloadClick });
-
-    const button = screen.getByRole('button', { name: messages.downloadLinkLabel.defaultMessage });
-    await user.click(button);
-
-    expect(mockOnDownloadClick).toHaveBeenCalledWith('', mockRow.original.reportName);
-  });
-
-  it('should handle click with empty download link when original is undefined', async () => {
-    const user = userEvent.setup();
-    const mockRow = { original: undefined };
-
-    renderComponent({ row: mockRow, onDownloadClick: mockOnDownloadClick });
-
-    const button = screen.getByRole('button', { name: messages.downloadLinkLabel.defaultMessage });
-    await user.click(button);
-
-    expect(mockOnDownloadClick).toHaveBeenCalledWith('', '');
+    const link = screen.getByText(messages.downloadLinkLabel.defaultMessage).closest('a');
+    expect(link).toHaveAttribute('href', '');
   });
 });
