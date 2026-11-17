@@ -11,6 +11,7 @@ import messages from '@src/grading/messages';
 import { GradingToolsType } from '@src/grading/types';
 import { useLearner, usePendingTasks, useProblemDetails } from '@src/data/apiHook';
 import { useAlert } from '@src/providers/AlertProvider';
+import { usePermissionDeniedHandler } from '@src/permissions';
 
 interface GradingLearnerContentProps {
   toolType: GradingToolsType;
@@ -30,6 +31,7 @@ const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentP
   const { data: problemData = { currentScore: { score: 0, total: null }, attempts: { current: null, total: 0 } }, isError: isProblemDataError, refetch: refetchProblemData } = useProblemDetails(courseId, blockId, usernameOrEmail);
   const { data: learnerData = { username: '', progressUrl: '' } } = useLearner(courseId, usernameOrEmail);
   const { showModal, showToast } = useAlert();
+  const onPermissionDenied = usePermissionDeniedHandler();
 
   const { mutate: resetAttempts } = useResetAttempts(courseId);
   const { mutate: deleteHistory } = useDeleteHistory(courseId);
@@ -41,6 +43,9 @@ const GradingLearnerContent = ({ toolType, onShowTasks }: GradingLearnerContentP
 
   const manageOnError = (error: Error) => {
     resetConfirmationModalData();
+    if (onPermissionDenied(error)) {
+      return;
+    }
     const errorMessage = isAxiosError(error) && error.response?.data?.error ? error.response.data.error : intl.formatMessage(messages.unexpectedError);
     showModal({
       message: errorMessage,
