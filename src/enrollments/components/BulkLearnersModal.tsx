@@ -154,7 +154,7 @@ const BulkLearnersModal = ({
       },
       onError: (error) => {
         if (onPermissionDenied(error)) {
-          // Close the modal so the toast isn't left behind the modal overlay, where screen readers can't reach it.
+          // Close the action modal so the permission denied modal is the only dialog left open.
           onClose();
           return;
         }

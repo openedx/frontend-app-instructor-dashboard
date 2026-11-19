@@ -13,7 +13,6 @@ const defaultProps: AddBetaTestersModalProps = {
 };
 
 const mockShowModal = jest.fn();
-const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -28,7 +27,6 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
-    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -47,7 +45,6 @@ describe('AddBetaTestersModal', () => {
   beforeEach(() => {
     (useUpdateBetaTesters as jest.Mock).mockReturnValue({ mutate: mutateMock });
     mockShowModal.mockClear();
-    mockShowToast.mockClear();
     mockAddAlert.mockClear();
     (isAxiosError as unknown as jest.Mock).mockReturnValue(false);
   });
@@ -282,9 +279,10 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
-  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
+  it('shows the permission denied error modal and closes the action modal when the backend returns 403', async () => {
     mutateMock.mockImplementation((_users: any, callbacks: any) => {
       callbacks.onError({ response: { status: 403 } });
     });
@@ -292,8 +290,12 @@ describe('AddBetaTestersModal', () => {
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
     await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
-    expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
-    expect(mockShowModal).not.toHaveBeenCalled();
+    expect(mockShowModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(mockShowModal).toHaveBeenCalledTimes(1);
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
   it('shows general error modal when mutation fails with non-404 error', async () => {
@@ -319,6 +321,7 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('shows general error modal when mutation fails with non-axios error', async () => {
@@ -344,6 +347,7 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('filters out empty emails from the list', async () => {

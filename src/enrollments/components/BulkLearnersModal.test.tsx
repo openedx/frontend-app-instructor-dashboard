@@ -13,7 +13,6 @@ const defaultProps: BulkLearnersModalProps = {
 };
 
 const mockShowModal = jest.fn();
-const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -28,7 +27,6 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
-    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -43,7 +41,6 @@ describe('BulkLearnersModal', () => {
   beforeEach(() => {
     (useUpdateEnrollments as jest.Mock).mockReturnValue({ mutate: mutateMock });
     mockShowModal.mockClear();
-    mockShowToast.mockClear();
     mockAddAlert.mockClear();
   });
 
@@ -239,9 +236,10 @@ describe('BulkLearnersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
-  it('shows the permission denied toast and closes the modal when the backend returns 403', async () => {
+  it('shows the permission denied error modal and closes the action modal when the backend returns 403', async () => {
     mutateMock.mockImplementation((_users: string[], callbacks: any) => {
       callbacks.onError({ response: { status: 403 } });
     });
@@ -249,8 +247,12 @@ describe('BulkLearnersModal', () => {
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
     await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
-    expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
-    expect(mockShowModal).not.toHaveBeenCalled();
+    expect(mockShowModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(mockShowModal).toHaveBeenCalledTimes(1);
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
   it('shows default error message when error has no message', async () => {
@@ -275,6 +277,7 @@ describe('BulkLearnersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('filters out empty emails from the list', async () => {

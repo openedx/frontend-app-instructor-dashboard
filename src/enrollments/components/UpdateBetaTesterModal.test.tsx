@@ -29,7 +29,6 @@ const defaultProps = {
 };
 
 const mockShowModal = jest.fn();
-const mockShowToast = jest.fn();
 const mockAddAlert = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -44,7 +43,6 @@ jest.mock('@src/enrollments/data/apiHook', () => ({
 jest.mock('@src/providers/AlertProvider', () => ({
   useAlert: () => ({
     showModal: mockShowModal,
-    showToast: mockShowToast,
     addAlert: mockAddAlert,
   }),
   AlertProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -60,7 +58,6 @@ describe('UpdateBetaTesterModal', () => {
       isPending: false,
     });
     mockShowModal.mockClear();
-    mockShowToast.mockClear();
     mockAddAlert.mockClear();
     defaultProps.onClose.mockClear();
   });
@@ -184,16 +181,20 @@ describe('UpdateBetaTesterModal', () => {
   });
 
   describe('when the backend rejects the change with 403', () => {
-    it('shows the permission denied toast and closes the modal', async () => {
+    it('shows the permission denied error modal and closes the action modal', async () => {
       mutateMock.mockRejectedValue({ response: { status: 403 } });
       renderWithAlertAndIntl(
         <UpdateBetaTesterModal {...defaultProps} />
       );
       await userEvent.click(screen.getByRole('button', { name: /revoke/i }));
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(permissionMessages.permissionDeniedToast.defaultMessage);
+        expect(mockShowModal).toHaveBeenCalledWith({
+          message: permissionMessages.permissionDeniedError.defaultMessage,
+          variant: 'danger',
+          confirmText: permissionMessages.closeButton.defaultMessage,
+        });
       });
-      expect(mockShowModal).not.toHaveBeenCalled();
+      expect(mockShowModal).toHaveBeenCalledTimes(1);
       expect(defaultProps.onClose).toHaveBeenCalled();
     });
   });
@@ -325,6 +326,7 @@ describe('UpdateBetaTesterModal', () => {
           confirmText: messages.closeButton.defaultMessage,
         });
       });
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
     });
 
     it('shows error modal when adding beta tester fails', async () => {
@@ -346,6 +348,7 @@ describe('UpdateBetaTesterModal', () => {
           confirmText: messages.closeButton.defaultMessage,
         });
       });
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
     });
   });
 
