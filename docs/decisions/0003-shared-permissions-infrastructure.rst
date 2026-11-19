@@ -113,9 +113,10 @@ Components
    ``forbidden`` state rather than a new bespoke one. Tab visibility itself
    remains backend-driven through ``courseInfo.tabs``.
 
-6. **403 handling**: ``usePermissionDeniedHandler`` surfaces a toast via
+6. **403 handling**: ``usePermissionDeniedHandler`` surfaces an error modal via
    ``AlertProvider`` when a mutation returns ``403`` (frontend and backend
-   disagree). Documented as the default ``onError`` convention for action
+   disagree). It uses a modal rather than a toast because the dashboard
+   reserves toasts for success messages and reports errors through modals. Documented as the default ``onError`` convention for action
    mutations in the per-tab subtasks.
 
 Consequences

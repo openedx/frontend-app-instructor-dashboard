@@ -4,6 +4,14 @@ import { BULK_LEARNERS_ACTION } from './constants';
 export type LearnersAction = typeof BULK_LEARNERS_ACTION[keyof typeof BULK_LEARNERS_ACTION];
 type BetaTestersAction = 'add' | 'remove';
 
+/** Actions the user may take on the Enrollments tab, derived from AuthZ permissions. */
+export interface EnrollmentsAccess {
+  canViewEnrollments: boolean;
+  canEnroll: boolean;
+  canUnenroll: boolean;
+  canManageBetaTesters: boolean;
+}
+
 export interface EnrollmentStatusResponse {
   enrollmentStatus: string;
 }

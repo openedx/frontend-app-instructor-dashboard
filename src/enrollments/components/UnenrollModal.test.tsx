@@ -4,6 +4,7 @@ import UnenrollModal from '@src/enrollments/components/UnenrollModal';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
 import { UpdateEnrollmentsParams } from '@src/enrollments/types';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const learner = {
@@ -123,8 +124,25 @@ describe('UnenrollModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
+  it('shows the permission denied error modal and closes the action modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_params: UpdateEnrollmentsParams, callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderWithAlertAndIntl(
+      <UnenrollModal {...defaultProps} />
+    );
+    await userEvent.click(screen.getByRole('button', { name: /^unenroll$/i }));
+    expect(mockShowModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(mockShowModal).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
   it('shows default error message when error has no message', async () => {
     const mutateWithError = (_params: UpdateEnrollmentsParams, callbacks: any) => {
       callbacks.onError({});
@@ -141,6 +159,7 @@ describe('UnenrollModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('disables unenroll button when pending', () => {

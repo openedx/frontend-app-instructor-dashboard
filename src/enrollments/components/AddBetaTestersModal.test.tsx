@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios';
 import AddBetaTestersModal, { AddBetaTestersModalProps } from '@src/enrollments/components/AddBetaTestersModal';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const defaultProps: AddBetaTestersModalProps = {
@@ -278,8 +279,25 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
+  it('shows the permission denied error modal and closes the action modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_users: any, callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderComponent();
+    const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    expect(mockShowModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(mockShowModal).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
   it('shows general error modal when mutation fails with non-404 error', async () => {
     (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
     const mutateWithError = (_users: any, callbacks: any) => {
@@ -303,6 +321,7 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('shows general error modal when mutation fails with non-axios error', async () => {
@@ -328,6 +347,7 @@ describe('AddBetaTestersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('filters out empty emails from the list', async () => {

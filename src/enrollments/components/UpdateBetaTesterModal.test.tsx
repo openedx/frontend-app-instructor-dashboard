@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import UpdateBetaTesterModal from '@src/enrollments/components/UpdateBetaTesterModal';
 import { useUpdateBetaTesters } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 
 const learnerBetaTester = {
@@ -179,6 +180,25 @@ describe('UpdateBetaTesterModal', () => {
     });
   });
 
+  describe('when the backend rejects the change with 403', () => {
+    it('shows the permission denied error modal and closes the action modal', async () => {
+      mutateMock.mockRejectedValue({ response: { status: 403 } });
+      renderWithAlertAndIntl(
+        <UpdateBetaTesterModal {...defaultProps} />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /revoke/i }));
+      await waitFor(() => {
+        expect(mockShowModal).toHaveBeenCalledWith({
+          message: permissionMessages.permissionDeniedError.defaultMessage,
+          variant: 'danger',
+          confirmText: permissionMessages.closeButton.defaultMessage,
+        });
+      });
+      expect(mockShowModal).toHaveBeenCalledTimes(1);
+      expect(defaultProps.onClose).toHaveBeenCalled();
+    });
+  });
+
   describe('mutation success scenarios', () => {
     it('shows alert with failed usernames when some users fail (remove action)', async () => {
       const mockSuccessData = {
@@ -306,6 +326,7 @@ describe('UpdateBetaTesterModal', () => {
           confirmText: messages.closeButton.defaultMessage,
         });
       });
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
     });
 
     it('shows error modal when adding beta tester fails', async () => {
@@ -327,6 +348,7 @@ describe('UpdateBetaTesterModal', () => {
           confirmText: messages.closeButton.defaultMessage,
         });
       });
+      expect(defaultProps.onClose).not.toHaveBeenCalled();
     });
   });
 

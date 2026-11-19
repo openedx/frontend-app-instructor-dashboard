@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import BulkLearnersModal, { BulkLearnersModalProps } from '@src/enrollments/components/BulkLearnersModal';
 import { useUpdateEnrollments } from '@src/enrollments/data/apiHook';
 import messages from '@src/enrollments/messages';
+import permissionMessages from '@src/permissions/messages';
 import { renderWithAlertAndIntl, renderWithIntl } from '@src/testUtils';
 
 const defaultProps: BulkLearnersModalProps = {
@@ -235,8 +236,25 @@ describe('BulkLearnersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
+  it('shows the permission denied error modal and closes the action modal when the backend returns 403', async () => {
+    mutateMock.mockImplementation((_users: string[], callbacks: any) => {
+      callbacks.onError({ response: { status: 403 } });
+    });
+    renderComponent();
+    const user = userEvent.setup();
+    await user.type(screen.getByPlaceholderText(messages.userIdentifierPlaceholder.defaultMessage), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+    expect(mockShowModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(mockShowModal).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
   it('shows default error message when error has no message', async () => {
     const mutateWithError = (_users: string[], callbacks: any) => {
       callbacks.onError({});
@@ -259,6 +277,7 @@ describe('BulkLearnersModal', () => {
       variant: 'danger',
       confirmText: messages.closeButton.defaultMessage,
     });
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
   });
 
   it('filters out empty emails from the list', async () => {
