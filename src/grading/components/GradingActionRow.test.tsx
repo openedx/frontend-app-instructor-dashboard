@@ -6,7 +6,11 @@ import { useCourseInfo } from '@src/data/apiHook';
 import GradingActionRow from '@src/grading/components/GradingActionRow';
 import { useGradingConfiguration } from '@src/grading/data/apiHook';
 import messages from '@src/grading/messages';
-import { renderWithIntl } from '@src/testUtils';
+import { renderWithAlertAndIntl as renderWithIntl } from '@src/testUtils';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -31,6 +35,11 @@ jest.mock('@src/grading/data/apiHook', () => ({
 describe('GradingActionRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_GRADEBOOK]: true,
+      [COURSE_PERMISSIONS.VIEW_GRADING_CONFIGURATION]: true,
+      [COURSE_PERMISSIONS.VIEW_GRADING_SETTINGS]: true,
+    });
     (resolveRouteByRole as jest.Mock).mockReturnValue(null);
     (useCourseInfo as jest.Mock).mockReturnValue({ data: { gradebookUrl: 'https://example.com/gradebook', studioGradingUrl: 'https://example.com/studio' } });
     // TODO: Update this mock to use similar structure when API is ready, currently just returning random text to ensure component renders without error
@@ -42,6 +51,44 @@ describe('GradingActionRow', () => {
     const gradebookLink = screen.getByRole('link', { name: messages.viewGradebook.defaultMessage });
     expect(gradebookLink).toHaveAttribute('href', 'https://example.com/gradebook');
     expect(screen.getByRole('button', { name: messages.configurationAlt.defaultMessage })).toBeInTheDocument();
+  });
+
+  describe('permissions', () => {
+    it.each([
+      { gradebook: false, configuration: false, settings: false },
+      { gradebook: true, configuration: false, settings: false },
+      { gradebook: false, configuration: true, settings: false },
+      { gradebook: false, configuration: false, settings: true },
+      { gradebook: true, configuration: true, settings: false },
+      { gradebook: true, configuration: false, settings: true },
+      { gradebook: false, configuration: true, settings: true },
+      { gradebook: true, configuration: true, settings: true },
+    ])('shows authorized controls for gradebook=$gradebook configuration=$configuration settings=$settings', async ({ gradebook, configuration, settings }) => {
+      mockCoursePermissions({
+        [COURSE_PERMISSIONS.VIEW_GRADEBOOK]: gradebook,
+        [COURSE_PERMISSIONS.VIEW_GRADING_CONFIGURATION]: configuration,
+        [COURSE_PERMISSIONS.VIEW_GRADING_SETTINGS]: settings,
+        [COURSE_PERMISSIONS.MANAGE_LEARNER_GRADING]: true,
+      });
+      renderWithIntl(<GradingActionRow />);
+      expect(!!screen.queryByRole('link', { name: messages.viewGradebook.defaultMessage })).toBe(gradebook);
+      const menu = screen.queryByRole('button', { name: messages.configurationAlt.defaultMessage });
+      expect(!!menu).toBe(configuration || settings);
+      if (menu) {
+        await userEvent.setup().click(menu);
+        expect(!!screen.queryByText(messages.viewGradingConfiguration.defaultMessage)).toBe(configuration);
+        expect(!!screen.queryByText(messages.viewCourseGradingSettings.defaultMessage)).toBe(settings);
+      }
+      expect(useGradingConfiguration).not.toHaveBeenCalled();
+    });
+
+    it('does not mount the configuration query while permissions load', () => {
+      mockCoursePermissions({}, { isLoading: true });
+      renderWithIntl(<GradingActionRow />);
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(useGradingConfiguration).not.toHaveBeenCalled();
+    });
   });
 
   it('renders an SPA link when the site provides a gradebook route', () => {

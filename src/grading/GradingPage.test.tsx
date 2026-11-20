@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { renderWithIntl } from '@src/testUtils';
 import GradingPage from '@src/grading/GradingPage';
 import messages from '@src/grading/messages';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 // Mock child components, each component should have its own test suite
 jest.mock('@src/grading/components/GradingLearnerContent', () => {
@@ -28,6 +32,72 @@ jest.mock('@src/components/PendingTasks', () => {
 describe('GradingPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({ [COURSE_PERMISSIONS.MANAGE_LEARNER_GRADING]: true });
+  });
+
+  describe('permissions', () => {
+    it.each([
+      COURSE_PERMISSIONS.VIEW_GRADEBOOK,
+      COURSE_PERMISSIONS.VIEW_GRADING_CONFIGURATION,
+      COURSE_PERMISSIONS.VIEW_GRADING_SETTINGS,
+      COURSE_PERMISSIONS.MANAGE_LEARNER_GRADING,
+    ])('allows direct access with only %s', (permission) => {
+      mockCoursePermissions({ [permission]: true });
+      renderWithIntl(<GradingPage />);
+      expect(screen.getByRole('heading', { name: messages.pageTitle.defaultMessage })).toBeInTheDocument();
+      expect(screen.getByText('Grading Action Row')).toBeInTheDocument();
+      expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+
+      if (permission === COURSE_PERMISSIONS.MANAGE_LEARNER_GRADING) {
+        expect(screen.getByText('Grading Content for: single')).toBeInTheDocument();
+        expect(screen.getByText('Pending Tasks')).toBeInTheDocument();
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      } else {
+        const title = screen.getByRole('heading', { name: messages.pageTitle.defaultMessage });
+        expect(title.parentElement?.nextElementSibling).toBe(screen.getByRole('alert'));
+        expect(screen.getByRole('alert')).toHaveTextContent('You have view-only access to this page.');
+        expect(screen.queryByText('Grading Content for: single')).not.toBeInTheDocument();
+        expect(screen.queryByText('Pending Tasks')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: messages.allLearners.defaultMessage })).not.toBeInTheDocument();
+      }
+    });
+
+    it('denies direct access when none of the grading permissions are granted', () => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COURSE_INFO]: true });
+      renderWithIntl(<GradingPage />);
+      expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      expect(screen.queryByText('Grading Action Row')).not.toBeInTheDocument();
+      expect(screen.queryByText('Grading Content for: single')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pending Tasks')).not.toBeInTheDocument();
+    });
+
+    it('fails closed when the permission check fails', () => {
+      mockCoursePermissions({}, { error: new Error('validate failed') });
+      renderWithIntl(<GradingPage />);
+      expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      expect(screen.queryByText('Grading Action Row')).not.toBeInTheDocument();
+    });
+
+    it('shows only a skeleton while permissions load', () => {
+      mockCoursePermissions({}, { isLoading: true });
+      const { container } = renderWithIntl(<GradingPage />);
+      expect(container.querySelector('.react-loading-skeleton.lead')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByText('Grading Action Row')).not.toBeInTheDocument();
+      expect(screen.queryByText('Grading Content for: single')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pending Tasks')).not.toBeInTheDocument();
+    });
+
+    it('omits the view-only alert when management and view permissions are granted', () => {
+      mockCoursePermissions({
+        [COURSE_PERMISSIONS.VIEW_GRADEBOOK]: true,
+        [COURSE_PERMISSIONS.MANAGE_LEARNER_GRADING]: true,
+      });
+      renderWithIntl(<GradingPage />);
+      expect(screen.getByText('Grading Content for: single')).toBeInTheDocument();
+      expect(screen.getByText('Pending Tasks')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
   });
 
   it('renders the page title correctly', () => {
