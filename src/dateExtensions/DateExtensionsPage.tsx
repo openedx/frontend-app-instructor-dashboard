@@ -9,9 +9,14 @@ import { useAddDateExtensionMutation, useResetDateExtensionMutation } from './da
 import { useAlert } from '@src/providers/AlertProvider';
 import AddExtensionModal from './components/AddExtensionModal';
 import { APIError } from '@src/types';
+import { Skeleton } from '@openedx/paragon';
+import { COURSE_PERMISSIONS, PermissionAlert, PermissionGate, useCoursePermission, usePermissionDeniedHandler } from '@src/permissions';
+import AccessErrorAlert from '@src/providers/AccessErrorAlert';
 
-const DateExtensionsPage = () => {
+const DateExtensionsContent = () => {
   const intl = useIntl();
+  const { allowed: canManageExtensions } = useCoursePermission(COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS);
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { mutate: resetMutation } = useResetDateExtensionMutation();
   const { mutate: addExtensionMutation } = useAddDateExtensionMutation();
@@ -30,6 +35,11 @@ const DateExtensionsPage = () => {
   };
 
   const handleErrorOnReset = (error: APIError | Error) => {
+    if (onPermissionDenied(error)) {
+      handleCloseModal();
+      setIsAddExtensionModalOpen(false);
+      return;
+    }
     showModal({
       confirmText: intl.formatMessage(messages.close),
       message: 'response' in error ? error.response.data.error : error.message,
@@ -83,26 +93,40 @@ const DateExtensionsPage = () => {
   return (
     <>
       <h3 className="mb-4.5 text-primary-700">{intl.formatMessage(messages.dateExtensionsTitle)}</h3>
+      {!canManageExtensions && <PermissionAlert />}
       <DateExtensionsList
-        onClickAdd={() => setIsAddExtensionModalOpen(true)}
-        onResetExtensions={handleResetExtensions}
+        onClickAdd={canManageExtensions ? () => setIsAddExtensionModalOpen(true) : undefined}
+        onResetExtensions={canManageExtensions ? handleResetExtensions : undefined}
       />
-      <AddExtensionModal
-        isOpen={isAddExtensionModalOpen}
-        title={intl.formatMessage(messages.addIndividualDueDateExtension)}
-        onClose={() => setIsAddExtensionModalOpen(false)}
-        onSubmit={handleAddExtension}
-      />
-      <ResetExtensionsModal
-        isOpen={isResetModalOpen}
-        message={intl.formatMessage(messages.resetConfirmationMessage)}
-        title={intl.formatMessage(messages.resetConfirmationHeader, { username: selectedUser?.username })}
-        onCancelReset={handleCloseModal}
-        onClose={handleCloseModal}
-        onConfirmReset={handleConfirmReset}
-      />
+      <PermissionGate permission={COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS}>
+        <AddExtensionModal
+          isOpen={isAddExtensionModalOpen}
+          title={intl.formatMessage(messages.addIndividualDueDateExtension)}
+          onClose={() => setIsAddExtensionModalOpen(false)}
+          onSubmit={handleAddExtension}
+        />
+        <ResetExtensionsModal
+          isOpen={isResetModalOpen}
+          message={intl.formatMessage(messages.resetConfirmationMessage)}
+          title={intl.formatMessage(messages.resetConfirmationHeader, { username: selectedUser?.username })}
+          onCancelReset={handleCloseModal}
+          onClose={handleCloseModal}
+          onConfirmReset={handleConfirmReset}
+        />
+      </PermissionGate>
     </>
   );
 };
+
+// The backend controls courseInfo.tabs; this gate protects direct URL access.
+const DateExtensionsPage = () => (
+  <PermissionGate
+    permission={COURSE_PERMISSIONS.VIEW_LEARNER_EXTENSIONS}
+    loading={<Skeleton className="lead" />}
+    fallback={<AccessErrorAlert errorType="forbidden" />}
+  >
+    <DateExtensionsContent />
+  </PermissionGate>
+);
 
 export default DateExtensionsPage;
