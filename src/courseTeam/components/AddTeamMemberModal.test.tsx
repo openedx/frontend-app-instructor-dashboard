@@ -44,6 +44,7 @@ describe('AddTeamMemberModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mutateMock.mockReset();
     (useRoles as jest.Mock).mockReturnValue({ data: { results: [{ role: 'admin', displayName: 'Admin' }] } });
     (useAddTeamMember as jest.Mock).mockReturnValue({ mutate: mutateMock });
     (useAlert as jest.Mock).mockReturnValue({ showModal: showModalMock, addAlert: addAlertMock });
@@ -51,6 +52,24 @@ describe('AddTeamMemberModal', () => {
       inputValue: '',
       handleChange: handleChangeMock
     });
+  });
+
+  it('shows the permission denied error modal and closes the action modal on 403', async () => {
+    (useDebouncedFilter as jest.Mock).mockReturnValue({ inputValue: 'user1', handleChange: handleChangeMock });
+    mutateMock.mockImplementation((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertAndIntl(<AddTeamMemberModal {...defaultProps} />);
+
+    const user = userEvent.setup();
+    await user.selectOptions(screen.getByLabelText(messages.roleLabel.defaultMessage), 'admin');
+    await user.click(screen.getByText(messages.saveButton.defaultMessage));
+
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(showModalMock).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action.",
+      variant: 'danger',
+      confirmText: 'Close',
+    });
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders modal with correct title and description', () => {

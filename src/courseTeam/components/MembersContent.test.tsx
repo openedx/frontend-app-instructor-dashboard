@@ -33,6 +33,19 @@ describe('MembersContent', () => {
     (useRoles as jest.Mock).mockReturnValue({ data: mockRoles, isLoading: false });
   });
 
+  it('keeps the roster available without an actions column when editing is unavailable', () => {
+    (useTeamMembers as jest.Mock).mockReturnValue({
+      data: { results: mockTeamMembers, numPages: 1, count: 2 },
+      isLoading: false,
+    });
+    renderWithIntl(<MembersContent />);
+
+    expect(screen.getByText('user1')).toBeInTheDocument();
+    expect(screen.getByText('user1@example.com')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Actions' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+  });
+
   it('renders loading state correctly', () => {
     (useTeamMembers as jest.Mock).mockReturnValue({
       data: { results: [], numPages: 1, count: 0 },

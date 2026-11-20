@@ -8,6 +8,7 @@ import { CourseTeamMember, Role } from '@src/courseTeam/types';
 import { useAlert } from '@src/providers/AlertProvider';
 import { TEAM_MEMBER_ACTION } from '../constants';
 import { useCourseInfo } from '@src/data/apiHook';
+import { usePermissionDeniedHandler } from '@src/permissions';
 
 interface EditTeamMemberModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface EditTeamMemberModalProps {
 
 const EditTeamMemberModal = ({ isOpen, user, onClose }: EditTeamMemberModalProps) => {
   const intl = useIntl();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const [selectedRole, setSelectedRole] = useState('');
   const [keepRoles, setKeepRoles] = useState<string[]>([]);
@@ -63,7 +65,11 @@ const EditTeamMemberModal = ({ isOpen, user, onClose }: EditTeamMemberModalProps
               onSuccess: () => {
                 onClose();
               },
-              onError: () => {
+              onError: (error) => {
+                if (onPermissionDenied(error)) {
+                  onClose();
+                  return;
+                }
                 showModal({
                   message: intl.formatMessage(messages.addRoleError),
                   variant: 'danger',
@@ -75,7 +81,11 @@ const EditTeamMemberModal = ({ isOpen, user, onClose }: EditTeamMemberModalProps
             onClose();
           }
         },
-        onError: () => {
+        onError: (error) => {
+          if (onPermissionDenied(error)) {
+            onClose();
+            return;
+          }
           showModal({
             message: intl.formatMessage(messages.removeTeamMemberError, { username: user.username }),
             variant: 'danger',
@@ -89,7 +99,11 @@ const EditTeamMemberModal = ({ isOpen, user, onClose }: EditTeamMemberModalProps
         onSuccess: () => {
           onClose();
         },
-        onError: () => {
+        onError: (error) => {
+          if (onPermissionDenied(error)) {
+            onClose();
+            return;
+          }
           showModal({
             message: intl.formatMessage(messages.addRoleError),
             variant: 'danger',
