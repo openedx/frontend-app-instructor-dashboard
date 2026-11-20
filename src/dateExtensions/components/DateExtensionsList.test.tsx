@@ -1,4 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
+import componentMessages from '@src/components/messages';
+import messages from '@src/dateExtensions/messages';
 import userEvent from '@testing-library/user-event';
 import DateExtensionsList, { DateExtensionListProps } from './DateExtensionsList';
 import { renderWithIntl } from '../../testUtils';
@@ -41,6 +43,17 @@ describe('DateExtensionsList', () => {
     <DateExtensionsList {...props} />
   );
 
+  it('omits management controls without action callbacks while keeping the table and filters', () => {
+    (useDateExtensions as jest.Mock).mockReturnValue({ data: { count: 1, results: mockData } });
+    renderComponent({});
+    expect(screen.getByText(mockData[0].username)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(messages.allGradedSubsections.defaultMessage)).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: messages.reset.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: messages.resetExtensions.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` })).not.toBeInTheDocument();
+  });
+
   it('renders loading state on the table', () => {
     (useDateExtensions as jest.Mock).mockReturnValue({ isLoading: true, data: { count: 0, results: [] } });
     renderComponent({});
@@ -56,7 +69,7 @@ describe('DateExtensionsList', () => {
     expect(screen.getByText(mockData[0].email)).toBeInTheDocument();
     expect(screen.getByText(mockData[0].unitTitle)).toBeInTheDocument();
     expect(screen.getByText('11/07/2025, 12:00 AM UTC')).toBeInTheDocument();
-    const resetExtensions = screen.getByRole('button', { name: /reset extensions/i });
+    const resetExtensions = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     expect(resetExtensions).toBeInTheDocument();
     await user.click(resetExtensions);
     expect(mockResetExtensions).toHaveBeenCalledWith(mockData[0]);
@@ -66,7 +79,7 @@ describe('DateExtensionsList', () => {
     (useDateExtensions as jest.Mock).mockReturnValue({ data: { count: 0, results: [] } });
     renderComponent({});
     expect(screen.queryByText(mockData[0].username)).not.toBeInTheDocument();
-    expect(screen.getByText('No results found')).toBeInTheDocument();
+    expect(screen.getByText(messages.noDateExtensions.defaultMessage)).toBeInTheDocument();
   });
 
   it('renders add extension button and handles click', async () => {
@@ -74,7 +87,7 @@ describe('DateExtensionsList', () => {
     renderComponent({ onClickAdd: mockOnClickAdd });
     const user = userEvent.setup();
 
-    const addButton = screen.getByRole('button', { name: /add individual extension/i });
+    const addButton = screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` });
     expect(addButton).toBeInTheDocument();
 
     await user.click(addButton);
@@ -86,7 +99,7 @@ describe('DateExtensionsList', () => {
     renderComponent({});
     const user = userEvent.setup();
 
-    const searchInput = screen.getByPlaceholderText(/search by username or email/i);
+    const searchInput = screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage);
     expect(searchInput).toBeInTheDocument();
 
     await user.type(searchInput, 'test_user');
@@ -106,7 +119,7 @@ describe('DateExtensionsList', () => {
     renderComponent({});
     const user = userEvent.setup();
 
-    const searchInput = screen.getByPlaceholderText(/search by username or email/i);
+    const searchInput = screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage);
 
     // Type multiple characters quickly
     await user.type(searchInput, 'test');
@@ -139,7 +152,7 @@ describe('DateExtensionsList', () => {
     renderComponent({});
     const user = userEvent.setup();
 
-    const subsectionSelect = screen.getByPlaceholderText('All Graded Subsections');
+    const subsectionSelect = screen.getByPlaceholderText(messages.allGradedSubsections.defaultMessage);
     expect(subsectionSelect).toBeInTheDocument();
 
     await user.selectOptions(subsectionSelect, mockGradedSubsections[0].subsectionId);
@@ -171,7 +184,7 @@ describe('DateExtensionsList', () => {
     }
 
     // Now apply a filter
-    const searchInput = screen.getByPlaceholderText(/search by username or email/i);
+    const searchInput = screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage);
     await user.type(searchInput, 'test');
 
     // Should reset to page 0 when filter changes
@@ -217,7 +230,7 @@ describe('DateExtensionsList', () => {
     const user = userEvent.setup();
 
     // Apply a filter first
-    const searchInput = screen.getByPlaceholderText(/search by username or email/i);
+    const searchInput = screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage);
     await user.type(searchInput, 'test');
 
     // Wait for the filter to be applied
