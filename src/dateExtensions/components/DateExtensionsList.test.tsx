@@ -41,6 +41,17 @@ describe('DateExtensionsList', () => {
     <DateExtensionsList {...props} />
   );
 
+  it('omits management controls without action callbacks while keeping the table and filters', () => {
+    (useDateExtensions as jest.Mock).mockReturnValue({ data: { count: 1, results: mockData } });
+    renderComponent({});
+    expect(screen.getByText(mockData[0].username)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search by username or email/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('All Graded Subsections')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Reset' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /reset extensions/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add individual extension/i })).not.toBeInTheDocument();
+  });
+
   it('renders loading state on the table', () => {
     (useDateExtensions as jest.Mock).mockReturnValue({ isLoading: true, data: { count: 0, results: [] } });
     renderComponent({});

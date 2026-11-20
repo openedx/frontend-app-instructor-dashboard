@@ -38,8 +38,8 @@ const GradedSubsectionFilter = ({ column: { filterValue, setFilter } }: { column
 };
 
 const DateExtensionsList = ({
-  onResetExtensions = () => {},
-  onClickAdd = () => {},
+  onResetExtensions,
+  onClickAdd,
 }: DateExtensionListProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
@@ -77,7 +77,7 @@ const DateExtensionsList = ({
     },
   ];
 
-  const additionalColumns = [{
+  const additionalColumns = onResetExtensions ? [{
     id: 'reset',
     Header: intl.formatMessage(messages.reset),
     Cell: ({ row }: { row: { original: LearnerDateExtension } }) => (
@@ -89,7 +89,7 @@ const DateExtensionsList = ({
         {intl.formatMessage(messages.resetExtensions)}
       </Button>
     )
-  }];
+  }] : [];
 
   const handleFetchData = (data: DataTableFetchDataProps) => {
     const emailOrUsernameFilter = data.filters.find((filter) => filter.id === 'username');
@@ -142,7 +142,7 @@ const DateExtensionsList = ({
     >
       <div className="d-flex justify-content-between align-items-start pt-1 mx-3 mb-3">
         <DataTable.TableControlBar />
-        <Button className="mt-2.5" onClick={onClickAdd}>+ {intl.formatMessage(messages.addIndividualExtension)}</Button>
+        {onClickAdd && <Button className="mt-2.5" onClick={onClickAdd}>+ {intl.formatMessage(messages.addIndividualExtension)}</Button>}
       </div>
       <DataTable.Table />
       <DataTable.EmptyTable content={intl.formatMessage(messages.noDateExtensions)} />

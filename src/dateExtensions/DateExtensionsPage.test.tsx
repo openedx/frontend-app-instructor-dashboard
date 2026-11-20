@@ -1,10 +1,15 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DateExtensionsPage from './DateExtensionsPage';
 import { useDateExtensions, useGradedSubsections, useAddDateExtensionMutation, useResetDateExtensionMutation } from './data/apiHook';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import { useAlert } from '@src/providers/AlertProvider';
 import { useCourseInfo, useLearner } from '@src/data/apiHook';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+import messages from './messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -58,6 +63,10 @@ const clearAlertsMock = jest.fn();
 describe('DateExtensionsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_LEARNER_EXTENSIONS]: true,
+      [COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS]: true,
+    });
     (useDateExtensions as jest.Mock).mockReturnValue({
       data: { count: mockDateExtensions.length, results: mockDateExtensions },
       isLoading: false,
@@ -95,6 +104,119 @@ describe('DateExtensionsPage', () => {
         },
       },
       isLoading: false,
+    });
+  });
+
+  describe('permissions', () => {
+    it.each([false, true])('denies direct access without view when manage=%s', (manage) => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS]: manage });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.queryByText(messages.dateExtensionsTitle.defaultMessage)).not.toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+      expect(useLearner).not.toHaveBeenCalled();
+      expect(useAddDateExtensionMutation).not.toHaveBeenCalled();
+      expect(useResetDateExtensionMutation).not.toHaveBeenCalled();
+    });
+
+    it('shows a skeleton without mounting data queries while permissions load', () => {
+      mockCoursePermissions({}, { isLoading: true });
+      const { container } = renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(container.querySelector('.react-loading-skeleton.lead')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+    });
+
+    it('fails closed when permission validation fails', () => {
+      mockCoursePermissions({}, { error: new Error('validate failed') });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+    });
+
+    it('keeps the list and filters with a persistent alert below the title for view-only access', async () => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_LEARNER_EXTENSIONS]: true });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      const title = screen.getByRole('heading', { name: messages.dateExtensionsTitle.defaultMessage });
+      const alert = screen.getByRole('alert');
+      expect(title.nextElementSibling).toBe(alert);
+      expect(alert).toHaveTextContent('You have view-only access to this page.');
+      expect(within(alert).queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.getByText('Ed Byun')).toBeInTheDocument();
+      expect(screen.queryByRole('columnheader', { name: 'Reset' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /reset extensions/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /add individual extension/i })).not.toBeInTheDocument();
+      expect(useLearner).not.toHaveBeenCalled();
+      expect(useGradedSubsections).toHaveBeenCalled();
+      const user = userEvent.setup();
+      await user.type(screen.getByPlaceholderText(/search by username or email/i), 'edByun');
+      expect(screen.getByPlaceholderText(/search by username or email/i)).toHaveValue('edByun');
+      await user.selectOptions(screen.getByPlaceholderText('All Graded Subsections'), mockGradedSubsections[0].subsectionId);
+      expect(screen.getByPlaceholderText('All Graded Subsections')).toHaveValue(mockGradedSubsections[0].subsectionId);
+      expect(alert).toBeVisible();
+    });
+
+    it('shows management controls without the view-only alert when both permissions are granted', () => {
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByRole('button', { name: /add individual extension/i })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Reset' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /reset extensions/i })).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('allows a manager to close the add extension form without submitting', async () => {
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: /add individual extension/i }));
+      const modal = screen.getByRole('dialog');
+      await user.click(within(modal).getByRole('button', { name: /close/i }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(addExtensionMutateMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('closes the reset confirmation and shows the permission denied error modal on 403', async () => {
+    mutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertAndIntl(<DateExtensionsPage />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /reset extensions/i }));
+    await user.click(screen.getByRole('button', { name: /reset due date/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(showModalMock).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action.",
+      variant: 'danger',
+      confirmText: 'Close',
+    });
+  });
+
+  it('closes the add extension form and shows the permission denied error modal on 403', async () => {
+    (useLearner as jest.Mock).mockReturnValue({
+      data: null,
+      refetch: jest.fn().mockResolvedValue({ data: { username: 'alice', isEnrolled: true }, error: null }),
+    });
+    addExtensionMutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertAndIntl(<DateExtensionsPage />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /add individual extension/i }));
+    const modal = within(screen.getByRole('dialog'));
+    await user.type(modal.getByPlaceholderText('Learner email address or username'), 'alice');
+    await user.click(modal.getByRole('button', { name: 'Select' }));
+    await user.selectOptions(modal.getByRole('combobox'), mockGradedSubsections[0].subsectionId);
+    await user.type(modal.getByLabelText(messages.extensionDate.defaultMessage + ':'), '2027-01-10');
+    await user.click(modal.getByRole('button', { name: 'Add Extension' }));
+    expect(addExtensionMutateMock).toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(showModalMock).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action.",
+      variant: 'danger',
+      confirmText: 'Close',
     });
   });
 
