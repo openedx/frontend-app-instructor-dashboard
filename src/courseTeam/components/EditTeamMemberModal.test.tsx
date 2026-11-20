@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditTeamMemberModal from '@src/courseTeam/components/EditTeamMemberModal';
 import { useRoles, useAddTeamMember, useRemoveTeamMember } from '@src/courseTeam/data/apiHook';
@@ -6,6 +6,7 @@ import messages from '@src/courseTeam/messages';
 import { CourseTeamMember } from '@src/courseTeam/types';
 import { renderWithQueryClient } from '@src/testUtils';
 import { TEAM_MEMBER_ACTION } from '../constants';
+import permissionMessages from '@src/permissions/messages';
 
 // Mocks
 jest.mock('react-router-dom', () => ({
@@ -449,6 +450,30 @@ describe('EditTeamMemberModal', () => {
     expect(mockAddTeamMember).toHaveBeenCalled();
     // Modal should NOT close on error
     expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it.each(['add', 'remove', 'add after removal'])('shows one dismissible permission error modal and closes the action modal on 403 for %s', async operation => {
+    const forbidden = (_params, { onError }) => onError({ response: { status: 403 } });
+    if (operation === 'remove') mockRemoveTeamMember.mockImplementation(forbidden);
+    else mockAddTeamMember.mockImplementation(forbidden);
+    renderWithQueryClient(<EditTeamMemberModal {...defaultProps} />);
+
+    const user = userEvent.setup();
+    if (operation !== 'add') await user.click(screen.getByRole('checkbox', { name: 'Staff' }));
+    if (operation !== 'remove') await user.selectOptions(screen.getByRole('combobox'), 'instructor');
+    await user.click(screen.getByRole('button', { name: messages.saveButton.defaultMessage }));
+
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText(permissionMessages.permissionDeniedError.defaultMessage)).toHaveLength(1);
+    const [errorModal] = screen.getAllByRole('dialog').filter(dialog =>
+      within(dialog).queryByText(permissionMessages.permissionDeniedError.defaultMessage)
+    );
+    expect(errorModal).toBeInTheDocument();
+    expect(screen.queryByText(messages.addRoleError.defaultMessage)).not.toBeInTheDocument();
+    expect(screen.queryByText(messages.removeTeamMemberError.defaultMessage.replace('{username}', mockUser.username))).not.toBeInTheDocument();
+
+    await user.click(within(errorModal).getByText(permissionMessages.closeButton.defaultMessage, { selector: 'button' }));
+    expect(screen.queryByText(permissionMessages.permissionDeniedError.defaultMessage)).not.toBeInTheDocument();
   });
 
   it('handles remove role error and keeps modal open', async () => {
