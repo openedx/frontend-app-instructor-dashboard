@@ -4,6 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { resolveRouteByRole } from '@openedx/frontend-base';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import CourseTeamPage from '@src/courseTeam/CourseTeamPage';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -62,6 +66,89 @@ jest.mock('./components/EditTeamMemberModal', () => {
 });
 
 describe('CourseTeamPage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: true,
+    });
+  });
+
+  it.each([false, true])('withholds team content without view permission, even with manage=%s', canManage => {
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: false,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: canManage,
+    });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+    expect(screen.queryByText('Roles Content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add team member/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Access Denied');
+    expect(screen.queryByText(/You have view-only access to this page/)).not.toBeInTheDocument();
+  });
+
+  it('withholds protected content and the view-only explanation while permissions load', () => {
+    mockCoursePermissions({}, { isLoading: true });
+    const { container } = renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(container.querySelector('.react-loading-skeleton.lead')).toBeInTheDocument();
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add team member/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows the forbidden fallback when permission validation fails', () => {
+    mockCoursePermissions({}, { error: new Error('validate failed') });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Access Denied');
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [/add team member/i, 'Add Team Member Modal'],
+    [/edit user/i, 'Edit Team Member Modal for testuser'],
+  ])('closes an open %s form after management is revoked, without reopening it on restoration', async (button, modal) => {
+    const { rerender } = renderWithAlertAndIntl(<CourseTeamPage />);
+    await userEvent.setup().click(screen.getByRole('button', { name: button }));
+    expect(screen.getByText(modal)).toBeInTheDocument();
+
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true });
+    rerender(<CourseTeamPage />);
+    expect(screen.queryByText(modal)).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: true,
+    });
+    rerender(<CourseTeamPage />);
+    expect(screen.queryByText(modal)).not.toBeInTheDocument();
+  });
+
+  it('offers consultation without editing controls to a view-only user', async () => {
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.getByText('Members Content')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add team member/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit user/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'You have view-only access to this page. Contact your course administrator to request edit permissions.',
+    );
+    const title = screen.getByRole('heading', { name: 'Course Team Management' });
+    const alert = screen.getByRole('alert');
+    const tabs = screen.getByRole('tablist');
+    expect(title.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(alert.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('link', { name: /view studio roles/i })).toHaveAttribute('href', 'http://example.com/admin-console');
+
+    await userEvent.setup().click(screen.getByRole('tab', { name: /roles/i }));
+    expect(screen.getByText('Roles Content')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('You have view-only access to this page.');
+  });
+
   it('renders the course team title', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();

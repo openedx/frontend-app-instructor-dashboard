@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { resolveRouteByRole, useIntl } from '@openedx/frontend-base';
-import { Button, Tab, Tabs, useToggle } from '@openedx/paragon';
+import { Button, Skeleton, Tab, Tabs, useToggle } from '@openedx/paragon';
 import { Plus, TrendingUp } from '@openedx/paragon/icons';
 import AddTeamMemberModal from '@src/courseTeam/components/AddTeamMemberModal';
 import EditTeamMemberModal from '@src/courseTeam/components/EditTeamMemberModal';
@@ -8,18 +8,21 @@ import MembersContent from '@src/courseTeam/components/MembersContent';
 import RolesContent from '@src/courseTeam/components/RolesContent';
 import messages from '@src/courseTeam/messages';
 import { AlertOutlet } from '@src/providers/AlertProvider';
+import AccessErrorAlert from '@src/providers/AccessErrorAlert';
 import { CourseTeamMember } from '@src/courseTeam/types';
 import { Link, useParams } from 'react-router-dom';
 import { useCourseInfo } from '@src/data/apiHook';
+import { COURSE_PERMISSIONS, PermissionAlert, PermissionGate, useCoursePermission } from '@src/permissions';
 
 const adminConsoleRole = 'org.openedx.frontend.role.adminConsole';
 
-const CourseTeamPage = () => {
+const CourseTeamContent = () => {
   const intl = useIntl();
   const { courseId = '' } = useParams();
   const [isOpenAddModal, openAddModal, closeAddModal] = useToggle(false);
   const [isOpenEditModal, openEditModal, closeEditModal] = useToggle(false);
   const [selectedUser, setSelectedUser] = useState<CourseTeamMember | null>(null);
+  const { allowed: canManage } = useCoursePermission(COURSE_PERMISSIONS.MANAGE_COURSE_TEAM);
   const { data } = useCourseInfo(courseId);
   const { adminConsoleUrl = '' } = data || {};
 
@@ -29,7 +32,14 @@ const CourseTeamPage = () => {
   // since it is only reported to users with access.
   const adminConsoleRoute = resolveRouteByRole(adminConsoleRole);
 
+  useEffect(() => {
+    closeAddModal();
+    closeEditModal();
+    setSelectedUser(null);
+  }, [canManage, courseId, closeAddModal, closeEditModal]);
+
   const handleEdit = (user: CourseTeamMember) => {
+    if (!canManage) return;
     setSelectedUser(user);
     openEditModal();
   };
@@ -44,22 +54,33 @@ const CourseTeamPage = () => {
           ) : (
             <Button iconBefore={TrendingUp} variant="outline-primary" className="mr-3" as="a" href={adminConsoleRoute?.url ?? adminConsoleUrl}>{intl.formatMessage(messages.viewStudioRoles)}</Button>
           ))}
-          <Button iconBefore={Plus} variant="primary" onClick={openAddModal}>{intl.formatMessage(messages.addTeamMember)}</Button>
+          {canManage && <Button iconBefore={Plus} variant="primary" onClick={openAddModal}>{intl.formatMessage(messages.addTeamMember)}</Button>}
         </div>
       </div>
+      {!canManage && <PermissionAlert />}
       <AlertOutlet />
       <Tabs>
         <Tab eventKey="members" title={intl.formatMessage(messages.membersTab)}>
-          <MembersContent onEdit={handleEdit} />
+          <MembersContent onEdit={canManage ? handleEdit : undefined} />
         </Tab>
         <Tab eventKey="roles" title={intl.formatMessage(messages.rolesTab)}>
           <RolesContent />
         </Tab>
       </Tabs>
-      {isOpenAddModal && <AddTeamMemberModal isOpen={isOpenAddModal} onClose={closeAddModal} />}
-      {isOpenEditModal && selectedUser && <EditTeamMemberModal isOpen={isOpenEditModal} user={selectedUser} onClose={closeEditModal} />}
+      {canManage && isOpenAddModal && <AddTeamMemberModal isOpen={isOpenAddModal} onClose={closeAddModal} />}
+      {canManage && isOpenEditModal && selectedUser && <EditTeamMemberModal isOpen={isOpenEditModal} user={selectedUser} onClose={closeEditModal} />}
     </>
   );
 };
+
+const CourseTeamPage = () => (
+  <PermissionGate
+    permission={COURSE_PERMISSIONS.VIEW_COURSE_TEAM}
+    loading={<Skeleton className="lead" />}
+    fallback={<AccessErrorAlert errorType="forbidden" />}
+  >
+    <CourseTeamContent />
+  </PermissionGate>
+);
 
 export default CourseTeamPage;

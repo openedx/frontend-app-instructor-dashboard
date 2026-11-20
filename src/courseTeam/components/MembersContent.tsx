@@ -12,7 +12,7 @@ import { DataTableFetchDataProps } from '@src/types';
 const TEAM_MEMBERS_PAGE_SIZE = 25;
 
 interface MembersContentProps {
-  onEdit: (user: CourseTeamMember) => void;
+  onEdit?: (user: CourseTeamMember) => void;
 }
 
 const MembersContent = ({ onEdit }: MembersContentProps) => {
@@ -27,7 +27,7 @@ const MembersContent = ({ onEdit }: MembersContentProps) => {
     { accessor: 'roles', Header: intl.formatMessage(messages.role), Cell: ({ cell: { value } }: { cell: { value: Role[] } }) => value.map(role => role.displayName).join(', '), Filter: RoleFilter },
   ], [intl]);
 
-  const additionalColumns = useMemo(() => [{
+  const additionalColumns = useMemo(() => onEdit ? [{
     id: 'actions',
     Header: intl.formatMessage(messages.actions),
     Cell: ({ row }: { row: { original: any } }) => (
@@ -35,7 +35,7 @@ const MembersContent = ({ onEdit }: MembersContentProps) => {
         {intl.formatMessage(messages.edit)}
       </Button>
     )
-  }], [intl, onEdit]);
+  }] : [], [intl, onEdit]);
 
   const handleFetchData = (data: DataTableFetchDataProps) => {
     const usernameFilter = data.filters?.find((f) => f.id === 'username');
