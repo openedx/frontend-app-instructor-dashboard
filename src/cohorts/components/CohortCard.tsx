@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { Children, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { FormattedMessage, getExternalLinkUrl, useIntl } from '@openedx/frontend-base';
@@ -10,6 +10,7 @@ import CohortsForm from '@src/cohorts/components/CohortsForm';
 import ManageLearners from '@src/cohorts/components/ManageLearners';
 import { useCohortContext } from '@src/cohorts/components/CohortContext';
 import { useAlert } from '@src/providers/AlertProvider';
+import { COURSE_PERMISSIONS, useCoursePermission, usePermissionDeniedHandler } from '@src/permissions';
 
 export const assignmentLink = {
   random: 'https://docs.openedx.org/en/latest/educators/references/advanced_features/managing_cohort_assignment.html#about-auto-cohorts',
@@ -23,6 +24,8 @@ const warningMessage = {
 
 const CohortCard = () => {
   const intl = useIntl();
+  const { allowed: canManageCohorts } = useCoursePermission(COURSE_PERMISSIONS.MANAGE_COHORTS);
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { selectedCohort, setSelectedCohort } = useCohortContext();
   const { mutate: editCohort } = usePatchCohort(courseId);
@@ -43,6 +46,7 @@ const CohortCard = () => {
           setSelectedCohort({ ...selectedCohort, ...updatedCohort });
         },
         onError: (error) => {
+          if (onPermissionDenied(error)) return;
           const errorMessage = (isAxiosError(error) && error?.response?.data?.developer_message) || intl.formatMessage(messages.editCohortError);
           showModal({
             confirmText: intl.formatMessage(messages.closeButton),
@@ -70,17 +74,22 @@ const CohortCard = () => {
             <FormattedMessage {...warningMessage[selectedCohort.assignmentType]} /> <Hyperlink showLaunchIcon={false} target="_blank" destination={getExternalLinkUrl(assignmentLink[selectedCohort.assignmentType])}>{intl.formatMessage(messages.warningCohortLink)}</Hyperlink>
           </p>
         </div>
-        <Tabs id="cohort-management-tabs" className="mx-0" onSelect={() => {}}>
-          <Tab key="manage-learners" eventKey="manage-learners" title={intl.formatMessage(messages.manageLearners)}>
-            <ManageLearners />
-          </Tab>
-          <Tab key="settings" eventKey="settings" title={intl.formatMessage(messages.settings)}>
-            <CohortsForm
-              ref={formRef}
-              onCancel={handleCancelForm}
-              onSubmit={handleEditCohort}
-            />
-          </Tab>
+        <Tabs key={canManageCohorts ? 'manage' : 'view'} defaultActiveKey={canManageCohorts ? 'manage-learners' : 'settings'} id="cohort-management-tabs" className="mx-0" onSelect={() => {}}>
+          {Children.toArray([
+            canManageCohorts && (
+              <Tab key="manage-learners" eventKey="manage-learners" title={intl.formatMessage(messages.manageLearners)}>
+                <ManageLearners />
+              </Tab>
+            ),
+            <Tab key="settings" eventKey="settings" title={intl.formatMessage(messages.settings)}>
+              <CohortsForm
+                ref={formRef}
+                readOnly={!canManageCohorts}
+                onCancel={handleCancelForm}
+                onSubmit={handleEditCohort}
+              />
+            </Tab>,
+          ])}
         </Tabs>
       </Card>
       <Toast show={showSuccessMessage} onClose={() => setShowSuccessMessage(false)} className="text-break">

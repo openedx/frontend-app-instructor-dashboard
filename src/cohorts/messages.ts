@@ -1,6 +1,11 @@
 import { defineMessages } from '@openedx/frontend-base';
 
 const messages = defineMessages({
+  disabledViewOnlyAlert: {
+    id: 'instruct.cohorts.disabled.viewOnly.alert',
+    defaultMessage: 'No cohorts have been created yet. You have view-only access to this page, so contact your organization admin if you need permission to create cohorts.',
+    description: 'View-only alert shown when cohorting is disabled and the user cannot enable it',
+  },
   cohortsTitle: {
     id: 'instruct.cohorts.title',
     defaultMessage: 'Cohorts',
