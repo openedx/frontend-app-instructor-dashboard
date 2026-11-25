@@ -1,10 +1,19 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import componentMessages from '@src/components/messages';
 import userEvent from '@testing-library/user-event';
+import paragonModalMessages from '@openedx/paragon/dist/Modal/messages';
 import DateExtensionsPage from './DateExtensionsPage';
 import { useDateExtensions, useGradedSubsections, useAddDateExtensionMutation, useResetDateExtensionMutation } from './data/apiHook';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import { useAlert } from '@src/providers/AlertProvider';
 import { useCourseInfo, useLearner } from '@src/data/apiHook';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+import messages from './messages';
+import accessErrorMessages from '@src/providers/messages';
+import permissionMessages from '@src/permissions/messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -58,6 +67,10 @@ const clearAlertsMock = jest.fn();
 describe('DateExtensionsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_LEARNER_EXTENSIONS]: true,
+      [COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS]: true,
+    });
     (useDateExtensions as jest.Mock).mockReturnValue({
       data: { count: mockDateExtensions.length, results: mockDateExtensions },
       isLoading: false,
@@ -98,6 +111,119 @@ describe('DateExtensionsPage', () => {
     });
   });
 
+  describe('permissions', () => {
+    it.each([false, true])('denies direct access without view when manage=%s', (manage) => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.MANAGE_LEARNER_EXTENSIONS]: manage });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByText(accessErrorMessages.forbiddenErrorHeading.defaultMessage)).toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.queryByText(messages.dateExtensionsTitle.defaultMessage)).not.toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+      expect(useLearner).not.toHaveBeenCalled();
+      expect(useAddDateExtensionMutation).not.toHaveBeenCalled();
+      expect(useResetDateExtensionMutation).not.toHaveBeenCalled();
+    });
+
+    it('shows a skeleton without mounting data queries while permissions load', () => {
+      mockCoursePermissions({}, { isLoading: true });
+      const { container } = renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(container.querySelector('.react-loading-skeleton.lead')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+    });
+
+    it('fails closed when permission validation fails', () => {
+      mockCoursePermissions({}, { error: new Error('validate failed') });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByText(accessErrorMessages.forbiddenErrorHeading.defaultMessage)).toBeInTheDocument();
+      expect(useDateExtensions).not.toHaveBeenCalled();
+      expect(useGradedSubsections).not.toHaveBeenCalled();
+    });
+
+    it('keeps the list and filters with a persistent alert below the title for view-only access', async () => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_LEARNER_EXTENSIONS]: true });
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      const title = screen.getByRole('heading', { name: messages.dateExtensionsTitle.defaultMessage });
+      const alert = screen.getByRole('alert');
+      expect(title.nextElementSibling).toBe(alert);
+      expect(alert).toHaveTextContent(permissionMessages.viewOnlyAlert.defaultMessage);
+      expect(within(alert).queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.getByText('Ed Byun')).toBeInTheDocument();
+      expect(screen.queryByRole('columnheader', { name: messages.reset.defaultMessage })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: messages.resetExtensions.defaultMessage })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` })).not.toBeInTheDocument();
+      expect(useLearner).not.toHaveBeenCalled();
+      expect(useGradedSubsections).toHaveBeenCalled();
+      const user = userEvent.setup();
+      await user.type(screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage), 'edByun');
+      expect(screen.getByPlaceholderText(componentMessages.searchPlaceholder.defaultMessage)).toHaveValue('edByun');
+      await user.selectOptions(screen.getByPlaceholderText(messages.allGradedSubsections.defaultMessage), mockGradedSubsections[0].subsectionId);
+      expect(screen.getByPlaceholderText(messages.allGradedSubsections.defaultMessage)).toHaveValue(mockGradedSubsections[0].subsectionId);
+      expect(alert).toBeVisible();
+    });
+
+    it('shows management controls without the view-only alert when both permissions are granted', () => {
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      expect(screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: messages.reset.defaultMessage })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: messages.resetExtensions.defaultMessage })).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('allows a manager to close the add extension form without submitting', async () => {
+      renderWithAlertAndIntl(<DateExtensionsPage />);
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` }));
+      const modal = screen.getByRole('dialog');
+      await user.click(within(modal).getByRole('button', { name: paragonModalMessages.closeButtonText.defaultMessage }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(addExtensionMutateMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('closes the reset confirmation and shows the permission denied error modal on 403', async () => {
+    mutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertAndIntl(<DateExtensionsPage />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: messages.resetExtensions.defaultMessage }));
+    await user.click(screen.getByRole('button', { name: messages.confirm.defaultMessage }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(showModalMock).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+  });
+
+  it('closes the add extension form and shows the permission denied error modal on 403', async () => {
+    (useLearner as jest.Mock).mockReturnValue({
+      data: null,
+      refetch: jest.fn().mockResolvedValue({ data: { username: 'alice', isEnrolled: true }, error: null }),
+    });
+    addExtensionMutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertAndIntl(<DateExtensionsPage />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` }));
+    const modal = within(screen.getByRole('dialog'));
+    await user.type(modal.getByPlaceholderText(componentMessages.specifyLearnerPlaceholder.defaultMessage), 'alice');
+    await user.click(modal.getByRole('button', { name: componentMessages.select.defaultMessage }));
+    await user.selectOptions(modal.getByRole('combobox'), mockGradedSubsections[0].subsectionId);
+    await user.type(modal.getByLabelText(messages.extensionDate.defaultMessage + ':'), '2027-01-10');
+    await user.click(modal.getByRole('button', { name: messages.addExtension.defaultMessage }));
+    expect(addExtensionMutateMock).toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(showModalMock).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+  });
+
   it('renders page title', () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
@@ -105,7 +231,7 @@ describe('DateExtensionsPage', () => {
 
   it('renders add extension button', () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
-    expect(screen.getByRole('button', { name: /add individual extension/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` })).toBeInTheDocument();
   });
 
   it('renders date extensions list', () => {
@@ -125,27 +251,27 @@ describe('DateExtensionsPage', () => {
 
   it('renders reset link for each row', () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
-    const resetLinks = screen.getAllByRole('button', { name: 'Reset Extensions' });
+    const resetLinks = screen.getAllByRole('button', { name: messages.resetExtensions.defaultMessage });
     expect(resetLinks).toHaveLength(mockDateExtensions.length);
   });
 
   it('opens reset modal when reset button is clicked', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const resetButton = screen.getByRole('button', { name: 'Reset Extensions' });
+    const resetButton = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     await user.click(resetButton);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/reset extensions for/i)).toBeInTheDocument();
-    const confirmButton = screen.getByRole('button', { name: /reset due date/i });
+    expect(screen.getByText(messages.resetConfirmationHeader.defaultMessage.replace('{username}', mockDateExtensions[0].username))).toBeInTheDocument();
+    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
     expect(confirmButton).toBeInTheDocument();
   });
 
   it('calls reset mutation when confirm reset is clicked', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const resetButton = screen.getByRole('button', { name: 'Reset Extensions' });
+    const resetButton = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     await user.click(resetButton);
-    const confirmButton = screen.getByRole('button', { name: /reset due date/i });
+    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
     await user.click(confirmButton);
     expect(mutateMock).toHaveBeenCalled();
   });
@@ -153,9 +279,9 @@ describe('DateExtensionsPage', () => {
   it('closes reset modal when cancel is clicked', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const resetButton = screen.getByRole('button', { name: 'Reset Extensions' });
+    const resetButton = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     await user.click(resetButton);
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    const cancelButton = screen.getByRole('button', { name: messages.cancel.defaultMessage });
     await user.click(cancelButton);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -163,7 +289,7 @@ describe('DateExtensionsPage', () => {
   it('opens add extension modal when add button is clicked', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const addButton = screen.getByRole('button', { name: /add individual extension/i });
+    const addButton = screen.getByRole('button', { name: `+ ${messages.addIndividualExtension.defaultMessage}` });
     await user.click(addButton);
 
     // Look for any modal dialog instead of specific modal content
@@ -179,9 +305,9 @@ describe('DateExtensionsPage', () => {
   it('shows success toast when reset is successful', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const resetButton = screen.getByRole('button', { name: 'Reset Extensions' });
+    const resetButton = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     await user.click(resetButton);
-    const confirmButton = screen.getByRole('button', { name: /reset due date/i });
+    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
     await user.click(confirmButton);
 
     // Simulate successful reset by calling onSuccess callback
@@ -194,9 +320,9 @@ describe('DateExtensionsPage', () => {
   it('shows error modal when reset fails', async () => {
     renderWithAlertAndIntl(<DateExtensionsPage />);
     const user = userEvent.setup();
-    const resetButton = screen.getByRole('button', { name: 'Reset Extensions' });
+    const resetButton = screen.getByRole('button', { name: messages.resetExtensions.defaultMessage });
     await user.click(resetButton);
-    const confirmButton = screen.getByRole('button', { name: /reset due date/i });
+    const confirmButton = screen.getByRole('button', { name: messages.confirm.defaultMessage });
     await user.click(confirmButton);
 
     // Simulate error by calling onError callback
@@ -245,7 +371,7 @@ describe('DateExtensionsPage', () => {
 
     // Create a callback that calls showModal
     const errorCallback = (err) => showModalMock({
-      confirmText: 'Close',
+      confirmText: messages.close.defaultMessage,
       message: err.message,
       variant: 'danger',
       onConfirm: removeAlertMock
@@ -255,7 +381,7 @@ describe('DateExtensionsPage', () => {
     errorCallback(error);
 
     expect(showModalMock).toHaveBeenCalledWith({
-      confirmText: 'Close',
+      confirmText: messages.close.defaultMessage,
       message: 'Add extension failed',
       variant: 'danger',
       onConfirm: removeAlertMock
