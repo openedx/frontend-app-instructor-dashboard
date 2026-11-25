@@ -1,9 +1,16 @@
 import { screen } from '@testing-library/react';
+import messages from '@src/courseTeam/messages';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { resolveRouteByRole } from '@openedx/frontend-base';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import CourseTeamPage from '@src/courseTeam/CourseTeamPage';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+import accessErrorMessages from '@src/providers/messages';
+import permissionMessages from '@src/permissions/messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -62,6 +69,89 @@ jest.mock('./components/EditTeamMemberModal', () => {
 });
 
 describe('CourseTeamPage', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: true,
+    });
+  });
+
+  it.each([false, true])('withholds team content without view permission, even with manage=%s', canManage => {
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: false,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: canManage,
+    });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+    expect(screen.queryByText('Roles Content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: messages.addTeamMember.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(accessErrorMessages.forbiddenErrorHeading.defaultMessage);
+    expect(screen.queryByText(permissionMessages.viewOnlyAlert.defaultMessage)).not.toBeInTheDocument();
+  });
+
+  it('withholds protected content and the view-only explanation while permissions load', () => {
+    mockCoursePermissions({}, { isLoading: true });
+    const { container } = renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(container.querySelector('.react-loading-skeleton.lead')).toBeInTheDocument();
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: messages.addTeamMember.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows the forbidden fallback when permission validation fails', () => {
+    mockCoursePermissions({}, { error: new Error('validate failed') });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent(accessErrorMessages.forbiddenErrorHeading.defaultMessage);
+    expect(screen.queryByText('Members Content')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [messages.addTeamMember.defaultMessage, 'Add Team Member Modal'],
+    [/edit user/i, 'Edit Team Member Modal for testuser'],
+  ])('closes an open %s form after management is revoked, without reopening it on restoration', async (button, modal) => {
+    const { rerender } = renderWithAlertAndIntl(<CourseTeamPage />);
+    await userEvent.setup().click(screen.getByRole('button', { name: button }));
+    expect(screen.getByText(modal)).toBeInTheDocument();
+
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true });
+    rerender(<CourseTeamPage />);
+    expect(screen.queryByText(modal)).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    mockCoursePermissions({
+      [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true,
+      [COURSE_PERMISSIONS.MANAGE_COURSE_TEAM]: true,
+    });
+    rerender(<CourseTeamPage />);
+    expect(screen.queryByText(modal)).not.toBeInTheDocument();
+  });
+
+  it('offers consultation without editing controls to a view-only user', async () => {
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COURSE_TEAM]: true });
+    renderWithAlertAndIntl(<CourseTeamPage />);
+
+    expect(screen.getByText('Members Content')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: messages.addTeamMember.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit user/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      permissionMessages.viewOnlyAlert.defaultMessage,
+    );
+    const title = screen.getByRole('heading', { name: messages.courseTeamTitle.defaultMessage });
+    const alert = screen.getByRole('alert');
+    const tabs = screen.getByRole('tablist');
+    expect(title.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(alert.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('link', { name: messages.viewStudioRoles.defaultMessage })).toHaveAttribute('href', 'http://example.com/admin-console');
+
+    await userEvent.setup().click(screen.getByRole('tab', { name: messages.rolesTab.defaultMessage }));
+    expect(screen.getByText('Roles Content')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(permissionMessages.viewOnlyAlert.defaultMessage);
+  });
+
   it('renders the course team title', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
@@ -69,13 +159,13 @@ describe('CourseTeamPage', () => {
 
   it('renders the add team member button', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
-    expect(screen.getByRole('button', { name: /add team member/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.addTeamMember.defaultMessage })).toBeInTheDocument();
   });
 
   it('renders both tabs', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
-    expect(screen.getByRole('tab', { name: /members/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /roles/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: messages.membersTab.defaultMessage })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: messages.rolesTab.defaultMessage })).toBeInTheDocument();
   });
 
   it('renders MembersContent by default', () => {
@@ -91,7 +181,7 @@ describe('CourseTeamPage', () => {
 
   it('shows the AddTeamMemberModal when add button is clicked', async () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
-    const button = screen.getByRole('button', { name: /add team member/i });
+    const button = screen.getByRole('button', { name: messages.addTeamMember.defaultMessage });
     const user = userEvent.setup();
     await user.click(button);
     expect(screen.getByText('Add Team Member Modal')).toBeInTheDocument();
@@ -99,7 +189,7 @@ describe('CourseTeamPage', () => {
 
   it('renders RolesContent when Roles tab is selected', async () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
-    const rolesTab = screen.getByRole('tab', { name: /roles/i });
+    const rolesTab = screen.getByRole('tab', { name: messages.rolesTab.defaultMessage });
     const user = userEvent.setup();
     await user.click(rolesTab);
     expect(screen.getByText('Roles Content')).toBeInTheDocument();
@@ -133,7 +223,7 @@ describe('CourseTeamPage', () => {
 
     // Verify the component renders without crashing and shows expected initial content
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add team member/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: messages.addTeamMember.defaultMessage })).toBeInTheDocument();
   });
 
   it('passes onEdit prop to MembersContent', () => {
@@ -157,7 +247,7 @@ describe('CourseTeamPage', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
 
     // Open AddTeamMemberModal
-    const addButton = screen.getByRole('button', { name: /add team member/i });
+    const addButton = screen.getByRole('button', { name: messages.addTeamMember.defaultMessage });
     const user = userEvent.setup();
     await user.click(addButton);
     expect(screen.getByText('Add Team Member Modal')).toBeInTheDocument();
@@ -189,7 +279,7 @@ describe('CourseTeamPage', () => {
 
   it('renders view studio roles button with correct URL', () => {
     renderWithAlertAndIntl(<CourseTeamPage />);
-    const viewRolesButton = screen.getByRole('link', { name: /view studio roles/i });
+    const viewRolesButton = screen.getByRole('link', { name: messages.viewStudioRoles.defaultMessage });
     expect(viewRolesButton).toBeInTheDocument();
     expect(viewRolesButton).toHaveAttribute('href', 'http://example.com/admin-console');
   });
@@ -197,14 +287,14 @@ describe('CourseTeamPage', () => {
   it('renders an SPA link when the site provides an admin console route', () => {
     (resolveRouteByRole as jest.Mock).mockReturnValueOnce({ url: '/admin-console/authz', isInternal: true });
     renderWithAlertAndIntl(<MemoryRouter><CourseTeamPage /></MemoryRouter>);
-    const viewRolesButton = screen.getByRole('link', { name: /view studio roles/i });
+    const viewRolesButton = screen.getByRole('link', { name: messages.viewStudioRoles.defaultMessage });
     expect(viewRolesButton).toHaveAttribute('href', '/admin-console/authz');
   });
 
   it('renders a plain anchor when the admin console route is external', () => {
     (resolveRouteByRole as jest.Mock).mockReturnValueOnce({ url: 'https://other.example.com/admin-console/authz', isInternal: false });
     renderWithAlertAndIntl(<CourseTeamPage />);
-    const viewRolesButton = screen.getByRole('link', { name: /view studio roles/i });
+    const viewRolesButton = screen.getByRole('link', { name: messages.viewStudioRoles.defaultMessage });
     expect(viewRolesButton).toHaveAttribute('href', 'https://other.example.com/admin-console/authz');
   });
 });

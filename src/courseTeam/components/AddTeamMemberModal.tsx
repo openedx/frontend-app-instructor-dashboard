@@ -7,6 +7,7 @@ import messages from '@src/courseTeam/messages';
 import { useCourseInfo } from '@src/data/apiHook';
 import { useDebouncedFilter } from '@src/hooks/useDebouncedFilter';
 import { useAlert } from '@src/providers/AlertProvider';
+import { usePermissionDeniedHandler } from '@src/permissions';
 import { TEAM_MEMBER_ACTION } from '../constants';
 
 interface AddTeamMemberModalProps {
@@ -19,6 +20,7 @@ const AddTeamMemberModal = ({
   onClose,
 }: AddTeamMemberModalProps) => {
   const intl = useIntl();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { courseId = '' } = useParams<{ courseId: string }>();
   const { data: { displayName } = { displayName: '' } } = useCourseInfo(courseId);
   const { data: { results } = { results: [] } } = useRoles(courseId);
@@ -94,7 +96,11 @@ const AddTeamMemberModal = ({
         setSelectedRole('');
         onClose();
       },
-      onError: () => {
+      onError: (error) => {
+        if (onPermissionDenied(error)) {
+          onClose();
+          return;
+        }
         showModal({
           message: intl.formatMessage(messages.addTeamMemberError),
           variant: 'danger',
