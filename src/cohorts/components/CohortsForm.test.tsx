@@ -35,6 +35,25 @@ describe('CohortsForm', () => {
     jest.clearAllMocks();
   });
 
+  it('disables all settings and hides edit actions in read-only mode', async () => {
+    (useContentGroupsData as jest.Mock).mockReturnValue({ data: { groups: mockContentGroups } });
+    renderWithIntl(<CohortProvider><CohortsForm readOnly onCancel={onCancel} onSubmit={onSubmit} /></CohortProvider>);
+    expect(screen.getByRole('textbox')).toBeDisabled();
+    screen.getAllByRole('radio').forEach(radio => expect(radio).toBeDisabled());
+    expect(screen.getByRole('combobox')).toBeDisabled();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    await userEvent.setup().type(screen.getByRole('textbox'), 'Unauthorized edit');
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('hides the content-group creation link in read-only mode', () => {
+    (useContentGroupsData as jest.Mock).mockReturnValue({ data: { groups: [], studioContentGroupsLink: 'https://example.com/groups' } });
+    renderWithIntl(<CohortProvider><CohortsForm readOnly onCancel={onCancel} onSubmit={onSubmit} /></CohortProvider>);
+    expect(screen.getByText(messages.noContentGroups.defaultMessage)).toBeInTheDocument();
+    expect(screen.queryByText(messages.createContentGroup.defaultMessage)).not.toBeInTheDocument();
+  });
+
   it('renders cohort name input', () => {
     (useContentGroupsData as jest.Mock).mockReturnValue({ data: { groups: mockContentGroups } });
     renderComponent();

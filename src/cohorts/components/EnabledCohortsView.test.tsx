@@ -1,3 +1,5 @@
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
 import { useParams } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +9,9 @@ import EnabledCohortsView from '@src/cohorts/components/EnabledCohortsView';
 import { useCohorts, useContentGroupsData, useCreateCohort } from '@src/cohorts/data/apiHook';
 import messages from '@src/cohorts/messages';
 import * as AlertProvider from '@src/providers/AlertProvider';
+import permissionMessages from '@src/permissions/messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -56,6 +61,7 @@ describe('EnabledCohortsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true, [COURSE_PERMISSIONS.MANAGE_COHORTS]: true });
     (useContentGroupsData as jest.Mock).mockReturnValue({ data: { groups: mockContentGroups, id: 1 } });
     (useParams as jest.Mock).mockReturnValue({ courseId: 'course-v1:edX+Test+2024' });
     (useCreateCohort as jest.Mock).mockReturnValue({ mutate: createCohortMock });
@@ -91,6 +97,38 @@ describe('EnabledCohortsView', () => {
     expect(screen.getByText(messages.selectCohortPlaceholder.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(mockCohorts[0].name)).toBeInTheDocument();
     expect(screen.getByText(mockCohorts[1].name)).toBeInTheDocument();
+  });
+
+  it('keeps cohort selection usable without exposing the add form for view-only users', async () => {
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true });
+    (useCohorts as jest.Mock).mockReturnValue({ data: mockCohorts });
+    renderWithCohortProvider();
+    const selector = screen.getByPlaceholderText(messages.selectCohortPlaceholder.defaultMessage);
+    expect(selector).not.toBeDisabled();
+    expect(screen.queryByRole('button', { name: `+ ${messages.addCohort.defaultMessage}` })).not.toBeInTheDocument();
+    await userEvent.setup().selectOptions(selector, '2');
+    expect(screen.getByRole('tab', { name: messages.settings.defaultMessage })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(messages.cohortName.defaultMessage)).toHaveValue('Cohort 2');
+    expect(screen.getByPlaceholderText(messages.cohortName.defaultMessage)).toBeDisabled();
+    expect(createCohortMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the permission denied error modal when cohort creation returns 403', async () => {
+    const showModal = jest.fn();
+    jest.mocked(AlertProvider.useAlert).mockReturnValue({ ...AlertProvider.useAlert(), showModal });
+    (useCohorts as jest.Mock).mockReturnValue({ data: [] });
+    createCohortMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithCohortProvider();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addCohort.defaultMessage}` }));
+    await user.type(screen.getByPlaceholderText(messages.cohortName.defaultMessage), 'New Cohort');
+    await user.click(screen.getByRole('button', { name: messages.saveLabel.defaultMessage }));
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(showModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
   });
 
   it('calls handleSelectCohort on select change', async () => {

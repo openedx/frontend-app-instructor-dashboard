@@ -7,6 +7,7 @@ import messages from '@src/cohorts/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
 import * as AlertProvider from '@src/providers/AlertProvider';
 import userEvent from '@testing-library/user-event';
+import permissionMessages from '@src/permissions/messages';
 
 jest.mock('react-router-dom', () => ({
   useParams: jest.fn(),
@@ -54,6 +55,23 @@ describe('ManageLearners', () => {
     useAlertSpy.mockRestore();
   });
 
+  it('shows the permission denied error modal when assignment returns 403', async () => {
+    const showModal = jest.fn();
+    useAlertSpy.mockReturnValue({ ...AlertProvider.useAlert(), showModal });
+    mutateMock.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+    renderWithAlertProvider();
+    const user = userEvent.setup();
+    await user.type(screen.getByRole('textbox'), 'alice');
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(showModal).toHaveBeenCalledWith({
+      message: permissionMessages.permissionDeniedError.defaultMessage,
+      variant: 'danger',
+      confirmText: permissionMessages.closeButton.defaultMessage,
+    });
+    expect(addAlertMock).not.toHaveBeenCalled();
+  });
+
   it('render all static texts', () => {
     renderWithAlertProvider();
     expect(screen.getByRole('heading', { name: messages.addLearnersTitle.defaultMessage })).toBeInTheDocument();
@@ -61,7 +79,7 @@ describe('ManageLearners', () => {
     expect(screen.getByText(messages.addLearnersInstructions.defaultMessage)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(messages.learnersExample.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(messages.addLearnersFootnote.defaultMessage)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /\+ Add Learners/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` })).toBeInTheDocument();
   });
 
   it('updates textarea value and calls mutate on button click', async () => {
@@ -69,7 +87,7 @@ describe('ManageLearners', () => {
     const textarea = screen.getByPlaceholderText(messages.learnersExample.defaultMessage);
     const user = userEvent.setup();
     await user.type(textarea, 'user1@example.com,user2@example.com');
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
     expect(mutateMock).toHaveBeenCalledWith(
       ['user1@example.com', 'user2@example.com'],
       expect.objectContaining({
@@ -82,7 +100,7 @@ describe('ManageLearners', () => {
   it('handles empty input gracefully', async () => {
     renderWithAlertProvider();
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
     expect(mutateMock).toHaveBeenCalledWith(
       [],
       expect.objectContaining({
@@ -97,7 +115,7 @@ describe('ManageLearners', () => {
     const textarea = screen.getByPlaceholderText(messages.learnersExample.defaultMessage);
     const user = userEvent.setup();
     await user.type(textarea, 'user@example.com');
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
     const callArgs = mutateMock.mock.calls[0][1];
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -115,7 +133,7 @@ describe('ManageLearners', () => {
     (useCohortContext as jest.Mock).mockReturnValue({ selectedCohort: undefined });
     renderWithAlertProvider();
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
     expect(mutateMock).toHaveBeenCalled();
   });
 
@@ -124,7 +142,7 @@ describe('ManageLearners', () => {
     const textarea = screen.getByPlaceholderText(messages.learnersExample.defaultMessage);
     const user = userEvent.setup();
     await user.type(textarea, 'user@example.com');
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
     expect(clearAlertsMock).toHaveBeenCalled();
   });
@@ -136,7 +154,7 @@ describe('ManageLearners', () => {
 
     // Test with newlines
     await user.type(textarea, 'user1@example.com\nuser2@example.com\n\nuser3@example.com');
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
     expect(mutateMock).toHaveBeenCalledWith(
       ['user1@example.com', 'user2@example.com', 'user3@example.com'],
@@ -152,7 +170,7 @@ describe('ManageLearners', () => {
     const textarea = screen.getByPlaceholderText(messages.learnersExample.defaultMessage);
     const user = userEvent.setup();
     await user.type(textarea, '  user1@example.com,  user2@example.com  \n user3@example.com , \n\n  ');
-    await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+    await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
     expect(mutateMock).toHaveBeenCalledWith(
       ['user1@example.com', 'user2@example.com', 'user3@example.com'],
@@ -167,7 +185,7 @@ describe('ManageLearners', () => {
     it('shows warning alert for preassigned learners', async () => {
       renderWithAlertProvider();
       const user = userEvent.setup();
-      await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
       const callArgs = mutateMock.mock.calls[0][1];
       const response = {
@@ -190,7 +208,7 @@ describe('ManageLearners', () => {
     it('shows success alert for added and changed learners', async () => {
       renderWithAlertProvider();
       const user = userEvent.setup();
-      await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
       const callArgs = mutateMock.mock.calls[0][1];
       const response = {
@@ -213,7 +231,7 @@ describe('ManageLearners', () => {
     it('shows error alert for unknown learners', async () => {
       renderWithAlertProvider();
       const user = userEvent.setup();
-      await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
       const callArgs = mutateMock.mock.calls[0][1];
       const response = {
@@ -236,7 +254,7 @@ describe('ManageLearners', () => {
     it('shows multiple alerts for mixed response types', async () => {
       renderWithAlertProvider();
       const user = userEvent.setup();
-      await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
       const callArgs = mutateMock.mock.calls[0][1];
       const response = {
@@ -277,7 +295,7 @@ describe('ManageLearners', () => {
     it('does not show alerts when response arrays are empty', async () => {
       renderWithAlertProvider();
       const user = userEvent.setup();
-      await user.click(screen.getByRole('button', { name: /\+ Add Learners/i }));
+      await user.click(screen.getByRole('button', { name: `+ ${messages.addLearnersLabel.defaultMessage}` }));
 
       const callArgs = mutateMock.mock.calls[0][1];
       const response = {

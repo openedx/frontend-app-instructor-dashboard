@@ -1,4 +1,7 @@
-import { screen } from '@testing-library/react';
+import { COURSE_PERMISSIONS } from '@src/permissions';
+import componentMessages from '@src/components/messages';
+import { mockCoursePermissions } from '@src/permissions/testUtils';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import dataDownloadsMessages from '@src/dataDownloads/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
@@ -8,6 +11,9 @@ import { CohortProvider } from './CohortContext';
 import { useCohorts, useContentGroupsData } from '../data/apiHook';
 import messages from '../messages';
 import { assignmentTypes } from '../constants';
+import permissionMessages from '@src/permissions/messages';
+
+jest.mock('@src/permissions/useCoursePermissions');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -64,6 +70,7 @@ describe('SelectedCohortInfo', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true, [COURSE_PERMISSIONS.MANAGE_COHORTS]: true });
     (useCohorts as jest.Mock).mockReturnValue({ data: mockCohorts });
     (useContentGroupsData as jest.Mock).mockReturnValue({ data: { groups: mockContentGroups, id: 1 } });
     jest.spyOn(CohortContextModule, 'useCohortContext').mockReturnValue({
@@ -75,6 +82,19 @@ describe('SelectedCohortInfo', () => {
   });
 
   describe('Basic Rendering with Selected Cohort', () => {
+    it('hides CSV assignment and its template while keeping other documentation for view-only access', () => {
+      mockCoursePermissions({ [COURSE_PERMISSIONS.VIEW_COHORTS]: true });
+      renderWithProviders();
+      expect(screen.queryByText(messages.downloadCSVCaption.defaultMessage)).not.toBeInTheDocument();
+      expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: messages.manageLearners.defaultMessage })).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: messages.settings.defaultMessage })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: name => name.startsWith(componentMessages.viewCSVTemplate.defaultMessage) })).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: messages.warningCohortLink.defaultMessage })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: dataDownloadsMessages.pageTitle.defaultMessage })).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveValue('2');
+      expect(screen.getByRole('combobox')).toBeDisabled();
+    });
     it('renders CohortCard when a cohort is selected', () => {
       renderWithProviders();
       expect(screen.getByRole('tablist')).toBeInTheDocument();
@@ -90,7 +110,7 @@ describe('SelectedCohortInfo', () => {
 
     it('renders complete disclaimer paragraph with correct structure', () => {
       renderWithProviders();
-      const paragraph = screen.getByText(new RegExp(messages.cohortDisclaimer.defaultMessage)).closest('p');
+      const paragraph = screen.getByText(messages.cohortDisclaimer.defaultMessage, { exact: false }).closest('p');
       expect(paragraph).toBeInTheDocument();
       expect(paragraph).toHaveTextContent(messages.cohortDisclaimer.defaultMessage);
       expect(paragraph).toHaveTextContent(dataDownloadsMessages.pageTitle.defaultMessage);
@@ -108,7 +128,7 @@ describe('SelectedCohortInfo', () => {
       });
 
       renderWithProviders();
-      expect(screen.getByText(new RegExp(messages.cohortDisclaimer.defaultMessage))).toBeInTheDocument();
+      expect(screen.getByText(messages.cohortDisclaimer.defaultMessage, { exact: false })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: dataDownloadsMessages.pageTitle.defaultMessage })).toBeInTheDocument();
     });
 
@@ -137,8 +157,8 @@ describe('SelectedCohortInfo', () => {
       renderWithProviders();
       expect(screen.getByRole('tablist')).toBeInTheDocument();
       expect(screen.getByText(messages.manualCohortWarning.defaultMessage)).toBeInTheDocument();
-      expect(screen.getByText(new RegExp(messages.cohortDisclaimer.defaultMessage))).toBeInTheDocument();
-      const settingsTab = screen.getByRole('tab', { name: 'Settings' });
+      expect(screen.getByText(messages.cohortDisclaimer.defaultMessage, { exact: false })).toBeInTheDocument();
+      const settingsTab = screen.getByRole('tab', { name: messages.settings.defaultMessage });
       await userEvent.click(settingsTab);
       const selectElement = screen.getByRole('combobox');
       expect(selectElement).toHaveValue('2');
@@ -159,6 +179,22 @@ describe('SelectedCohortInfo', () => {
   });
 
   describe('Collapsible CSV Section', () => {
+    it('shows a dismissible permission denied error modal when CSV upload returns 403', async () => {
+      mockAddLearnersToCohortsBulk.mockImplementationOnce((_params, { onError }) => onError({ response: { status: 403 } }));
+      const { container } = renderWithProviders();
+      const user = userEvent.setup();
+      await user.click(screen.getByText(messages.downloadCSVCaption.defaultMessage));
+      const input = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+      await user.upload(input, new File(['email,cohort\nalice,Initial Cohort'], 'cohorts.csv', { type: 'text/csv' }));
+      const errorModal = await screen.findByRole('dialog');
+      expect(errorModal).toHaveClass('pgn__modal-danger');
+      expect(within(errorModal).getByText(permissionMessages.permissionDeniedError.defaultMessage)).toBeVisible();
+      expect(mockAddLearnersToCohortsBulk).toHaveBeenCalled();
+
+      await user.click(within(errorModal).getByRole('button', { name: permissionMessages.closeButton.defaultMessage }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
     it('renders CSV section correctly', async () => {
       renderWithProviders();
 
@@ -172,6 +208,7 @@ describe('SelectedCohortInfo', () => {
       // Check that dropzone is present
       const dropzone = screen.getByRole('presentation');
       expect(dropzone).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: name => name.startsWith(componentMessages.viewCSVTemplate.defaultMessage) })).toBeInTheDocument();
     });
   });
 });

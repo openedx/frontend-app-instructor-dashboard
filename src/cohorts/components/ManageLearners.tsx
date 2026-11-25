@@ -6,6 +6,7 @@ import { useCohortContext } from '@src/cohorts/components/CohortContext';
 import { useAddLearnersToCohort } from '@src/cohorts/data/apiHook';
 import messages from '@src/cohorts/messages';
 import { useAlert } from '@src/providers/AlertProvider';
+import { usePermissionDeniedHandler } from '@src/permissions';
 
 interface AddLearnersResponse {
   added: string[];
@@ -18,6 +19,7 @@ interface AddLearnersResponse {
 const ManageLearners = () => {
   const { courseId = '' } = useParams();
   const intl = useIntl();
+  const onPermissionDenied = usePermissionDeniedHandler();
   const { selectedCohort } = useCohortContext();
   const { mutate: addLearnersToCohort } = useAddLearnersToCohort(courseId, selectedCohort?.id ? Number(selectedCohort.id) : 0);
   const [users, setUsers] = useState('');
@@ -73,6 +75,7 @@ const ManageLearners = () => {
     addLearnersToCohort(usersArray, {
       onSuccess: handleAlertMessages,
       onError: (error) => {
+        if (onPermissionDenied(error)) return;
         addAlert({
           type: 'error',
           message: intl.formatMessage(messages.addLearnersErrorMessage)
