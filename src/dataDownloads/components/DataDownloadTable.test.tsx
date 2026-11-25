@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { DataDownloadTable } from './DataDownloadTable';
 import { DownloadReportData } from '@src/dataDownloads/types';
 import { renderWithIntl } from '@src/testUtils';
@@ -23,14 +22,8 @@ const mockData: DownloadReportData[] = [
 const renderComponent = (props) => renderWithIntl(<DataDownloadTable {...props} />);
 
 describe('DataDownloadTable', () => {
-  const mockOnDownloadClick = jest.fn();
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should render table with data and handle download click', async () => {
-    const user = userEvent.setup();
-    renderComponent({ data: mockData, isLoading: false, onDownloadClick: mockOnDownloadClick });
+  it('should render table with data and download links', () => {
+    renderComponent({ data: mockData, isLoading: false });
 
     expect(screen.getByText(messages.dateGeneratedColumnName.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(messages.reportTypeColumnName.defaultMessage)).toBeInTheDocument();
@@ -40,15 +33,13 @@ describe('DataDownloadTable', () => {
     expect(screen.getByText(mockData[0].reportType)).toBeInTheDocument();
     expect(screen.getByText(mockData[0].reportName)).toBeInTheDocument();
 
-    const downloadButtons = screen.getAllByText(messages.downloadLinkLabel.defaultMessage);
-    expect(downloadButtons).toHaveLength(mockData.length);
-
-    await user.click(downloadButtons[0]);
-    expect(mockOnDownloadClick).toHaveBeenCalledWith(mockData[0].downloadLink, mockData[0].reportName);
+    const downloadLinks = screen.getAllByRole('link', { name: messages.downloadLinkLabel.defaultMessage });
+    expect(downloadLinks).toHaveLength(mockData.length);
+    expect(downloadLinks[0]).toHaveAttribute('href', mockData[0].downloadLink);
   });
 
   it('should render loading state', () => {
-    renderComponent({ data: [], isLoading: true, onDownloadClick: mockOnDownloadClick });
+    renderComponent({ data: [], isLoading: true });
 
     expect(screen.getByText(messages.dateGeneratedColumnName.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(messages.reportTypeColumnName.defaultMessage)).toBeInTheDocument();
@@ -56,7 +47,7 @@ describe('DataDownloadTable', () => {
   });
 
   it('should render empty table when no data provided', () => {
-    renderComponent({ data: [], isLoading: false, onDownloadClick: mockOnDownloadClick });
+    renderComponent({ data: [], isLoading: false });
 
     expect(screen.getByText(messages.dateGeneratedColumnName.defaultMessage)).toBeInTheDocument();
     expect(screen.getByText(messages.reportTypeColumnName.defaultMessage)).toBeInTheDocument();
@@ -71,7 +62,7 @@ describe('DataDownloadTable', () => {
       downloadLink: `https://example.com/report-${i}.pdf`,
     }));
 
-    renderComponent({ data: manyReports, isLoading: false, onDownloadClick: mockOnDownloadClick });
+    renderComponent({ data: manyReports, isLoading: false });
 
     // With 11 items and page size of 10, pageCount > 1 so footer with pagination should render
     const navElements = screen.getAllByRole('navigation');
