@@ -1,8 +1,10 @@
-import { screen } from '@testing-library/react';
-import { renderWithIntl } from '@src/testUtils';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderWithAlertAndIntl as renderWithIntl } from '@src/testUtils';
 import { useGradingConfiguration } from '@src/grading/data/apiHook';
 import GradingConfigurationModal from '@src/grading/components/GradingConfigurationModal';
 import messages from '@src/grading/messages';
+import permissionMessages from '@src/permissions/messages';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -51,5 +53,22 @@ describe('GradingConfigurationModal', () => {
   it('calls useGradingConfiguration with courseId from params', () => {
     renderWithIntl(<GradingConfigurationModal isOpen={true} onClose={mockOnClose} />);
     expect(useGradingConfiguration).toHaveBeenCalledWith('course-v1:edX+DemoX+Demo_Course');
+  });
+
+  it('closes on 403 and shows a dismissible permission denied error modal instead of an empty configuration', async () => {
+    (useGradingConfiguration as jest.Mock).mockReturnValue({
+      data: null,
+      error: { response: { status: 403 } },
+    });
+    renderWithIntl(<GradingConfigurationModal isOpen={true} onClose={mockOnClose} />);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog', { name: messages.gradingConfiguration.defaultMessage })).not.toBeInTheDocument();
+    expect(screen.queryByText(messages.noGradingConfiguration.defaultMessage)).not.toBeInTheDocument();
+    const errorModal = screen.getByRole('dialog');
+    expect(errorModal).toHaveClass('pgn__modal-danger');
+    expect(within(errorModal).getByText(permissionMessages.permissionDeniedError.defaultMessage)).toBeVisible();
+
+    await userEvent.setup().click(within(errorModal).getByRole('button', { name: permissionMessages.closeButton.defaultMessage }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

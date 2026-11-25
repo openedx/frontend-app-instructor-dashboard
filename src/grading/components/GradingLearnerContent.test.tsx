@@ -1,10 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GradingLearnerContent from '@src/grading/components/GradingLearnerContent';
 import { useChangeScore, useDeleteHistory, useRescoreSubmission, useResetAttempts } from '@src/grading/data/apiHook';
 import { useLearner, usePendingTasks, useProblemDetails } from '@src/data/apiHook';
 import messages from '@src/grading/messages';
 import { renderWithAlertAndIntl } from '@src/testUtils';
+import permissionMessages from '@src/permissions/messages';
 
 // Mock dependencies
 jest.mock('@src/grading/data/apiHook');
@@ -377,6 +378,36 @@ describe('GradingLearnerContent', () => {
     const confirmButton = screen.getByRole('button', { name: messages.resetAttempts.defaultMessage });
     await user.click(confirmButton);
     expect(screen.getByText('custom error')).toBeInTheDocument();
+  });
+
+  it.each([
+    { action: 'reset', mutate: mockMutateReset, button: messages.resetAttemptsButtonLabel, confirm: messages.resetAttempts },
+    { action: 'rescore', mutate: mockMutateRescore, button: messages.rescoreSubmissionButtonLabel, confirm: messages.rescore },
+    { action: 'delete', mutate: mockMutateDelete, button: messages.deleteHistoryButtonLabel, confirm: messages.deleteStateButtonLabel },
+    { action: 'override', mutate: mockMutateChangeScore, button: messages.overrideScoreButtonLabel, confirm: messages.rescore },
+  ])('closes the $action confirmation and shows a dismissible permission denied error modal on 403', async ({ action, mutate, button, confirm }) => {
+    mutate.mockImplementationOnce((_params, { onError }) => onError({
+      isAxiosError: true,
+      response: { status: 403, data: { error: 'Backend denial detail' } },
+    }));
+    const user = userEvent.setup();
+    renderWithAlertAndIntl(<GradingLearnerContent {...defaultProps} />);
+    await user.click(screen.getByText('Select Learner'));
+    await user.click(screen.getByText('Select Problem'));
+    if (action === 'override') {
+      await user.type(screen.getByRole('spinbutton'), '10');
+    }
+    await user.click(screen.getByRole('button', { name: button.defaultMessage }));
+    const confirmationModal = screen.getByRole('dialog');
+    await user.click(within(confirmationModal).getByRole('button', { name: confirm.defaultMessage }));
+    expect(confirmationModal).not.toBeInTheDocument();
+    const errorModal = screen.getByRole('dialog');
+    expect(errorModal).toHaveClass('pgn__modal-danger');
+    expect(within(errorModal).getByText(permissionMessages.permissionDeniedError.defaultMessage)).toBeVisible();
+    expect(screen.queryByText('Backend denial detail')).not.toBeInTheDocument();
+
+    await user.click(within(errorModal).getByRole('button', { name: permissionMessages.closeButton.defaultMessage }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('calls onSuccess and closes modal when resetAttempts succeeds', async () => {

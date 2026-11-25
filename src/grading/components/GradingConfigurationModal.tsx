@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, ModalDialog } from '@openedx/paragon';
 import { useIntl } from '@openedx/frontend-base';
 import messages from '@src/grading/messages';
 import { useGradingConfiguration } from '@src/grading/data/apiHook';
 import CodeEditor from '@src/components/CodeEditor';
+import { usePermissionDeniedHandler } from '@src/permissions';
+import { isForbiddenError } from '@src/data/utils';
 
 interface GradingConfigurationModalProps {
   isOpen: boolean;
@@ -13,7 +16,18 @@ interface GradingConfigurationModalProps {
 const GradingConfigurationModal = ({ isOpen, onClose }: GradingConfigurationModalProps) => {
   const intl = useIntl();
   const { courseId = '' } = useParams<{ courseId: string }>();
-  const { data = null } = useGradingConfiguration(courseId);
+  const { data = null, error } = useGradingConfiguration(courseId);
+  const onPermissionDenied = usePermissionDeniedHandler();
+
+  useEffect(() => {
+    if (isOpen && error && onPermissionDenied(error)) {
+      onClose();
+    }
+  }, [isOpen, error, onPermissionDenied, onClose]);
+
+  if (isForbiddenError(error)) {
+    return null;
+  }
 
   return (
     <ModalDialog size="lg" title={intl.formatMessage(messages.gradingConfiguration)} isOpen={isOpen} onClose={onClose} isOverflowVisible={false}>
