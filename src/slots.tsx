@@ -10,6 +10,8 @@ const slots: SlotOperation[] = [
     id: 'org.openedx.frontend.widget.slotShowcase.headerLink',
     op: WidgetOperationTypes.APPEND,
     element: <CourseInfoSlot />,
+    // Other apps have routes with a course ID too: only show this on ours.
+    condition: { active: [instructorDashboardRole] },
   },
   {
     slotId: enrollmentActionsSlotId,
